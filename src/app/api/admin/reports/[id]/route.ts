@@ -31,7 +31,12 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   }
 
   const newReviewStatus = parsed.data.action === "remove" ? ReviewStatus.REMOVED : ReviewStatus.HIDDEN;
-
+if (!report.reviewId) {
+  return NextResponse.json(
+    { error: "This report is not attached to a review." },
+    { status: 400 }
+  )
+}
   await prisma.$transaction([
     prisma.review.update({ where: { id: report.reviewId }, data: { status: newReviewStatus } }),
     prisma.report.update({
