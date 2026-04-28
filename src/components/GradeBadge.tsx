@@ -62,7 +62,7 @@ export function GradeBadge({
         <div className="text-xs text-slate-600">
           {showPercentage && (
             <div className="font-semibold text-slate-800">
-              {isUnrated ? "Not rated yet" : `${pct}%`}
+              {isUnrated ? "Not rated yet" : `${rating.toFixed(1)} / 5 · ${pct}%`}
             </div>
           )}
           {showCount && (

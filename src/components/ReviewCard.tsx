@@ -54,7 +54,7 @@ export function ReviewCard({ review, canInteract }: { review: ReviewCardData; ca
           <RatingStars value={review.overall} />
           <div className="text-xs text-slate-500">
             {review.overall > 0
-              ? `${review.overall.toFixed(1)} · ${convertRatingToPercentage(review.overall)}% · ${convertRatingToLetterGrade(review.overall)}`
+              ? `${review.overall.toFixed(1)} / 5 · ${convertRatingToPercentage(review.overall)}% · ${convertRatingToLetterGrade(review.overall)}`
               : "Not rated"}
           </div>
         </div>

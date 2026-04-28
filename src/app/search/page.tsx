@@ -5,6 +5,7 @@ import { AdSlot } from "@/components/AdSlot";
 import { Division, ReviewType } from "@prisma/client";
 import Link from "next/link";
 import { SPORTS } from "@/lib/sports";
+import { RATING_FILTER_OPTIONS, parseMinRating } from "@/lib/rating-filter";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +27,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
     kind: (get(searchParams, "kind") as SearchKind) ?? "all",
     sport: get(searchParams, "sport"),
     division: get(searchParams, "division") as Division | undefined,
-    minRating: get(searchParams, "minRating") ? Number(get(searchParams, "minRating")) : undefined,
+    minRating: parseMinRating(get(searchParams, "minRating")) ?? undefined,
     reviewType: get(searchParams, "reviewType") as ReviewType | undefined,
     verifiedAthleteOnly: get(searchParams, "verifiedAthleteOnly") === "1",
     parentReviewsOnly: get(searchParams, "parentReviewsOnly") === "1",
@@ -74,12 +75,19 @@ export default async function SearchPage({ searchParams }: PageProps) {
           </FilterCard>
 
           <FilterCard title="Min rating">
-            <div className="flex gap-2">
-              {[0, 3, 4, 4.5].map((r) => (
-                <FilterPill key={r} active={(filters.minRating ?? 0) === r} href={withParam(searchParams, "minRating", r ? String(r) : undefined)}>
-                  {r ? `${r}+` : "any"}
-                </FilterPill>
-              ))}
+            <div className="flex flex-wrap gap-2">
+              {RATING_FILTER_OPTIONS.map((opt) => {
+                const active = (filters.minRating ?? null) === opt.value;
+                return (
+                  <FilterPill
+                    key={opt.label}
+                    active={active}
+                    href={withParam(searchParams, "minRating", opt.param || undefined)}
+                  >
+                    {opt.label}
+                  </FilterPill>
+                );
+              })}
             </div>
           </FilterCard>
 

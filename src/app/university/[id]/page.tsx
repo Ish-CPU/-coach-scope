@@ -7,6 +7,9 @@ import { RATING_FIELDS } from "@/lib/review-schemas";
 import { ReviewCard } from "@/components/ReviewCard";
 import { RatingSummary } from "@/components/RatingSummary";
 import { GradeBadge } from "@/components/GradeBadge";
+import { RatingFilter } from "@/components/RatingFilter";
+import { filterByMinRating, parseMinRating } from "@/lib/rating-filter";
+import { buildHrefBuilder } from "@/lib/url";
 import { AdSlot } from "@/components/AdSlot";
 import { UpgradePrompt } from "@/components/UpgradePrompt";
 import { ReviewType } from "@prisma/client";
@@ -14,7 +17,12 @@ import { ANONYMITY_DISCLAIMER } from "@/lib/anonymous";
 
 export const dynamic = "force-dynamic";
 
-export default async function UniversityProfilePage({ params }: { params: { id: string } }) {
+interface PageProps {
+  params: { id: string };
+  searchParams: Record<string, string | string[] | undefined>;
+}
+
+export default async function UniversityProfilePage({ params, searchParams }: PageProps) {
   const uni = await prisma.university.findUnique({
     where: { id: params.id },
     include: {
@@ -31,7 +39,8 @@ export default async function UniversityProfilePage({ params }: { params: { id: 
   const session = await getSession();
   const canInteract = canParticipate(session);
 
-  const sorted = defaultReviewSort(uni.reviews);
+  // Aggregate stays computed across ALL reviews; the filter only affects
+  // the visible list below.
   const overall = weightedOverall(uni.reviews);
 
   const categories: Record<string, number> = {};
@@ -39,6 +48,11 @@ export default async function UniversityProfilePage({ params }: { params: { id: 
     if (f === "overallExperience") continue;
     categories[f] = weightedCategoryAverage(uni.reviews, f);
   }
+
+  const minRating = parseMinRating(searchParams.minRating);
+  const visible = filterByMinRating(uni.reviews, minRating);
+  const sorted = defaultReviewSort(visible);
+  const buildHref = buildHrefBuilder(`/university/${uni.id}`, searchParams);
 
   return (
     <div className="container-page py-8">
@@ -70,10 +84,23 @@ export default async function UniversityProfilePage({ params }: { params: { id: 
 
       <section className="mt-8 grid gap-6 lg:grid-cols-[1fr_280px]">
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold">Reviews ({uni.reviews.length})</h2>
+          <h2 className="text-lg font-semibold">
+            Reviews ({sorted.length}
+            {minRating !== null && uni.reviews.length !== sorted.length
+              ? ` of ${uni.reviews.length}`
+              : ""}
+            )
+          </h2>
+          <div className="card p-4">
+            <RatingFilter current={minRating} buildHref={(v) => buildHref("minRating", v)} />
+          </div>
           {!canInteract && session?.user && <UpgradePrompt />}
           {sorted.length === 0 ? (
-            <div className="card p-8 text-center text-slate-500">No reviews yet.</div>
+            <div className="card p-8 text-center text-slate-500">
+              {minRating !== null
+                ? `No reviews at ${minRating}+ stars. Try a lower threshold.`
+                : "No reviews yet."}
+            </div>
           ) : (
             sorted.map((r, idx) => (
               <div key={r.id}>

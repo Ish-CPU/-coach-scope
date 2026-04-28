@@ -7,6 +7,9 @@ import { RATING_FIELDS } from "@/lib/review-schemas";
 import { ReviewCard } from "@/components/ReviewCard";
 import { RatingSummary } from "@/components/RatingSummary";
 import { GradeBadge } from "@/components/GradeBadge";
+import { RatingFilter } from "@/components/RatingFilter";
+import { filterByMinRating, parseMinRating } from "@/lib/rating-filter";
+import { buildHrefBuilder } from "@/lib/url";
 import { AdSlot } from "@/components/AdSlot";
 import { UpgradePrompt } from "@/components/UpgradePrompt";
 import { ReviewType } from "@prisma/client";
@@ -14,7 +17,12 @@ import { ANONYMITY_DISCLAIMER } from "@/lib/anonymous";
 
 export const dynamic = "force-dynamic";
 
-export default async function DormProfilePage({ params }: { params: { id: string } }) {
+interface PageProps {
+  params: { id: string };
+  searchParams: Record<string, string | string[] | undefined>;
+}
+
+export default async function DormProfilePage({ params, searchParams }: PageProps) {
   const dorm = await prisma.dorm.findUnique({
     where: { id: params.id },
     include: {
@@ -30,7 +38,7 @@ export default async function DormProfilePage({ params }: { params: { id: string
   const session = await getSession();
   const canInteract = canParticipate(session);
 
-  const sorted = defaultReviewSort(dorm.reviews);
+  // Aggregate stays computed across ALL reviews; filter only affects the list.
   const overall = weightedOverall(dorm.reviews);
 
   const categories: Record<string, number> = {};
@@ -38,6 +46,11 @@ export default async function DormProfilePage({ params }: { params: { id: string
     if (f === "overallExperience") continue;
     categories[f] = weightedCategoryAverage(dorm.reviews, f);
   }
+
+  const minRating = parseMinRating(searchParams.minRating);
+  const visible = filterByMinRating(dorm.reviews, minRating);
+  const sorted = defaultReviewSort(visible);
+  const buildHref = buildHrefBuilder(`/dorm/${dorm.id}`, searchParams);
 
   return (
     <div className="container-page py-8">
@@ -72,10 +85,23 @@ export default async function DormProfilePage({ params }: { params: { id: string
       <AdSlot variant="banner" className="mt-6" />
 
       <section className="mt-6 space-y-4">
-        <h2 className="text-lg font-semibold">Reviews ({dorm.reviews.length})</h2>
+        <h2 className="text-lg font-semibold">
+          Reviews ({sorted.length}
+          {minRating !== null && dorm.reviews.length !== sorted.length
+            ? ` of ${dorm.reviews.length}`
+            : ""}
+          )
+        </h2>
+        <div className="card p-4">
+          <RatingFilter current={minRating} buildHref={(v) => buildHref("minRating", v)} />
+        </div>
         {!canInteract && session?.user && <UpgradePrompt />}
         {sorted.length === 0 ? (
-          <div className="card p-8 text-center text-slate-500">No reviews yet.</div>
+          <div className="card p-8 text-center text-slate-500">
+            {minRating !== null
+              ? `No reviews at ${minRating}+ stars. Try a lower threshold.`
+              : "No reviews yet."}
+          </div>
         ) : (
           sorted.map((r, idx) => (
             <div key={r.id}>
