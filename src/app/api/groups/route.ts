@@ -8,6 +8,7 @@ import {
   whyCannotParticipate,
 } from "@/lib/permissions";
 import { slugify } from "@/lib/groups";
+import { isAllowedSport, SPORTS } from "@/lib/sports";
 import { GroupType, UserRole } from "@prisma/client";
 
 const schema = z.object({
@@ -16,7 +17,14 @@ const schema = z.object({
   groupType: z.nativeEnum(GroupType),
   universityId: z.string().cuid().optional(),
   schoolId: z.string().cuid().optional(),
-  sport: z.string().max(60).optional(),
+  // Free text — but we validate against the canonical SPORTS list when present.
+  sport: z
+    .string()
+    .max(60)
+    .optional()
+    .refine((v) => v === undefined || isAllowedSport(v), {
+      message: `Sport must be one of: ${SPORTS.join(", ")}`,
+    }),
   isPrivate: z.boolean().optional().default(false),
 });
 

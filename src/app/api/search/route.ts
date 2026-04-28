@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { runSearch, type SearchKind } from "@/lib/search";
+import { normalizeSport } from "@/lib/sports";
 import { Division, ReviewType } from "@prisma/client";
 
 export async function GET(req: Request) {
@@ -9,7 +10,7 @@ export async function GET(req: Request) {
   const hits = await runSearch({
     q: sp.get("q") ?? undefined,
     kind: (sp.get("kind") as SearchKind) ?? "all",
-    sport: sp.get("sport") ?? undefined,
+    sport: normalizeSport(sp.get("sport")) ?? undefined,
     division: (sp.get("division") as Division) ?? undefined,
     universityId: sp.get("universityId") ?? undefined,
     minRating: sp.get("minRating") ? Number(sp.get("minRating")) : undefined,

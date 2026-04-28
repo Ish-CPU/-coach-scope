@@ -8,6 +8,7 @@ import {
   VerificationStatus,
 } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { SPORTS } from "../src/lib/sports";
 
 const prisma = new PrismaClient();
 
@@ -113,14 +114,28 @@ async function main() {
     },
   });
 
+  // --- Cleanup: drop any School (and their Coaches via cascade) for sports
+  // that are no longer supported. Same for User.sport free-text values.
+  const removed = await prisma.school.deleteMany({
+    where: { sport: { notIn: [...SPORTS] } },
+  });
+  if (removed.count > 0) {
+    console.log(`🧹 Removed ${removed.count} School row(s) on unsupported sports.`);
+  }
+  await prisma.user.updateMany({
+    where: { sport: { not: null, notIn: [...SPORTS] } },
+    data: { sport: null },
+  });
+
   // --- Universities + Schools + Coaches + Dorms -----------------------------
+  // Only sports from src/lib/sports.ts are allowed.
   const universities = [
     {
       name: "Stanford University",
       city: "Stanford",
       state: "CA",
       description: "Private research university known for academics and athletics.",
-      sports: ["Baseball", "Football", "Basketball", "Soccer"],
+      sports: ["Baseball", "Softball", "Football", "Men's Basketball", "Women's Basketball", "Men's Soccer", "Women's Soccer"],
       dorms: ["Wilbur Hall", "Stern Hall", "Toyon Hall"],
     },
     {
@@ -128,7 +143,7 @@ async function main() {
       city: "Austin",
       state: "TX",
       description: "Large public flagship known for Longhorn athletics.",
-      sports: ["Baseball", "Football", "Basketball", "Volleyball"],
+      sports: ["Baseball", "Softball", "Football", "Men's Basketball", "Women's Basketball", "Women's Soccer"],
       dorms: ["Jester West", "Kinsolving", "San Jacinto Residence Hall"],
     },
     {
@@ -136,7 +151,7 @@ async function main() {
       city: "Ann Arbor",
       state: "MI",
       description: "Public Big Ten powerhouse.",
-      sports: ["Football", "Basketball", "Hockey", "Swimming"],
+      sports: ["Football", "Baseball", "Softball", "Men's Basketball", "Women's Basketball", "Women's Soccer"],
       dorms: ["South Quad", "Bursley Hall", "Markley Hall"],
     },
     {
@@ -144,20 +159,19 @@ async function main() {
       city: "Durham",
       state: "NC",
       description: "Private ACC school with elite basketball.",
-      sports: ["Basketball", "Football", "Lacrosse", "Soccer"],
+      sports: ["Football", "Men's Basketball", "Women's Basketball", "Men's Soccer", "Women's Soccer"],
       dorms: ["Edens Quad", "Kilgo Quad", "Crowell Quad"],
     },
   ];
 
   const coachNamesBySport: Record<string, string[]> = {
-    Baseball: ["David Esquer", "David Pierce", "Erik Bakich"],
     Football: ["Troy Taylor", "Steve Sarkisian", "Sherrone Moore", "Manny Diaz"],
-    Basketball: ["Kyle Smith", "Rodney Terry", "Dusty May", "Jon Scheyer"],
-    Soccer: ["Jeremy Gunn", "Sasho Cirovski", "John Kerr"],
-    Volleyball: ["Jerritt Elliott"],
-    Hockey: ["Brandon Naurato"],
-    Swimming: ["Matt Bowe"],
-    Lacrosse: ["John Danowski"],
+    Baseball: ["David Esquer", "David Pierce", "Erik Bakich"],
+    Softball: ["Jessica Allister", "Mike White", "Bonnie Tholl"],
+    "Men's Basketball": ["Kyle Smith", "Rodney Terry", "Dusty May", "Jon Scheyer"],
+    "Women's Basketball": ["Kate Paye", "Vic Schaefer", "Kim Barnes Arico", "Kara Lawson"],
+    "Men's Soccer": ["Jeremy Gunn", "John Kerr"],
+    "Women's Soccer": ["Paul Ratcliffe", "Angela Kelly", "Jennifer Klein", "Robbie Church"],
   };
 
   for (const u of universities) {

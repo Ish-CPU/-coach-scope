@@ -4,6 +4,7 @@ import { ResultCard } from "@/components/ResultCard";
 import { AdSlot } from "@/components/AdSlot";
 import { Division, ReviewType } from "@prisma/client";
 import Link from "next/link";
+import { SPORTS } from "@/lib/sports";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,6 @@ function get(sp: PageProps["searchParams"], k: string): string | undefined {
   return Array.isArray(v) ? v[0] : v;
 }
 
-const SPORTS = ["Baseball", "Football", "Basketball", "Soccer", "Volleyball", "Hockey", "Lacrosse", "Swimming"];
 const DIVISIONS: Division[] = ["D1", "D2", "D3", "NAIA", "NJCAA", "OTHER"];
 const KINDS: SearchKind[] = ["all", "coach", "university", "dorm", "school"];
 
