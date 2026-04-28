@@ -1,4 +1,4 @@
-// Coach Scope — database schema
+// RateMyU — database schema
 // PostgreSQL + Prisma
 
 generator client {
@@ -205,12 +205,19 @@ model Subscription {
 // ---------------------------------------------------------------------------
 
 model School {
-  id           String    @id @default(cuid())
-  universityId String
-  sport        String
-  division     Division  @default(D1)
-  conference   String?
-  description  String?
+  id              String    @id @default(cuid())
+  universityId    String
+  sport           String
+  division        Division  @default(D1)
+  conference      String?
+  description     String?
+
+  // Public-data source tracking
+  athleticsUrl    String?
+  sourceUrl       String?
+  sourceName      String?
+  seasonYear      String?
+  lastVerifiedAt  DateTime?
 
   university University @relation(fields: [universityId], references: [id], onDelete: Cascade)
   coaches    Coach[]
@@ -234,6 +241,12 @@ model Coach {
   bio       String?
   imageUrl  String?
 
+  // Public-data source tracking
+  sourceUrl      String?
+  sourceName     String?
+  seasonYear     String?
+  lastVerifiedAt DateTime?
+
   school    School    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   reviews   Review[]
   favorites Favorite[]
@@ -241,6 +254,7 @@ model Coach {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([schoolId, name])
   @@index([schoolId])
   @@index([name])
 }
@@ -254,11 +268,19 @@ model University {
   imageUrl    String?
   websiteUrl  String?
 
-  schools   School[]
-  dorms     Dorm[]
-  reviews   Review[]
-  favorites Favorite[]
-  groups    Group[]
+  // Public-data source tracking
+  sourceUrl      String?
+  sourceName     String?
+  seasonYear     String?
+  lastVerifiedAt DateTime?
+
+  schools    School[]
+  dorms      Dorm[]
+  diningHalls Dining[]
+  facilities  Facility[]
+  reviews    Review[]
+  favorites  Favorite[]
+  groups     Group[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -273,6 +295,12 @@ model Dorm {
   description  String?
   imageUrl     String?
 
+  // Public-data source tracking
+  sourceUrl      String?
+  sourceName     String?
+  seasonYear     String?
+  lastVerifiedAt DateTime?
+
   university University @relation(fields: [universityId], references: [id], onDelete: Cascade)
   reviews    Review[]
   favorites  Favorite[]
@@ -281,6 +309,56 @@ model Dorm {
   updatedAt DateTime @updatedAt
 
   @@unique([universityId, name])
+}
+
+// Public dining locations on campus (factual directory data only).
+model Dining {
+  id           String   @id @default(cuid())
+  name         String
+  universityId String
+  location     String?
+  hours        String?
+  description  String?
+  imageUrl     String?
+
+  // Public-data source tracking
+  sourceUrl      String?
+  sourceName     String?
+  seasonYear     String?
+  lastVerifiedAt DateTime?
+
+  university University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([universityId, name])
+}
+
+// Public athletic facilities (stadiums, weight rooms, training centers, etc.).
+model Facility {
+  id           String   @id @default(cuid())
+  name         String
+  universityId String
+  // Optional sport tag — if set, must match an allowed Sport in src/lib/sports.ts.
+  sport        String?
+  facilityType String?  // e.g. "Stadium", "Practice Facility", "Weight Room"
+  description  String?
+  imageUrl     String?
+
+  // Public-data source tracking
+  sourceUrl      String?
+  sourceName     String?
+  seasonYear     String?
+  lastVerifiedAt DateTime?
+
+  university University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([universityId, name])
+  @@index([sport])
 }
 
 // ---------------------------------------------------------------------------

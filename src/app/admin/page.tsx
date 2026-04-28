@@ -19,13 +19,25 @@ export default async function AdminHomePage() {
   return (
     <div className="container-page py-10">
       <h1 className="text-2xl font-bold">Admin</h1>
-      <p className="mt-1 text-sm text-slate-600">Moderation queue & verification approvals.</p>
+      <p className="mt-1 text-sm text-slate-600">
+        Moderation, verification approvals, and public-data imports.
+      </p>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="Open reports" value={openReports} href="/admin/reports" />
         <Stat label="Pending verifications" value={pendingVerifications} href="/admin/verifications" />
         <Stat label="Total reviews" value={totalReviews} />
         <Stat label="Total users" value={totalUsers} />
+      </div>
+
+      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        <Link href="/admin/import" className="card p-5 hover:shadow-card transition">
+          <div className="text-xs uppercase tracking-wider text-slate-500">Public-data import</div>
+          <div className="mt-2 text-base font-semibold">Upload CSV →</div>
+          <p className="mt-1 text-xs text-slate-500">
+            Universities, programs, coaches, dorms, dining, athletic facilities.
+          </p>
+        </Link>
       </div>
     </div>
   );

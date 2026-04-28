@@ -6,8 +6,8 @@ export function SiteFooter() {
       <div className="container-page grid grid-cols-2 gap-6 py-10 sm:grid-cols-4">
         <div className="col-span-2 sm:col-span-2">
           <div className="flex items-center gap-2 font-bold">
-            <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-brand-600 text-white text-sm">CS</span>
-            <span>Coach Scope</span>
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-brand-600 text-white text-sm">RU</span>
+            <span>RateMyU</span>
           </div>
           <p className="mt-2 max-w-md text-sm text-slate-600">
             Honest reviews of college coaches, athletic programs, universities and dorms.
@@ -35,8 +35,8 @@ export function SiteFooter() {
       </div>
       <div className="border-t border-slate-200">
         <div className="container-page py-4 text-xs text-slate-500">
-          © {new Date().getFullYear()} Coach Scope. All reviews are user-generated opinions.
-          Coach Scope does not verify the accuracy of every claim.
+          © {new Date().getFullYear()} RateMyU. All reviews are user-generated opinions.
+          RateMyU does not verify the accuracy of every claim.
         </div>
       </div>
     </footer>

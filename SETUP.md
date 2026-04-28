@@ -1,6 +1,6 @@
 # Local development setup
 
-Step-by-step guide to running Coach Scope on your machine. From a clean clone to a running app in ~10 minutes.
+Step-by-step guide to running RateMyU on your machine. From a clean clone to a running app in ~10 minutes.
 
 ---
 
@@ -55,24 +55,24 @@ Pick **one** of the following.
 
 ```bash
 docker run -d \
-  --name coach-scope-pg \
+  --name ratemyu-pg \
   -e POSTGRES_USER=postgres \
   -e POSTGRES_PASSWORD=postgres \
-  -e POSTGRES_DB=coach_scope \
+  -e POSTGRES_DB=ratemyu \
   -p 5432:5432 \
   postgres:16
 ```
 
-Connection string: `postgresql://postgres:postgres@localhost:5432/coach_scope?schema=public`
+Connection string: `postgresql://postgres:postgres@localhost:5432/ratemyu?schema=public`
 
 ### Option B — Homebrew Postgres (macOS)
 
 ```bash
 brew services start postgresql@16
-createdb coach_scope
+createdb ratemyu
 ```
 
-Connection string: `postgresql://$(whoami)@localhost:5432/coach_scope?schema=public`
+Connection string: `postgresql://$(whoami)@localhost:5432/ratemyu?schema=public`
 
 ### Option C — Hosted (Neon / Supabase / Railway / Vercel Postgres)
 
@@ -97,7 +97,7 @@ Open `.env` and set each variable as described below.
 Paste the connection string from step 2.
 
 ```env
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/coach_scope?schema=public"
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/ratemyu?schema=public"
 ```
 
 ### 3b. `NEXTAUTH_URL`
@@ -108,7 +108,7 @@ The base URL the app runs on. For local dev:
 NEXTAUTH_URL="http://localhost:3000"
 ```
 
-(In production this becomes your real domain, e.g. `https://coachscope.app`.)
+(In production this becomes your real domain, e.g. `https://ratemyu.app`.)
 
 ### 3c. `NEXTAUTH_SECRET`
 
@@ -180,7 +180,7 @@ npm run db:push
 
 > Use `npm run db:push` for early development. When you're ready to track schema history with proper migrations, switch to `npm run db:migrate` (which runs `prisma migrate dev`).
 
-Seed it with demo users, universities, coaches, dorms, and reviews:
+Seed test users + empty Verified Groups (no synthetic reviews — those only come from verified users):
 
 ```bash
 npm run db:seed
@@ -189,16 +189,44 @@ npm run db:seed
 You should see:
 
 ```
-🌱 Seeding Coach Scope...
-✅ Done seeding.
+🌱 Seeding RateMyU...
+✅ Seeded users + empty groups.
+   No reviews / ratings / posts were created — those are user-generated.
+   To load public factual data:  npm run db:import:samples
+
 Test logins (password: password123):
-  admin@coachscope.app    -> ADMIN
-  athlete@coachscope.app  -> VERIFIED_ATHLETE (paid + verified)
-  student@coachscope.app  -> VERIFIED_STUDENT (paid + verified)
-  parent@coachscope.app   -> VERIFIED_PARENT  (paid + verified)
-  pending@coachscope.app  -> VERIFIED_STUDENT (paid, NOT yet role-verified — useful for testing the gate)
-  viewer@coachscope.app   -> VIEWER (free)
+  admin@ratemyu.app    -> ADMIN
+  athlete@ratemyu.app  -> VERIFIED_ATHLETE  (paid + verified)
+  student@ratemyu.app  -> VERIFIED_STUDENT  (paid + verified)
+  parent@ratemyu.app   -> VERIFIED_PARENT   (paid + verified)
+  pending@ratemyu.app  -> VERIFIED_STUDENT  (paid, NOT yet verified)
+  viewer@ratemyu.app   -> VIEWER (free)
 ```
+
+### 5a. (Optional) Load public factual data
+
+The seed leaves universities, coaches, dorms, dining, and athletic facilities empty on purpose — RateMyU's policy is to import only **public, factual** directory data from official sources. Two ways to populate it:
+
+**A. Load the sample CSVs** (clearly marked `DEMO — verify before publishing`):
+
+```bash
+npm run db:import:samples
+```
+
+**B. Import your own CSVs** in dependency order:
+
+```bash
+npm run db:import -- universities path/to/universities.csv
+npm run db:import -- programs     path/to/programs.csv
+npm run db:import -- coaches      path/to/coaches.csv
+npm run db:import -- dorms        path/to/dorms.csv
+npm run db:import -- dining       path/to/dining.csv
+npm run db:import -- facilities   path/to/facilities.csv
+```
+
+Header-only CSV templates live in `seed/templates/`. Demo files in `seed/samples/`. Rules and column reference: [seed/README.md](seed/README.md).
+
+You can also upload CSVs from the admin UI at `/admin/import` once signed in as `admin@ratemyu.app`.
 
 To browse the database visually:
 
@@ -246,12 +274,12 @@ Open <http://localhost:3000>.
 
 Sign in with any of the seeded accounts (password is `password123` for all):
 
-- `admin@coachscope.app` → can access `/admin`
-- `athlete@coachscope.app` → can rate coaches, programs, universities, dorms; post in Athlete Groups
-- `student@coachscope.app` → can rate universities + dorms; post in Student Groups
-- `parent@coachscope.app` → can submit parent insights; post in Parent Groups
-- `pending@coachscope.app` → paid but role-verification incomplete — useful for testing the verification gate
-- `viewer@coachscope.app` → free, read-only
+- `admin@ratemyu.app` → can access `/admin`
+- `athlete@ratemyu.app` → can rate coaches, programs, universities, dorms; post in Athlete Groups
+- `student@ratemyu.app` → can rate universities + dorms; post in Student Groups
+- `parent@ratemyu.app` → can submit parent insights; post in Parent Groups
+- `pending@ratemyu.app` → paid but role-verification incomplete — useful for testing the verification gate
+- `viewer@ratemyu.app` → free, read-only
 
 To test the full flow as a fresh user:
 
@@ -295,7 +323,7 @@ npm run stripe:listen  # forward Stripe webhooks to localhost
 
 ## Troubleshooting
 
-**`Error: P1001 Can't reach database server`** — Postgres isn't running, or `DATABASE_URL` is wrong. For Docker: `docker start coach-scope-pg`.
+**`Error: P1001 Can't reach database server`** — Postgres isn't running, or `DATABASE_URL` is wrong. For Docker: `docker start ratemyu-pg`.
 
 **`PrismaClientInitializationError: Environment variable not found: DATABASE_URL`** — `.env` doesn't exist or isn't being read. Make sure you `cp .env.example .env` (not `env.example` etc.), and that you didn't put the file in a subdirectory.
 
@@ -325,6 +353,6 @@ npm run db:seed                    # re-seed
 Or, with Docker, nuke the whole instance:
 
 ```bash
-docker rm -f coach-scope-pg
+docker rm -f ratemyu-pg
 # then re-run the docker run command from step 2
 ```

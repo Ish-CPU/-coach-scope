@@ -1,5 +1,5 @@
 /**
- * Coach Scope's user-facing rating filter options.
+ * RateMyU's user-facing rating filter options.
  * Single source of truth — used by search, coach, university, dorm, and
  * program review filters.
  *

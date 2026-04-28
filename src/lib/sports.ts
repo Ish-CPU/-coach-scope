@@ -1,10 +1,10 @@
 /**
- * Canonical Coach Scope sports list.
+ * Canonical RateMyU sports list.
  *
  * This is the SINGLE source of truth for every dropdown, filter, form,
  * validator, and seed. If you add or remove a sport, do it here.
  *
- * Per spec — only NCAA-level athletics that Coach Scope supports today:
+ * Per spec — only NCAA-level athletics that RateMyU supports today:
  *
  *   Men's:   Football · Basketball · Soccer · Baseball
  *   Women's: Basketball · Softball · Soccer

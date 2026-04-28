@@ -109,7 +109,7 @@ export default function PricingPage() {
           Read free. Participate verified.
         </h1>
         <p className="mt-2 text-lg text-slate-600">
-          Anyone can browse Coach Scope. Posting reviews, voting, and joining Verified Groups
+          Anyone can browse RateMyU. Posting reviews, voting, and joining Verified Groups
           requires a verified subscription.
         </p>
         <p className="mt-2 text-sm text-slate-500">

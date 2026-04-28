@@ -27,7 +27,9 @@ export default async function UniversityProfilePage({ params, searchParams }: Pa
     where: { id: params.id },
     include: {
       schools: { include: { coaches: true } },
-      dorms: true,
+      dorms: { orderBy: { name: "asc" } },
+      diningHalls: { orderBy: { name: "asc" } },
+      facilities: { orderBy: { name: "asc" } },
       reviews: {
         where: { status: "PUBLISHED" },
         include: { author: { select: { id: true, role: true, verificationStatus: true } } },
@@ -129,15 +131,55 @@ export default async function UniversityProfilePage({ params, searchParams }: Pa
           </div>
           <div className="card p-4">
             <h3 className="text-sm font-semibold">Dorms</h3>
-            <ul className="mt-2 space-y-1 text-sm">
-              {uni.dorms.map((d) => (
-                <li key={d.id}>
-                  <Link href={`/dorm/${d.id}`} className="hover:underline">
-                    {d.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            {uni.dorms.length === 0 ? (
+              <p className="mt-1 text-xs text-slate-500">No housing data yet.</p>
+            ) : (
+              <ul className="mt-2 space-y-1 text-sm">
+                {uni.dorms.map((d) => (
+                  <li key={d.id}>
+                    <Link href={`/dorm/${d.id}`} className="hover:underline">
+                      {d.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div className="card p-4">
+            <h3 className="text-sm font-semibold">Campus dining</h3>
+            {uni.diningHalls.length === 0 ? (
+              <p className="mt-1 text-xs text-slate-500">No dining data yet.</p>
+            ) : (
+              <ul className="mt-2 space-y-1 text-sm">
+                {uni.diningHalls.map((d) => (
+                  <li key={d.id} className="flex items-baseline justify-between gap-2">
+                    <span>{d.name}</span>
+                    {d.location && (
+                      <span className="text-xs text-slate-500">{d.location}</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div className="card p-4">
+            <h3 className="text-sm font-semibold">Athletic facilities</h3>
+            {uni.facilities.length === 0 ? (
+              <p className="mt-1 text-xs text-slate-500">No facility data yet.</p>
+            ) : (
+              <ul className="mt-2 space-y-1 text-sm">
+                {uni.facilities.map((f) => (
+                  <li key={f.id} className="flex flex-col">
+                    <span>{f.name}</span>
+                    <span className="text-xs text-slate-500">
+                      {[f.facilityType, f.sport].filter(Boolean).join(" · ")}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </aside>
       </section>

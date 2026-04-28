@@ -14,9 +14,9 @@ export function SiteHeader() {
       <div className="container-page flex h-14 items-center justify-between">
         <Link href="/" className="flex items-center gap-2 font-bold text-slate-900">
           <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-brand-600 text-white text-sm">
-            CS
+            RU
           </span>
-          <span className="text-lg">Coach Scope</span>
+          <span className="text-lg">RateMyU</span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-1">

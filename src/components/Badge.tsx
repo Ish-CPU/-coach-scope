@@ -49,6 +49,6 @@ export const ROLE_DESCRIPTIONS: Record<UserRole, string> = {
     "Enrolled or former student. Rate universities, dorms, and campus life.",
   VERIFIED_PARENT:
     "Parent of a current or prospective athlete. Submit structured parent insights.",
-  ADMIN: "Coach Scope team — moderation and verification.",
+  ADMIN: "RateMyU team — moderation and verification.",
   VIEWER: "Free, read-only access.",
 };

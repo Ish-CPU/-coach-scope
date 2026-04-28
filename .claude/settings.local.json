@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(npm install *)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(sed -i.bak -e 's/Coach Scope/RateMyU/g' -e 's/coachscope\\\\.app/ratemyu.app/g' -e s/coachscope/ratemyu/g -e s/coach-scope-pg/ratemyu-pg/g -e s/coach_scope/ratemyu/g SETUP.md)",
+      "Bash(rm SETUP.md.bak)"
     ]
   }
 }

@@ -5,7 +5,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
-  title: "Coach Scope — Honest reviews of college coaches, programs & dorms",
+  title: "RateMyU — Honest reviews of college coaches, programs & dorms",
   description:
     "A transparency platform for athletes, parents, and students to rate coaches, athletic programs, universities, and dorm life.",
 };

@@ -55,7 +55,7 @@ export default async function HomePage() {
 
       <section className="container-page py-8">
         <div className="mb-4 flex items-end justify-between">
-          <h2 className="text-xl font-bold text-slate-900">Trending on Coach Scope</h2>
+          <h2 className="text-xl font-bold text-slate-900">Trending on RateMyU</h2>
           <Link href="/search" className="text-sm text-brand-700 hover:underline">
             See all results →
           </Link>
