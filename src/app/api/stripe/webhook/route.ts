@@ -106,8 +106,14 @@ async function syncSubscription(sub: Stripe.Subscription) {
 export async function POST(req: Request) {
   const sig = req.headers.get("stripe-signature");
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
-  if (!sig || !secret) {
-    return NextResponse.json({ error: "Missing signature or secret" }, { status: 400 });
+  if (!sig) {
+    // No signature header → not from Stripe. Don't reveal whether secret is set.
+    return NextResponse.json({ error: "Missing signature" }, { status: 400 });
+  }
+  if (!secret) {
+    // Misconfiguration on our side — log loudly but don't echo state to caller.
+    console.error("[stripe webhook] STRIPE_WEBHOOK_SECRET not configured");
+    return NextResponse.json({ error: "Webhook misconfigured" }, { status: 500 });
   }
 
   const rawBody = await req.text();
@@ -116,8 +122,11 @@ export async function POST(req: Request) {
   try {
     event = stripe.webhooks.constructEvent(rawBody, sig, secret);
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "Invalid payload";
-    return NextResponse.json({ error: `Webhook Error: ${msg}` }, { status: 400 });
+    // Signature mismatch / malformed payload — treat as 400 without echoing details.
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("[stripe webhook] signature verification failed:", err);
+    }
+    return NextResponse.json({ error: "Webhook signature verification failed" }, { status: 400 });
   }
 
   try {

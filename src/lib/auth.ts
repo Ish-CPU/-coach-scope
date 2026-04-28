@@ -4,10 +4,11 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { rateLimitCheck, clientIpFrom } from "@/lib/rate-limit";
 
 const credentialsSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
+  email: z.string().email().max(254),
+  password: z.string().min(8).max(128),
 });
 
 export const authOptions: NextAuthOptions = {
@@ -23,10 +24,29 @@ export const authOptions: NextAuthOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(raw) {
+      async authorize(raw, req) {
         const parsed = credentialsSchema.safeParse(raw);
         if (!parsed.success) return null;
         const { email, password } = parsed.data;
+
+        // Rate limit: per-IP and per-email-target.
+        // - 10 attempts / 5 min per IP defeats lazy password sprays.
+        // - 5 attempts / 5 min per email defeats targeted account guessing.
+        const headers = new Headers();
+        for (const [k, v] of Object.entries(req?.headers ?? {})) {
+          if (typeof v === "string") headers.set(k, v);
+        }
+        const ip = clientIpFrom(headers);
+        const ipOk = rateLimitCheck(ip, "auth:signin:ip", { max: 10, windowMs: 5 * 60_000 });
+        const emailOk = rateLimitCheck(email.toLowerCase(), "auth:signin:email", {
+          max: 5,
+          windowMs: 5 * 60_000,
+        });
+        if (!ipOk.ok || !emailOk.ok) {
+          // NextAuth treats null as "invalid credentials" — same response shape
+          // as a wrong password, so we don't leak whether the email exists.
+          return null;
+        }
 
         const user = await prisma.user.findUnique({ where: { email } });
         if (!user?.passwordHash) return null;

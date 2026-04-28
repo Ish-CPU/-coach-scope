@@ -7,6 +7,7 @@ import {
   getSession,
   whyCannotParticipate,
 } from "@/lib/permissions";
+import { rateLimit } from "@/lib/rate-limit";
 import type { PostSort } from "@/lib/groups";
 
 const schema = z.object({
@@ -31,6 +32,13 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
       { status: 403 }
     );
   }
+
+  const limited = rateLimit(req, "group:post:create", {
+    max: 10,
+    windowMs: 10 * 60_000,
+    identifier: session!.user.id,
+  });
+  if (limited) return limited;
 
   let body: unknown;
   try {

@@ -4,11 +4,14 @@ import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense, useState } from "react";
+import { safeCallbackUrl } from "@/lib/safe-url";
 
 function SignInInner() {
   const router = useRouter();
   const sp = useSearchParams();
-  const callbackUrl = sp.get("callbackUrl") ?? "/dashboard";
+  // Reject absolute / cross-origin / scheme-injection callbackUrls — only
+  // accept same-origin relative paths. Defends against open-redirect after sign-in.
+  const callbackUrl = safeCallbackUrl(sp.get("callbackUrl"), "/dashboard");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);

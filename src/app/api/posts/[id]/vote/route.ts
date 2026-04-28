@@ -7,6 +7,7 @@ import {
   getSession,
   whyCannotParticipate,
 } from "@/lib/permissions";
+import { rateLimit } from "@/lib/rate-limit";
 
 const schema = z.object({
   // value of 0 removes the vote; +1 upvotes; -1 downvotes
@@ -19,6 +20,14 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   if (gate) {
     return NextResponse.json({ error: describeGate(gate) }, { status: 403 });
   }
+
+  // High burst budget — votes are tiny but spammable; 120/min still feels instant.
+  const limited = rateLimit(req, "post:vote", {
+    max: 120,
+    windowMs: 60_000,
+    identifier: session!.user.id,
+  });
+  if (limited) return limited;
 
   let body: unknown;
   try {

@@ -6,6 +6,7 @@ import {
   VerificationStatus,
 } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { PASSWORD_BCRYPT_ROUNDS } from "../src/lib/security";
 
 const prisma = new PrismaClient();
 
@@ -26,7 +27,7 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("🌱 Seeding RateMyU...");
 
-  const passwordHash = await bcrypt.hash("password123", 10);
+  const passwordHash = await bcrypt.hash("password123", PASSWORD_BCRYPT_ROUNDS);
 
   const admin = await prisma.user.upsert({
     where: { email: "admin@ratemyu.app" },

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { describeGate, getSession, whyCannotParticipate } from "@/lib/permissions";
+import { rateLimit } from "@/lib/rate-limit";
 
 const schema = z
   .object({
@@ -21,6 +22,13 @@ export async function POST(req: Request) {
   if (gate) {
     return NextResponse.json({ error: describeGate(gate) }, { status: 403 });
   }
+
+  const limited = rateLimit(req, "favorite:toggle", {
+    max: 60,
+    windowMs: 60_000,
+    identifier: session!.user.id,
+  });
+  if (limited) return limited;
 
   let body: unknown;
   try {

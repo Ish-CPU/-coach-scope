@@ -9,6 +9,7 @@ import {
 } from "@/lib/permissions";
 import { reviewSubmissionSchema } from "@/lib/review-schemas";
 import { deriveOverall, weightForRole } from "@/lib/review-weighting";
+import { rateLimit } from "@/lib/rate-limit";
 import { Prisma, ReviewStatus, ReviewType } from "@prisma/client";
 
 export async function POST(req: Request) {
@@ -17,6 +18,14 @@ export async function POST(req: Request) {
   if (gate) {
     return NextResponse.json({ error: describeGate(gate) }, { status: 403 });
   }
+
+  // 10 reviews / 10 min per user — well above any honest cadence.
+  const limited = rateLimit(req, "review:create", {
+    max: 10,
+    windowMs: 10 * 60_000,
+    identifier: session!.user.id,
+  });
+  if (limited) return limited;
 
   let body: unknown;
   try {

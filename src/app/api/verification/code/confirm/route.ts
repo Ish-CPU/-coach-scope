@@ -9,6 +9,7 @@ import {
   verifyCode,
   MAX_VERIFICATION_ATTEMPTS_24H,
 } from "@/lib/verification";
+import { rateLimit } from "@/lib/rate-limit";
 
 const schema = z.object({
   email: z.string().email(),
@@ -23,6 +24,19 @@ export async function POST(req: Request) {
   if (!isPaymentVerified(session) && session.user.role !== UserRole.ADMIN) {
     return NextResponse.json({ error: "Subscribe before verifying your role." }, { status: 403 });
   }
+
+  // Hard ceiling on code-confirm tries — slows brute-forcing the 6-digit code.
+  const userLimited = rateLimit(req, "verification:code:confirm:user", {
+    max: 10,
+    windowMs: 15 * 60_000,
+    identifier: session.user.id,
+  });
+  if (userLimited) return userLimited;
+  const ipLimited = rateLimit(req, "verification:code:confirm:ip", {
+    max: 30,
+    windowMs: 15 * 60_000,
+  });
+  if (ipLimited) return ipLimited;
 
   const attempts = await recentAttemptCount(session.user.id);
   if (attempts >= MAX_VERIFICATION_ATTEMPTS_24H && session.user.role !== UserRole.ADMIN) {

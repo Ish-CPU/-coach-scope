@@ -9,6 +9,8 @@ import {
   recentAttemptCount,
   rosterUrlLooksOfficial,
 } from "@/lib/verification";
+import { rateLimit } from "@/lib/rate-limit";
+import { isSafeHttpUrl } from "@/lib/safe-url";
 
 const schema = z.object({
   method: z.nativeEnum(VerificationMethod),
@@ -31,6 +33,14 @@ export async function POST(req: Request) {
       { status: 403 }
     );
   }
+
+  // Burst protection in addition to the 24h attempt cap below.
+  const limited = rateLimit(req, "verification:submit", {
+    max: 10,
+    windowMs: 10 * 60_000,
+    identifier: session.user.id,
+  });
+  if (limited) return limited;
 
   // Anti-fake throttle
   const attempts = await recentAttemptCount(session.user.id);
@@ -82,6 +92,16 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+  }
+  if (
+    (data.method === VerificationMethod.PROOF_UPLOAD || data.method === VerificationMethod.PARENT_DOC) &&
+    data.proofUrl &&
+    !isSafeHttpUrl(data.proofUrl)
+  ) {
+    return NextResponse.json(
+      { error: "Proof URL must be a public http(s) link, not a shortener or Drive link." },
+      { status: 400 }
+    );
   }
 
   const isParentRequest = role === UserRole.VERIFIED_PARENT;

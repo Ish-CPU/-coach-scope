@@ -9,6 +9,7 @@ import {
 } from "@/lib/permissions";
 import { slugify } from "@/lib/groups";
 import { isAllowedSport, SPORTS } from "@/lib/sports";
+import { rateLimit } from "@/lib/rate-limit";
 import { GroupType, UserRole } from "@prisma/client";
 
 const schema = z.object({
@@ -61,6 +62,14 @@ export async function POST(req: Request) {
   if (gate) {
     return NextResponse.json({ error: describeGate(gate) }, { status: 403 });
   }
+
+  // Group creation is heavy + spammable — 5 / hour per user.
+  const limited = rateLimit(req, "group:create", {
+    max: 5,
+    windowMs: 60 * 60_000,
+    identifier: session!.user.id,
+  });
+  if (limited) return limited;
 
   let body: unknown;
   try {

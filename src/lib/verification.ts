@@ -1,5 +1,7 @@
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { VERIFICATION_CODE_BCRYPT_ROUNDS } from "@/lib/security";
+import { isSafeHttpUrl } from "@/lib/safe-url";
 
 /**
  * Anti-fake limit: at most this many verification attempts per user
@@ -29,13 +31,12 @@ export function parseEduEmail(email: string):
 }
 
 export function rosterUrlLooksOfficial(rosterUrl: string): boolean {
+  if (!isSafeHttpUrl(rosterUrl)) return false;
   try {
     const u = new URL(rosterUrl);
-    if (!/^https?:$/.test(u.protocol)) return false;
     const host = u.hostname.toLowerCase();
     // Heuristic: official athletics sites typically end in .edu, .com (gostanford.com),
-    // or .org. We accept those and reject obvious junk like bit.ly / drive.google.
-    if (host.includes("bit.ly") || host.includes("drive.google.com")) return false;
+    // or .org. Shorteners + Drive are already blocked by isSafeHttpUrl.
     return /\.(edu|com|org|net|gov)$/.test(host);
   } catch {
     return false;
@@ -53,7 +54,7 @@ export function generateCode(): string {
 }
 
 export async function hashCode(code: string): Promise<string> {
-  return bcrypt.hash(code, 10);
+  return bcrypt.hash(code, VERIFICATION_CODE_BCRYPT_ROUNDS);
 }
 
 export async function verifyCode(code: string, hash: string): Promise<boolean> {
@@ -62,15 +63,25 @@ export async function verifyCode(code: string, hash: string): Promise<boolean> {
 
 /**
  * In production, swap this for Resend / SendGrid / Postmark.
- * In dev, we just log so a developer can read the code from the server console.
+ * In dev, we log so a developer can read the code from the server console.
+ *
+ * IMPORTANT: in production we MUST NOT log the code itself — it's a one-time
+ * authentication factor. We only log the purpose + recipient.
  */
 export async function sendVerificationEmail(opts: {
   to: string;
   code: string;
   purpose: string;
 }): Promise<void> {
-  // Hook for a real email provider:
-  //   await resend.emails.send({ from, to, subject, html });
+  if (process.env.NODE_ENV === "production") {
+    // Hook for a real email provider here:
+    //   await resend.emails.send({ from, to, subject, html });
+    // For now, log only metadata — never the code in prod.
+    // eslint-disable-next-line no-console
+    console.log(`[verification] purpose=${opts.purpose} sent to=${opts.to}`);
+    return;
+  }
+  // Dev only — surface the code to the local terminal for testing.
   // eslint-disable-next-line no-console
   console.log(
     `[verification] purpose=${opts.purpose} → ${opts.to} :: code=${opts.code} (this would be emailed in prod)`

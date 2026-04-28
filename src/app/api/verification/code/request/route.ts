@@ -11,6 +11,7 @@ import {
   MAX_VERIFICATION_ATTEMPTS_24H,
   sendVerificationEmail,
 } from "@/lib/verification";
+import { rateLimit } from "@/lib/rate-limit";
 
 const schema = z.object({
   email: z.string().email(),
@@ -26,6 +27,20 @@ export async function POST(req: Request) {
   if (!isPaymentVerified(session) && session.user.role !== UserRole.ADMIN) {
     return NextResponse.json({ error: "Subscribe before verifying your role." }, { status: 403 });
   }
+
+  // Limit code requests both per user (5/15min) and per IP (20/hr) to slow
+  // any account-takeover style enumeration of email codes.
+  const userLimited = rateLimit(req, "verification:code:request:user", {
+    max: 5,
+    windowMs: 15 * 60_000,
+    identifier: session.user.id,
+  });
+  if (userLimited) return userLimited;
+  const ipLimited = rateLimit(req, "verification:code:request:ip", {
+    max: 20,
+    windowMs: 60 * 60_000,
+  });
+  if (ipLimited) return ipLimited;
 
   let body: unknown;
   try {
