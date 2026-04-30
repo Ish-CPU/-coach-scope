@@ -1,16 +1,26 @@
-name,slug,schoolName,sport,gender,role,level,conference,officialProfileUrl,sourceUrl,seasonYear,lastVerifiedAt
-Kalen DeBoer,kalen-deboer,University of Alabama,Men's Football,Men,Head Coach,NCAA Division I,SEC,https://rolltide.com,https://rolltide.com,2025-2026,2026-04-29
-Kirby Smart,kirby-smart,University of Georgia,Men's Football,Men,Head Coach,NCAA Division I,SEC,https://georgiadogs.com,https://georgiadogs.com,2025-2026,2026-04-29
-Steve Sarkisian,steve-sarkisian,University of Texas,Men's Football,Men,Head Coach,NCAA Division I,SEC,https://texassports.com,https://texassports.com,2025-2026,2026-04-29
-Mike Elko,mike-elko,Texas A&M University,Men's Football,Men,Head Coach,NCAA Division I,SEC,https://12thman.com,https://12thman.com,2025-2026,2026-04-29
-Brian Kelly,brian-kelly,Louisiana State University,Men's Football,Men,Head Coach,NCAA Division I,SEC,https://lsusports.net,https://lsusports.net,2025-2026,2026-04-29
-Ryan Day,ryan-day,Ohio State University,Men's Football,Men,Head Coach,NCAA Division I,Big Ten,https://ohiostatebuckeyes.com,https://ohiostatebuckeyes.com,2025-2026,2026-04-29
-Sherrone Moore,sherrone-moore,University of Michigan,Men's Football,Men,Head Coach,NCAA Division I,Big Ten,https://mgoblue.com,https://mgoblue.com,2025-2026,2026-04-29
-James Franklin,james-franklin,Penn State University,Men's Football,Men,Head Coach,NCAA Division I,Big Ten,https://gopsusports.com,https://gopsusports.com,2025-2026,2026-04-29
-Billy Napier,billy-napier,University of Florida,Men's Football,Men,Head Coach,NCAA Division I,SEC,https://floridagators.com,https://floridagators.com,2025-2026,2026-04-29
-Mike Norvell,mike-norvell,Florida State University,Men's Football,Men,Head Coach,NCAA Division I,ACC,https://seminoles.com,https://seminoles.com,2025-2026,2026-04-29
-Lincoln Riley,lincoln-riley,University of Southern California,Men's Football,Men,Head Coach,NCAA Division I,Big Ten,https://usctrojans.com,https://usctrojans.com,2025-2026,2026-04-29
-Dan Lanning,dan-lanning,University of Oregon,Men's Football,Men,Head Coach,NCAA Division I,Big Ten,https://goducks.com,https://goducks.com,2025-2026,2026-04-29
-Kalen DeBoer UW,kalen-deboer-uw,University of Washington,Men's Football,Men,Head Coach,NCAA Division I,Big Ten,https://gohuskies.com,https://gohuskies.com,2025-2026,2026-04-29
-Brent Venables,brent-venables,University of Oklahoma,Men's Football,Men,Head Coach,NCAA Division I,SEC,https://soonersports.com,https://soonersports.com,2025-2026,2026-04-29
-Marcus Freeman,marcus-freeman,University of Notre Dame,Men's Football,Men,Head Coach,NCAA Division I,Independent,https://fightingirish.com,https://fightingirish.com,2025-2026,2026-04-29
+name,slug,universityName,sport,gender,role,level,conference,officialProfileUrl,sourceUrl,seasonYear,lastVerifiedAt
+Kalen DeBoer,kalen-deboer,University of Alabama,Football,Men,Head Coach,NCAA Division I,SEC,https://rolltide.com,https://rolltide.com,2025-2026,2026-04-29
+Kirby Smart,kirby-smart,University of Georgia,Football,Men,Head Coach,NCAA Division I,SEC,https://georgiadogs.com,https://georgiadogs.com,2025-2026,2026-04-29
+Steve Sarkisian,steve-sarkisian,University of Texas,Football,Men,Head Coach,NCAA Division I,SEC,https://texassports.com,https://texassports.com,2025-2026,2026-04-29
+Mike Elko,mike-elko,Texas A&M University,Football,Men,Head Coach,NCAA Division I,SEC,https://12thman.com,https://12thman.com,2025-2026,2026-04-29
+Brian Kelly,brian-kelly,Louisiana State University,Football,Men,Head Coach,NCAA Division I,SEC,https://lsusports.net,https://lsusports.net,2025-2026,2026-04-29
+Ryan Day,ryan-day,Ohio State University,Football,Men,Head Coach,NCAA Division I,Big Ten,https://ohiostatebuckeyes.com,https://ohiostatebuckeyes.com,2025-2026,2026-04-29
+Sherrone Moore,sherrone-moore,University of Michigan,Football,Men,Head Coach,NCAA Division I,Big Ten,https://mgoblue.com,https://mgoblue.com,2025-2026,2026-04-29
+James Franklin,james-franklin,Penn State University,Football,Men,Head Coach,NCAA Division I,Big Ten,https://gopsusports.com,https://gopsusports.com,2025-2026,2026-04-29
+Billy Napier,billy-napier,University of Florida,Football,Men,Head Coach,NCAA Division I,SEC,https://floridagators.com,https://floridagators.com,2025-2026,2026-04-29
+Mike Norvell,mike-norvell,Florida State University,Football,Men,Head Coach,NCAA Division I,ACC,https://seminoles.com,https://seminoles.com,2025-2026,2026-04-29
+Lincoln Riley,lincoln-riley,University of Southern California,Football,Men,Head Coach,NCAA Division I,Big Ten,https://usctrojans.com,https://usctrojans.com,2025-2026,2026-04-29
+Dan Lanning,dan-lanning,University of Oregon,Football,Men,Head Coach,NCAA Division I,Big Ten,https://goducks.com,https://goducks.com,2025-2026,2026-04-29
+Kalen DeBoer UW,kalen-deboer-uw,University of Washington,Football,Men,Head Coach,NCAA Division I,Big Ten,https://gohuskies.com,https://gohuskies.com,2025-2026,2026-04-29
+Brent Venables,brent-venables,University of Oklahoma,Football,Men,Head Coach,NCAA Division I,SEC,https://soonersports.com,https://soonersports.com,2025-2026,2026-04-29
+Marcus Freeman,marcus-freeman,University of Notre Dame,Football,Men,Head Coach,NCAA Division I,Independent,https://fightingirish.com,https://fightingirish.com,2025-2026,2026-04-29
+Deion Sanders,deion-sanders,University of Colorado,Football,Men,Head Coach,NCAA Division I,Big 12,https://cubuffs.com,https://cubuffs.com,2025-2026,2026-04-29
+Kenny Dillingham,kenny-dillingham,Arizona State University,Football,Men,Head Coach,NCAA Division I,Big 12,https://thesundevils.com,https://thesundevils.com,2025-2026,2026-04-29
+Brent Brennan,brent-brennan,University of Arizona,Football,Men,Head Coach,NCAA Division I,Big 12,https://arizonawildcats.com,https://arizonawildcats.com,2025-2026,2026-04-29
+Kyle Whittingham,kyle-whittingham,University of Utah,Football,Men,Head Coach,NCAA Division I,Big 12,https://utahutes.com,https://utahutes.com,2025-2026,2026-04-29
+Lance Leipold,lance-leipold,University of Kansas,Football,Men,Head Coach,NCAA Division I,Big 12,https://kuathletics.com,https://kuathletics.com,2025-2026,2026-04-29
+Chris Klieman,chris-klieman,Kansas State University,Football,Men,Head Coach,NCAA Division I,Big 12,https://kstatesports.com,https://kstatesports.com,2025-2026,2026-04-29
+Dave Aranda,dave-aranda,Baylor University,Football,Men,Head Coach,NCAA Division I,Big 12,https://baylorbears.com,https://baylorbears.com,2025-2026,2026-04-29
+Joey McGuire,joey-mcguire,Texas Tech University,Football,Men,Head Coach,NCAA Division I,Big 12,https://texastech.com,https://texastech.com,2025-2026,2026-04-29
+Mike Gundy,mike-gundy,Oklahoma State University,Football,Men,Head Coach,NCAA Division I,Big 12,https://okstate.com,https://okstate.com,2025-2026,2026-04-29
+Scott Satterfield,scott-satterfield,University of Cincinnati,Football,Men,Head Coach,NCAA Division I,Big 12,https://gobearcats.com,https://gobearcats.com,2025-2026,2026-04-29
