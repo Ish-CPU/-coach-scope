@@ -1,1 +1,1 @@
-name,city,state,description,websiteUrl,imageUrl,sourceUrl,sourceName,seasonYear,lastVerifiedAt
+name,slug,city,state,country,level,conference,officialWebsite,athleticsWebsite,sourceUrl,seasonYear,lastVerifiedAt

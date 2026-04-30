@@ -31,8 +31,10 @@ const SAMPLE_ORDER: ImportType[] = [
 ];
 
 function printResult(r: ImportResult) {
+  // duplicate = rows that matched an existing record with no field changes
+  // (idempotent re-imports show up here instead of as updates)
   console.log(
-    `→ ${r.type.padEnd(13)} read=${r.rowsRead} created=${r.created} updated=${r.updated} skipped=${r.skipped}`
+    `→ ${r.type.padEnd(13)} read=${r.rowsRead} created=${r.created} updated=${r.updated} duplicate=${r.duplicate} skipped=${r.skipped} errors=${r.errors.length}`
   );
   for (const e of r.errors) {
     console.log(`   ⚠  row ${e.row}: ${e.message}`);

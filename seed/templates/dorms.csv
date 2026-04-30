@@ -1,1 +1,1 @@
-name,universityName,description,imageUrl,sourceUrl,sourceName,seasonYear,lastVerifiedAt
+name,slug,universityName,city,state,roomType,bathroomType,yearBuilt,capacity,officialPageUrl,sourceUrl,seasonYear,lastVerifiedAt

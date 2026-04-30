@@ -236,16 +236,30 @@ model School {
 model Coach {
   id        String   @id @default(cuid())
   name      String
+  // URL-friendly identifier from the official roster (optional). Keep as a
+  // free string today; future work may add `@@unique([schoolId, slug])` once
+  // every record is back-filled.
+  slug      String?
+  // The role/title of the coach — "Head Coach", "Offensive Coordinator",
+  // "Quarterbacks Coach", etc. Stored as the existing `title` column for
+  // backwards compatibility with all existing UI. CSV column header is `role`.
   title     String?
+  // Optional gender hint for sports that have men's + women's teams.
+  // Sport already encodes this in the canonical taxonomy (e.g. "Men's Soccer"),
+  // but storing it explicitly makes filtering + display cleaner.
+  gender    String?
   schoolId  String
   bio       String?
   imageUrl  String?
 
   // Public-data source tracking
-  sourceUrl      String?
-  sourceName     String?
-  seasonYear     String?
-  lastVerifiedAt DateTime?
+  // - sourceUrl: official staff page URL (e.g. /sports/baseball/coaches)
+  // - officialProfileUrl: direct link to this coach's profile on that staff page
+  sourceUrl          String?
+  officialProfileUrl String?
+  sourceName         String?
+  seasonYear         String?
+  lastVerifiedAt     DateTime?
 
   school    School    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   reviews   Review[]
@@ -260,13 +274,25 @@ model Coach {
 }
 
 model University {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  city        String?
-  state       String?
-  description String?
-  imageUrl    String?
-  websiteUrl  String?
+  id               String    @id @default(cuid())
+  name             String    @unique
+  // URL-friendly identifier (lowercase, dash-separated). Optional today; once
+  // every row is back-filled this can become required + indexed for routing.
+  slug             String?   @unique
+  city             String?
+  state            String?
+  country          String?   @default("USA")
+  description      String?
+  imageUrl         String?
+  // Primary level + conference for the institution. Per-program (per-sport)
+  // levels still live on School and override these for sport-specific UI.
+  level            Division?
+  conference       String?
+  // Two distinct URLs:
+  //   websiteUrl       = main university homepage (.edu)
+  //   athleticsWebsite = official athletics site (e.g. gostanford.com)
+  websiteUrl       String?
+  athleticsWebsite String?
 
   // Public-data source tracking
   sourceUrl      String?
@@ -274,26 +300,42 @@ model University {
   seasonYear     String?
   lastVerifiedAt DateTime?
 
-  schools    School[]
-  dorms      Dorm[]
+  schools     School[]
+  dorms       Dorm[]
   diningHalls Dining[]
   facilities  Facility[]
-  reviews    Review[]
-  favorites  Favorite[]
-  groups     Group[]
+  reviews     Review[]
+  favorites   Favorite[]
+  groups      Group[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([state])
+  @@index([level])
 }
 
 model Dorm {
   id           String   @id @default(cuid())
   name         String
+  // URL-friendly identifier within the university (lowercase, dash-separated).
+  slug         String?
   universityId String
+  // Cached city/state from the host university — keeps dorm lists usable
+  // without an extra join in heavy list views.
+  city         String?
+  state        String?
   description  String?
   imageUrl     String?
+  // Controlled vocabularies enforced by the importer:
+  //   roomType     ∈ {Single, Double, Suite, Apartment}
+  //   bathroomType ∈ {Private, Shared, Communal}
+  // Stored as String? so unknown / blank rows don't constrain the schema.
+  roomType        String?
+  bathroomType    String?
+  yearBuilt       Int?
+  capacity        Int?
+  officialPageUrl String?
 
   // Public-data source tracking
   sourceUrl      String?
@@ -309,6 +351,7 @@ model Dorm {
   updatedAt DateTime @updatedAt
 
   @@unique([universityId, name])
+  @@unique([universityId, slug])
 }
 
 // Public dining locations on campus (factual directory data only).

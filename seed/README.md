@@ -1,5 +1,9 @@
 # RateMyU public-data import
 
+> 📖 **Coaching staff in particular?** See [COLLECTION_GUIDE.md](COLLECTION_GUIDE.md)
+> for the official-sources-only workflow, the supported `role` taxonomy
+> (Head Coach, Coordinators, position coaches), and the per-program example.
+
 Two folders:
 
 - `templates/` — header-only CSVs. Copy one when you're starting a new import.

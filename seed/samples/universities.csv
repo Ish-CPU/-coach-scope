@@ -1,36 +1,24 @@
 name,slug,city,state,country,level,conference,officialWebsite,athleticsWebsite,sourceUrl,seasonYear,lastVerifiedAt
-University of Alabama,university-of-alabama,Tuscaloosa,AL,USA,NCAA Division I,SEC,https://www.ua.edu,https://rolltide.com,https://rolltide.com,2025-2026,2026-04-29
-University of Georgia,university-of-georgia,Athens,GA,USA,NCAA Division I,SEC,https://www.uga.edu,https://georgiadogs.com,https://georgiadogs.com,2025-2026,2026-04-29
-University of Texas,university-of-texas,Austin,TX,USA,NCAA Division I,SEC,https://www.utexas.edu,https://texassports.com,https://texassports.com,2025-2026,2026-04-29
-Texas A&M University,texas-am-university,College Station,TX,USA,NCAA Division I,SEC,https://www.tamu.edu,https://12thman.com,https://12thman.com,2025-2026,2026-04-29
-Louisiana State University,louisiana-state-university,Baton Rouge,LA,USA,NCAA Division I,SEC,https://www.lsu.edu,https://lsusports.net,https://lsusports.net,2025-2026,2026-04-29
-Ohio State University,ohio-state-university,Columbus,OH,USA,NCAA Division I,Big Ten,https://www.osu.edu,https://ohiostatebuckeyes.com,https://ohiostatebuckeyes.com,2025-2026,2026-04-29
-University of Michigan,university-of-michigan,Ann Arbor,MI,USA,NCAA Division I,Big Ten,https://umich.edu,https://mgoblue.com,https://mgoblue.com,2025-2026,2026-04-29
-Penn State University,penn-state-university,University Park,PA,USA,NCAA Division I,Big Ten,https://www.psu.edu,https://gopsusports.com,https://gopsusports.com,2025-2026,2026-04-29
-University of Florida,university-of-florida,Gainesville,FL,USA,NCAA Division I,SEC,https://www.ufl.edu,https://floridagators.com,https://floridagators.com,2025-2026,2026-04-29
-Florida State University,florida-state-university,Tallahassee,FL,USA,NCAA Division I,ACC,https://www.fsu.edu,https://seminoles.com,https://seminoles.com,2025-2026,2026-04-29
-University of Southern California,university-of-southern-california,Los Angeles,CA,USA,NCAA Division I,Big Ten,https://www.usc.edu,https://usctrojans.com,https://usctrojans.com,2025-2026,2026-04-29
-University of Oregon,university-of-oregon,Eugene,OR,USA,NCAA Division I,Big Ten,https://www.uoregon.edu,https://goducks.com,https://goducks.com,2025-2026,2026-04-29
-University of Washington,university-of-washington,Seattle,WA,USA,NCAA Division I,Big Ten,https://www.washington.edu,https://gohuskies.com,https://gohuskies.com,2025-2026,2026-04-29
-University of Oklahoma,university-of-oklahoma,Norman,OK,USA,NCAA Division I,SEC,https://www.ou.edu,https://soonersports.com,https://soonersports.com,2025-2026,2026-04-29
-University of Notre Dame,university-of-notre-dame,Notre Dame,IN,USA,NCAA Division I,Independent,https://www.nd.edu,https://fightingirish.com,https://fightingirish.com,2025-2026,2026-04-29
-University of Colorado,university-of-colorado,Boulder,CO,USA,NCAA Division I,Big 12,https://www.colorado.edu,https://cubuffs.com,https://cubuffs.com,2025-2026,2026-04-29
-Arizona State University,arizona-state-university,Tempe,AZ,USA,NCAA Division I,Big 12,https://www.asu.edu,https://thesundevils.com,https://thesundevils.com,2025-2026,2026-04-29
-University of Arizona,university-of-arizona,Tucson,AZ,USA,NCAA Division I,Big 12,https://www.arizona.edu,https://arizonawildcats.com,https://arizonawildcats.com,2025-2026,2026-04-29
-University of Utah,university-of-utah,Salt Lake City,UT,USA,NCAA Division I,Big 12,https://www.utah.edu,https://utahutes.com,https://utahutes.com,2025-2026,2026-04-29
-University of Kansas,university-of-kansas,Lawrence,KS,USA,NCAA Division I,Big 12,https://www.ku.edu,https://kuathletics.com,https://kuathletics.com,2025-2026,2026-04-29
-Kansas State University,kansas-state-university,Manhattan,KS,USA,NCAA Division I,Big 12,https://www.k-state.edu,https://kstatesports.com,https://kstatesports.com,2025-2026,2026-04-29
-Baylor University,baylor-university,Waco,TX,USA,NCAA Division I,Big 12,https://www.baylor.edu,https://baylorbears.com,https://baylorbears.com,2025-2026,2026-04-29
-Texas Tech University,texas-tech-university,Lubbock,TX,USA,NCAA Division I,Big 12,https://www.ttu.edu,https://texastech.com,https://texastech.com,2025-2026,2026-04-29
-Oklahoma State University,oklahoma-state-university,Stillwater,OK,USA,NCAA Division I,Big 12,https://okstate.edu,https://okstate.com,https://okstate.com,2025-2026,2026-04-29
-University of Cincinnati,university-of-cincinnati,Cincinnati,OH,USA,NCAA Division I,Big 12,https://www.uc.edu,https://gobearcats.com,https://gobearcats.com,2025-2026,2026-04-29
-University of Colorado,university-of-colorado,Boulder,CO,USA,NCAA Division I,Big 12,https://www.colorado.edu,https://cubuffs.com,https://cubuffs.com,2025-2026,2026-04-29
-Arizona State University,arizona-state-university,Tempe,AZ,USA,NCAA Division I,Big 12,https://www.asu.edu,https://thesundevils.com,https://thesundevils.com,2025-2026,2026-04-29
-University of Arizona,university-of-arizona,Tucson,AZ,USA,NCAA Division I,Big 12,https://www.arizona.edu,https://arizonawildcats.com,https://arizonawildcats.com,2025-2026,2026-04-29
-University of Utah,university-of-utah,Salt Lake City,UT,USA,NCAA Division I,Big 12,https://www.utah.edu,https://utahutes.com,https://utahutes.com,2025-2026,2026-04-29
-University of Kansas,university-of-kansas,Lawrence,KS,USA,NCAA Division I,Big 12,https://www.ku.edu,https://kuathletics.com,https://kuathletics.com,2025-2026,2026-04-29
-Kansas State University,kansas-state-university,Manhattan,KS,USA,NCAA Division I,Big 12,https://www.k-state.edu,https://kstatesports.com,https://kstatesports.com,2025-2026,2026-04-29
-Baylor University,baylor-university,Waco,TX,USA,NCAA Division I,Big 12,https://www.baylor.edu,https://baylorbears.com,https://baylorbears.com,2025-2026,2026-04-29
-Texas Tech University,texas-tech-university,Lubbock,TX,USA,NCAA Division I,Big 12,https://www.ttu.edu,https://texastech.com,https://texastech.com,2025-2026,2026-04-29
-Oklahoma State University,oklahoma-state-university,Stillwater,OK,USA,NCAA Division I,Big 12,https://okstate.edu,https://okstate.com,https://okstate.com,2025-2026,2026-04-29
-University of Cincinnati,university-of-cincinnati,Cincinnati,OH,USA,NCAA Division I,Big 12,https://www.uc.edu,https://gobearcats.com,https://gobearcats.com,2025-2026,2026-04-29
+University of Alabama,university-of-alabama,Tuscaloosa,AL,USA,NCAA Division I,SEC,https://www.ua.edu,https://rolltide.com,https://www.ua.edu,2025-2026,2026-04-29
+University of Texas at Austin,university-of-texas-at-austin,Austin,TX,USA,NCAA Division I,SEC,https://www.utexas.edu,https://texassports.com,https://www.utexas.edu,2025-2026,2026-04-29
+University of Florida,university-of-florida,Gainesville,FL,USA,NCAA Division I,SEC,https://www.ufl.edu,https://floridagators.com,https://www.ufl.edu,2025-2026,2026-04-29
+Louisiana State University,louisiana-state-university,Baton Rouge,LA,USA,NCAA Division I,SEC,https://www.lsu.edu,https://lsusports.net,https://www.lsu.edu,2025-2026,2026-04-29
+University of Oklahoma,university-of-oklahoma,Norman,OK,USA,NCAA Division I,SEC,https://www.ou.edu,https://soonersports.com,https://www.ou.edu,2025-2026,2026-04-29
+Ohio State University,ohio-state-university,Columbus,OH,USA,NCAA Division I,Big Ten,https://www.osu.edu,https://ohiostatebuckeyes.com,https://www.osu.edu,2025-2026,2026-04-29
+University of Michigan,university-of-michigan,Ann Arbor,MI,USA,NCAA Division I,Big Ten,https://umich.edu,https://mgoblue.com,https://umich.edu,2025-2026,2026-04-29
+University of Southern California,university-of-southern-california,Los Angeles,CA,USA,NCAA Division I,Big Ten,https://www.usc.edu,https://usctrojans.com,https://www.usc.edu,2025-2026,2026-04-29
+University of Oregon,university-of-oregon,Eugene,OR,USA,NCAA Division I,Big Ten,https://www.uoregon.edu,https://goducks.com,https://www.uoregon.edu,2025-2026,2026-04-29
+Duke University,duke-university,Durham,NC,USA,NCAA Division I,ACC,https://duke.edu,https://goduke.com,https://duke.edu,2025-2026,2026-04-29
+Stanford University,stanford-university,Stanford,CA,USA,NCAA Division I,ACC,https://www.stanford.edu,https://gostanford.com,https://www.stanford.edu,2025-2026,2026-04-29
+University of Notre Dame,university-of-notre-dame,Notre Dame,IN,USA,NCAA Division I,ACC,https://www.nd.edu,https://fightingirish.com,https://www.nd.edu,2025-2026,2026-04-29
+University of Kansas,university-of-kansas,Lawrence,KS,USA,NCAA Division I,Big 12,https://ku.edu,https://kuathletics.com,https://ku.edu,2025-2026,2026-04-29
+Brigham Young University,brigham-young-university,Provo,UT,USA,NCAA Division I,Big 12,https://www.byu.edu,https://byucougars.com,https://www.byu.edu,2025-2026,2026-04-29
+Baylor University,baylor-university,Waco,TX,USA,NCAA Division I,Big 12,https://www.baylor.edu,https://baylorbears.com,https://www.baylor.edu,2025-2026,2026-04-29
+Grand Valley State University,grand-valley-state-university,Allendale,MI,USA,NCAA Division II,GLIAC,https://www.gvsu.edu,,https://www.gvsu.edu,2025-2026,2026-04-29
+Nova Southeastern University,nova-southeastern-university,Davie,FL,USA,NCAA Division II,Sunshine State Conference,https://www.nova.edu,,https://www.nova.edu,2025-2026,2026-04-29
+Colorado School of Mines,colorado-school-of-mines,Golden,CO,USA,NCAA Division II,Rocky Mountain Athletic Conference,https://www.mines.edu,,https://www.mines.edu,2025-2026,2026-04-29
+Williams College,williams-college,Williamstown,MA,USA,NCAA Division III,NESCAC,https://www.williams.edu,,https://www.williams.edu,2025-2026,2026-04-29
+Massachusetts Institute of Technology,massachusetts-institute-of-technology,Cambridge,MA,USA,NCAA Division III,NEWMAC,https://web.mit.edu,,https://web.mit.edu,2025-2026,2026-04-29
+University of Chicago,university-of-chicago,Chicago,IL,USA,NCAA Division III,UAA,https://www.uchicago.edu,,https://www.uchicago.edu,2025-2026,2026-04-29
+Iowa Western Community College,iowa-western-community-college,Council Bluffs,IA,USA,JUCO,NJCAA,https://www.iwcc.edu,,https://www.iwcc.edu,2025-2026,2026-04-29
+Eastern Florida State College,eastern-florida-state-college,Cocoa,FL,USA,JUCO,NJCAA,https://www.easternflorida.edu,,https://www.easternflorida.edu,2025-2026,2026-04-29

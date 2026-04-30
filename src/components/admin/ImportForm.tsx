@@ -13,6 +13,8 @@ interface ImportResult {
   rowsRead: number;
   created: number;
   updated: number;
+  /** Existing rows that matched but had no field changes (idempotent re-imports). */
+  duplicate: number;
   skipped: number;
   errors: { row: number; message: string }[];
 }
@@ -82,11 +84,15 @@ export function ImportForm({ types }: { types: ImportType[] }) {
       {result && (
         <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm">
           <div className="font-semibold">{result.type}</div>
-          <div className="mt-1 grid grid-cols-2 gap-1 text-xs sm:grid-cols-4">
+          <div className="mt-1 grid grid-cols-2 gap-1 text-xs sm:grid-cols-3 lg:grid-cols-6">
             <div>read: <strong>{result.rowsRead}</strong></div>
             <div>created: <strong className="text-emerald-700">{result.created}</strong></div>
             <div>updated: <strong className="text-brand-700">{result.updated}</strong></div>
+            <div title="Existing rows that matched but had no field changes — re-imports show up here.">
+              duplicate: <strong className="text-slate-500">{result.duplicate}</strong>
+            </div>
             <div>skipped: <strong className="text-amber-700">{result.skipped}</strong></div>
+            <div>errors: <strong className={result.errors.length ? "text-red-700" : "text-slate-500"}>{result.errors.length}</strong></div>
           </div>
           {result.errors.length > 0 && (
             <div className="mt-2 max-h-48 overflow-y-auto rounded bg-white p-2 text-xs">
