@@ -116,6 +116,17 @@ async function searchUniversities(
   limit: number,
   ratingFilter: Prisma.UniversityWhereInput | undefined
 ): Promise<SearchHit[]> {
+  // Universities don't have a single "division" — they field many programs
+  // across divisions. "Show D1 universities" → universities with at least one
+  // program at that division. Sport filter scopes the same relation.
+  const programMatch: Prisma.SchoolWhereInput | undefined =
+    f.division || f.sport
+      ? {
+          ...(f.division ? { division: f.division } : {}),
+          ...(f.sport ? { sport: { equals: f.sport, mode: "insensitive" } } : {}),
+        }
+      : undefined;
+
   const where: Prisma.UniversityWhereInput = {
     AND: [
       q
@@ -127,6 +138,7 @@ async function searchUniversities(
             ],
           }
         : {},
+      programMatch ? { schools: { some: programMatch } } : {},
       ratingFilter ?? {},
     ],
   };
@@ -164,10 +176,21 @@ async function searchDorms(
   limit: number,
   ratingFilter: Prisma.DormWhereInput | undefined
 ): Promise<SearchHit[]> {
+  // Dorms inherit their level from their university (which inherits via its
+  // programs). Same join logic as universities.
+  const programMatch: Prisma.SchoolWhereInput | undefined =
+    f.division || f.sport
+      ? {
+          ...(f.division ? { division: f.division } : {}),
+          ...(f.sport ? { sport: { equals: f.sport, mode: "insensitive" } } : {}),
+        }
+      : undefined;
+
   const where: Prisma.DormWhereInput = {
     AND: [
       q ? { name: { contains: q, mode: "insensitive" } } : {},
       f.universityId ? { universityId: f.universityId } : {},
+      programMatch ? { university: { schools: { some: programMatch } } } : {},
       ratingFilter ?? {},
     ],
   };

@@ -2,10 +2,11 @@ import { runSearch, type SearchKind } from "@/lib/search";
 import { SearchBar } from "@/components/SearchBar";
 import { ResultCard } from "@/components/ResultCard";
 import { AdSlot } from "@/components/AdSlot";
-import { Division, ReviewType } from "@prisma/client";
+import { ReviewType } from "@prisma/client";
 import Link from "next/link";
 import { SPORTS } from "@/lib/sports";
 import { RATING_FILTER_OPTIONS, parseMinRating } from "@/lib/rating-filter";
+import { DIVISION_OPTIONS, parseDivision } from "@/lib/division";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,6 @@ function get(sp: PageProps["searchParams"], k: string): string | undefined {
   return Array.isArray(v) ? v[0] : v;
 }
 
-const DIVISIONS: Division[] = ["D1", "D2", "D3", "NAIA", "NJCAA", "OTHER"];
 const KINDS: SearchKind[] = ["all", "coach", "university", "dorm", "school"];
 
 export default async function SearchPage({ searchParams }: PageProps) {
@@ -26,7 +26,10 @@ export default async function SearchPage({ searchParams }: PageProps) {
     q: get(searchParams, "q"),
     kind: (get(searchParams, "kind") as SearchKind) ?? "all",
     sport: get(searchParams, "sport"),
-    division: get(searchParams, "division") as Division | undefined,
+    // Safely coerce the URL value to a known Division — unknown / blank
+    // values become `undefined` (i.e. no filter), which prevents an arbitrary
+    // ?division=foo from silently matching nothing OR throwing.
+    division: parseDivision(get(searchParams, "division")) ?? undefined,
     minRating: parseMinRating(get(searchParams, "minRating")) ?? undefined,
     reviewType: get(searchParams, "reviewType") as ReviewType | undefined,
     verifiedAthleteOnly: get(searchParams, "verifiedAthleteOnly") === "1",
@@ -63,12 +66,21 @@ export default async function SearchPage({ searchParams }: PageProps) {
             </div>
           </FilterCard>
 
-          <FilterCard title="Division">
+          <FilterCard title="Level">
             <div className="flex flex-wrap gap-2">
-              <FilterPill active={!filters.division} href={withParam(searchParams, "division", undefined)}>any</FilterPill>
-              {DIVISIONS.map((d) => (
-                <FilterPill key={d} active={filters.division === d} href={withParam(searchParams, "division", d)}>
-                  {d}
+              <FilterPill
+                active={!filters.division}
+                href={withParam(searchParams, "division", undefined)}
+              >
+                Any Level
+              </FilterPill>
+              {DIVISION_OPTIONS.map((d) => (
+                <FilterPill
+                  key={d.value}
+                  active={filters.division === d.value}
+                  href={withParam(searchParams, "division", d.value)}
+                >
+                  {d.label}
                 </FilterPill>
               ))}
             </div>
