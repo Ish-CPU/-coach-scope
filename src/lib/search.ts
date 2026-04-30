@@ -28,10 +28,14 @@ export interface SearchHit {
   href: string;
 }
 
-const DEFAULT_LIMIT = 20;
+// Default 100 results per page (was 20). Hard cap of 500 is the largest a
+// single search query may request — keeps payload sizes and Postgres LIMIT
+// reasonable while still supporting "Load More" up to a meaningful ceiling.
+const DEFAULT_LIMIT = 100;
+const MAX_LIMIT = 500;
 
 export async function runSearch(f: SearchFilters): Promise<SearchHit[]> {
-  const limit = Math.min(f.limit ?? DEFAULT_LIMIT, 50);
+  const limit = Math.min(Math.max(1, f.limit ?? DEFAULT_LIMIT), MAX_LIMIT);
   const q = f.q?.trim();
 
   const ratingFilter = f.minRating
@@ -61,7 +65,7 @@ export async function runSearch(f: SearchFilters): Promise<SearchHit[]> {
     [],
     "search:run"
   );
-  return results.slice(0, limit);
+  return results;
 }
 
 async function searchCoaches(

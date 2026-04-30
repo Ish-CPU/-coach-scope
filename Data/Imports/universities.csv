@@ -22,8 +22,6 @@ Massachusetts Institute of Technology,massachusetts-institute-of-technology,Camb
 University of Chicago,university-of-chicago,Chicago,IL,USA,NCAA Division III,UAA,https://www.uchicago.edu,,https://www.uchicago.edu,2025-2026,2026-04-29
 Iowa Western Community College,iowa-western-community-college,Council Bluffs,IA,USA,JUCO,NJCAA,https://www.iwcc.edu,,https://www.iwcc.edu,2025-2026,2026-04-29
 Eastern Florida State College,eastern-florida-state-college,Cocoa,FL,USA,JUCO,NJCAA,https://www.easternflorida.edu,,https://www.easternflorida.edu,2025-2026,2026-04-29
-universities.csv
-name,slug,city,state,country,level,conference,officialWebsite,athleticsWebsite,sourceUrl,seasonYear,lastVerifiedAt
 University of Georgia,university-of-georgia,Athens,GA,USA,NCAA Division I,SEC,https://www.uga.edu,https://georgiadogs.com,https://www.uga.edu,2025-2026,2026-04-29
 Texas A&M University,texas-am-university,College Station,TX,USA,NCAA Division I,SEC,https://www.tamu.edu,https://12thman.com,https://www.tamu.edu,2025-2026,2026-04-29
 University of Tennessee,university-of-tennessee,Knoxville,TN,USA,NCAA Division I,SEC,https://www.utk.edu,https://utsports.com,https://www.utk.edu,2025-2026,2026-04-29
@@ -49,66 +47,55 @@ Pittsburg State University,pittsburg-state-university,Pittsburg,KS,USA,NCAA Divi
 University of Mount Union,university-of-mount-union,Alliance,OH,USA,NCAA Division III,Ohio Athletic Conference,https://www.mountunion.edu,,https://www.mountunion.edu,2025-2026,2026-04-29
 Hutchinson Community College,hutchinson-community-college,Hutchinson,KS,USA,JUCO,NJCAA,https://www.hutchcc.edu,,https://www.hutchcc.edu,2025-2026,2026-04-29
 Carroll College,carroll-college,Helena,MT,USA,NAIA,Frontier Conference,https://www.carroll.edu,,https://www.carroll.edu,2025-2026,2026-04-29
-
-coaches.csv
-name,slug,universityName,sport,gender,role,level,conference,officialProfileUrl,sourceUrl,seasonYear,lastVerifiedAt
-Kirby Smart,kirby-smart,University of Georgia,Football,Men,Head Coach,NCAA Division I,SEC,,https://georgiadogs.com,2025-2026,2026-04-29
-Mike Elko,mike-elko,Texas A&M University,Football,Men,Head Coach,NCAA Division I,SEC,,https://12thman.com,2025-2026,2026-04-29
-Josh Heupel,josh-heupel,University of Tennessee,Football,Men,Head Coach,NCAA Division I,SEC,,https://utsports.com,2025-2026,2026-04-29
-Hugh Freeze,hugh-freeze,Auburn University,Football,Men,Head Coach,NCAA Division I,SEC,,https://auburntigers.com,2025-2026,2026-04-29
-Clark Lea,clark-lea,Vanderbilt University,Football,Men,Head Coach,NCAA Division I,SEC,,https://vucommodores.com,2025-2026,2026-04-29
-Shane Beamer,shane-beamer,University of South Carolina,Football,Men,Head Coach,NCAA Division I,SEC,,https://gamecocksonline.com,2025-2026,2026-04-29
-James Franklin,james-franklin,Penn State University,Football,Men,Head Coach,NCAA Division I,Big Ten,,https://gopsusports.com,2025-2026,2026-04-29
-Jedd Fisch,jedd-fisch,University of Washington,Football,Men,Head Coach,NCAA Division I,Big Ten,,https://gohuskies.com,2025-2026,2026-04-29
-Luke Fickell,luke-fickell,University of Wisconsin-Madison,Football,Men,Head Coach,NCAA Division I,Big Ten,,https://uwbadgers.com,2025-2026,2026-04-29
-Kirk Ferentz,kirk-ferentz,University of Iowa,Football,Men,Head Coach,NCAA Division I,Big Ten,,https://hawkeyesports.com,2025-2026,2026-04-29
-David Braun,david-braun,Northwestern University,Football,Men,Head Coach,NCAA Division I,Big Ten,,https://nusports.com,2025-2026,2026-04-29
-Mike Locksley,mike-locksley,University of Maryland,Football,Men,Head Coach,NCAA Division I,Big Ten,,https://umterps.com,2025-2026,2026-04-29
-Mike Norvell,mike-norvell,Florida State University,Football,Men,Head Coach,NCAA Division I,ACC,,https://seminoles.com,2025-2026,2026-04-29
-Dabo Swinney,dabo-swinney,Clemson University,Football,Men,Head Coach,NCAA Division I,ACC,,https://clemsontigers.com,2025-2026,2026-04-29
-Bill Belichick,bill-belichick,University of North Carolina at Chapel Hill,Football,Men,Head Coach,NCAA Division I,ACC,,https://goheels.com,2025-2026,2026-04-29
-Brent Pry,brent-pry,Virginia Tech,Football,Men,Head Coach,NCAA Division I,ACC,,https://hokiesports.com,2025-2026,2026-04-29
-Joey McGuire,joey-mcguire,Texas Tech University,Football,Men,Head Coach,NCAA Division I,Big 12,,https://texastech.com,2025-2026,2026-04-29
-Scott Satterfield,scott-satterfield,University of Cincinnati,Football,Men,Head Coach,NCAA Division I,Big 12,,https://gobearcats.com,2025-2026,2026-04-29
-Deion Sanders,deion-sanders,University of Colorado Boulder,Football,Men,Head Coach,NCAA Division I,Big 12,,https://cubuffs.com,2025-2026,2026-04-29
-Matt Campbell,matt-campbell,Iowa State University,Football,Men,Head Coach,NCAA Division I,Big 12,,https://cyclones.com,2025-2026,2026-04-29
-
-dorms.csv
-name,slug,universityName,city,state,roomType,bathroomType,yearBuilt,capacity,officialPageUrl,sourceUrl,seasonYear,lastVerifiedAt
-Russell Hall,russell-hall,University of Georgia,Athens,GA,,,,,,https://housing.uga.edu,2025-2026,2026-04-29
-Brumby Hall,brumby-hall,University of Georgia,Athens,GA,,,,,,https://housing.uga.edu,2025-2026,2026-04-29
-Creswell Hall,creswell-hall,University of Georgia,Athens,GA,,,,,,https://housing.uga.edu,2025-2026,2026-04-29
-Hullabaloo Hall,hullabaloo-hall,Texas A&M University,College Station,TX,,,,,,https://reslife.tamu.edu,2025-2026,2026-04-29
-Hobby Hall,hobby-hall,Texas A&M University,College Station,TX,,,,,,https://reslife.tamu.edu,2025-2026,2026-04-29
-Stokely Hall,stokely-hall,University of Tennessee,Knoxville,TN,,,,,,https://housing.utk.edu,2025-2026,2026-04-29
-Hess Hall,hess-hall,University of Tennessee,Knoxville,TN,,,,,,https://housing.utk.edu,2025-2026,2026-04-29
-Memorial House,memorial-house,Vanderbilt University,Nashville,TN,,,,,,https://www.vanderbilt.edu/ohare,2025-2026,2026-04-29
-Hank Ingram House,hank-ingram-house,Vanderbilt University,Nashville,TN,,,,,,https://www.vanderbilt.edu/ohare,2025-2026,2026-04-29
-Capstone House,capstone-house,University of South Carolina,Columbia,SC,,,,,,https://sc.edu/about/offices_and_divisions/housing,2025-2026,2026-04-29
-Patterson Hall,patterson-hall,University of South Carolina,Columbia,SC,,,,,,https://sc.edu/about/offices_and_divisions/housing,2025-2026,2026-04-29
-Atherton Hall,atherton-hall,Penn State University,University Park,PA,,,,,,https://liveon.psu.edu,2025-2026,2026-04-29
-Beaver Hall,beaver-hall,Penn State University,University Park,PA,,,,,,https://liveon.psu.edu,2025-2026,2026-04-29
-Lander Hall,lander-hall,University of Washington,Seattle,WA,,,,,,https://hfs.uw.edu,2025-2026,2026-04-29
-Terry Hall,terry-hall,University of Washington,Seattle,WA,,,,,,https://hfs.uw.edu,2025-2026,2026-04-29
-McMahon Hall,mcmahon-hall,University of Washington,Seattle,WA,,,,,,https://hfs.uw.edu,2025-2026,2026-04-29
-Sellery Hall,sellery-hall,University of Wisconsin-Madison,Madison,WI,,,,,,https://housing.wisc.edu,2025-2026,2026-04-29
-Witte Hall,witte-hall,University of Wisconsin-Madison,Madison,WI,,,,,,https://housing.wisc.edu,2025-2026,2026-04-29
-Mayflower Hall,mayflower-hall,University of Iowa,Iowa City,IA,,,,,,https://housing.uiowa.edu,2025-2026,2026-04-29
-Burge Hall,burge-hall,University of Iowa,Iowa City,IA,,,,,,https://housing.uiowa.edu,2025-2026,2026-04-29
-Allison Hall,allison-hall,Northwestern University,Evanston,IL,,,,,,https://www.northwestern.edu/living,2025-2026,2026-04-29
-Foster-Walker Complex,foster-walker-complex,Northwestern University,Evanston,IL,,,,,,https://www.northwestern.edu/living,2025-2026,2026-04-29
-Cambridge Hall,cambridge-hall,University of Maryland,College Park,MD,,,,,,https://reslife.umd.edu,2025-2026,2026-04-29
-Centreville Hall,centreville-hall,University of Maryland,College Park,MD,,,,,,https://reslife.umd.edu,2025-2026,2026-04-29
-Denton Hall,denton-hall,University of Maryland,College Park,MD,,,,,,https://reslife.umd.edu,2025-2026,2026-04-29
-Salley Hall,salley-hall,Florida State University,Tallahassee,FL,,,,,,https://housing.fsu.edu,2025-2026,2026-04-29
-Cawthon Hall,cawthon-hall,Florida State University,Tallahassee,FL,,,,,,https://housing.fsu.edu,2025-2026,2026-04-29
-Mauldin Hall,mauldin-hall,Clemson University,Clemson,SC,,,,,,https://housing.clemson.edu,2025-2026,2026-04-29
-Lever Hall,lever-hall,Clemson University,Clemson,SC,,,,,,https://housing.clemson.edu,2025-2026,2026-04-29
-Hinton James Residence Hall,hinton-james-residence-hall,University of North Carolina at Chapel Hill,Chapel Hill,NC,,,,,,https://housing.unc.edu,2025-2026,2026-04-29
-Pritchard Hall,pritchard-hall,Virginia Tech,Blacksburg,VA,,,,,,https://housing.vt.edu,2025-2026,2026-04-29
-Murray Hall,murray-hall,Texas Tech University,Lubbock,TX,,,,,,https://housing.ttu.edu,2025-2026,2026-04-29
-Stangel Hall,stangel-hall,Texas Tech University,Lubbock,TX,,,,,,https://housing.ttu.edu,2025-2026,2026-04-29
-Sewall Hall,sewall-hall,University of Colorado Boulder,Boulder,CO,,,,,,https://living.colorado.edu,2025-2026,2026-04-29
-Friley Hall,friley-hall,Iowa State University,Ames,IA,,,,,,https://www.housing.iastate.edu,2025-2026,2026-04-29
-Maple Hall,maple-hall,Iowa State University,Ames,IA,,,,,,https://www.housing.iastate.edu,2025-2026,2026-04-29
-Willow Hall,willow-hall,Iowa State University,Ames,IA,,,,,,https://www.housing.iastate.edu,2025-2026,2026-04-29
+University of Pittsburgh,university-of-pittsburgh,Pittsburgh,PA,USA,NCAA Division I,ACC,https://www.pitt.edu,https://pittsburghpanthers.com,https://www.pitt.edu,2025-2026,2026-04-29
+Syracuse University,syracuse-university,Syracuse,NY,USA,NCAA Division I,ACC,https://www.syracuse.edu,https://cuse.com,https://www.syracuse.edu,2025-2026,2026-04-29
+Boston College,boston-college,Chestnut Hill,MA,USA,NCAA Division I,ACC,https://www.bc.edu,https://bceagles.com,https://www.bc.edu,2025-2026,2026-04-29
+University of Louisville,university-of-louisville,Louisville,KY,USA,NCAA Division I,ACC,https://louisville.edu,https://gocards.com,https://louisville.edu,2025-2026,2026-04-29
+Southern Methodist University,southern-methodist-university,Dallas,TX,USA,NCAA Division I,ACC,https://www.smu.edu,https://smumustangs.com,https://www.smu.edu,2025-2026,2026-04-29
+University of Connecticut,university-of-connecticut,Storrs,CT,USA,NCAA Division I,Independent,https://uconn.edu,https://uconnhuskies.com,https://uconn.edu,2025-2026,2026-04-29
+University of Memphis,university-of-memphis,Memphis,TN,USA,NCAA Division I,American Athletic Conference,https://www.memphis.edu,https://gotigersgo.com,https://www.memphis.edu,2025-2026,2026-04-29
+Tulane University,tulane-university,New Orleans,LA,USA,NCAA Division I,American Athletic Conference,https://tulane.edu,https://tulanegreenwave.com,https://tulane.edu,2025-2026,2026-04-29
+Temple University,temple-university,Philadelphia,PA,USA,NCAA Division I,American Athletic Conference,https://www.temple.edu,https://owlsports.com,https://www.temple.edu,2025-2026,2026-04-29
+University of South Florida,university-of-south-florida,Tampa,FL,USA,NCAA Division I,American Athletic Conference,https://www.usf.edu,https://gousfbulls.com,https://www.usf.edu,2025-2026,2026-04-29
+United States Naval Academy,united-states-naval-academy,Annapolis,MD,USA,NCAA Division I,American Athletic Conference,https://www.usna.edu,https://navysports.com,https://www.usna.edu,2025-2026,2026-04-29
+United States Military Academy,united-states-military-academy,West Point,NY,USA,NCAA Division I,American Athletic Conference,https://www.westpoint.edu,https://goarmywestpoint.com,https://www.westpoint.edu,2025-2026,2026-04-29
+United States Air Force Academy,united-states-air-force-academy,Colorado Springs,CO,USA,NCAA Division I,Mountain West,https://www.usafa.edu,https://goairforcefalcons.com,https://www.usafa.edu,2025-2026,2026-04-29
+Purdue University,purdue-university,West Lafayette,IN,USA,NCAA Division I,Big Ten,https://www.purdue.edu,https://purduesports.com,https://www.purdue.edu,2025-2026,2026-04-29
+San Diego State University,san-diego-state-university,San Diego,CA,USA,NCAA Division I,Mountain West,https://www.sdsu.edu,https://goaztecs.com,https://www.sdsu.edu,2025-2026,2026-04-29
+Boise State University,boise-state-university,Boise,ID,USA,NCAA Division I,Mountain West,https://www.boisestate.edu,https://broncosports.com,https://www.boisestate.edu,2025-2026,2026-04-29
+Fresno State University,fresno-state-university,Fresno,CA,USA,NCAA Division I,Mountain West,https://www.fresnostate.edu,https://gobulldogs.com,https://www.fresnostate.edu,2025-2026,2026-04-29
+Colorado State University,colorado-state-university,Fort Collins,CO,USA,NCAA Division I,Mountain West,https://www.colostate.edu,https://csurams.com,https://www.colostate.edu,2025-2026,2026-04-29
+University of Nevada Las Vegas,university-of-nevada-las-vegas,Las Vegas,NV,USA,NCAA Division I,Mountain West,https://www.unlv.edu,https://unlvrebels.com,https://www.unlv.edu,2025-2026,2026-04-29
+James Madison University,james-madison-university,Harrisonburg,VA,USA,NCAA Division I,Sun Belt,https://www.jmu.edu,https://jmusports.com,https://www.jmu.edu,2025-2026,2026-04-29
+Appalachian State University,appalachian-state-university,Boone,NC,USA,NCAA Division I,Sun Belt,https://www.appstate.edu,https://appstatesports.com,https://www.appstate.edu,2025-2026,2026-04-29
+Coastal Carolina University,coastal-carolina-university,Conway,SC,USA,NCAA Division I,Sun Belt,https://www.coastal.edu,https://goccusports.com,https://www.coastal.edu,2025-2026,2026-04-29
+Marshall University,marshall-university,Huntington,WV,USA,NCAA Division I,Sun Belt,https://www.marshall.edu,https://herdzone.com,https://www.marshall.edu,2025-2026,2026-04-29
+Liberty University,liberty-university,Lynchburg,VA,USA,NCAA Division I,Conference USA,https://www.liberty.edu,https://libertyflames.com,https://www.liberty.edu,2025-2026,2026-04-29
+Western Kentucky University,western-kentucky-university,Bowling Green,KY,USA,NCAA Division I,Conference USA,https://www.wku.edu,https://wkusports.com,https://www.wku.edu,2025-2026,2026-04-29
+University of Pittsburgh,university-of-pittsburgh,Pittsburgh,PA,USA,NCAA Division I,ACC,https://www.pitt.edu,https://pittsburghpanthers.com,https://www.pitt.edu,2025-2026,2026-04-29
+Syracuse University,syracuse-university,Syracuse,NY,USA,NCAA Division I,ACC,https://www.syracuse.edu,https://cuse.com,https://www.syracuse.edu,2025-2026,2026-04-29
+Boston College,boston-college,Chestnut Hill,MA,USA,NCAA Division I,ACC,https://www.bc.edu,https://bceagles.com,https://www.bc.edu,2025-2026,2026-04-29
+University of Louisville,university-of-louisville,Louisville,KY,USA,NCAA Division I,ACC,https://louisville.edu,https://gocards.com,https://louisville.edu,2025-2026,2026-04-29
+Southern Methodist University,southern-methodist-university,Dallas,TX,USA,NCAA Division I,ACC,https://www.smu.edu,https://smumustangs.com,https://www.smu.edu,2025-2026,2026-04-29
+University of Connecticut,university-of-connecticut,Storrs,CT,USA,NCAA Division I,Independent,https://uconn.edu,https://uconnhuskies.com,https://uconn.edu,2025-2026,2026-04-29
+University of Memphis,university-of-memphis,Memphis,TN,USA,NCAA Division I,American Athletic Conference,https://www.memphis.edu,https://gotigersgo.com,https://www.memphis.edu,2025-2026,2026-04-29
+Tulane University,tulane-university,New Orleans,LA,USA,NCAA Division I,American Athletic Conference,https://tulane.edu,https://tulanegreenwave.com,https://tulane.edu,2025-2026,2026-04-29
+Temple University,temple-university,Philadelphia,PA,USA,NCAA Division I,American Athletic Conference,https://www.temple.edu,https://owlsports.com,https://www.temple.edu,2025-2026,2026-04-29
+University of South Florida,university-of-south-florida,Tampa,FL,USA,NCAA Division I,American Athletic Conference,https://www.usf.edu,https://gousfbulls.com,https://www.usf.edu,2025-2026,2026-04-29
+United States Naval Academy,united-states-naval-academy,Annapolis,MD,USA,NCAA Division I,American Athletic Conference,https://www.usna.edu,https://navysports.com,https://www.usna.edu,2025-2026,2026-04-29
+United States Military Academy,united-states-military-academy,West Point,NY,USA,NCAA Division I,American Athletic Conference,https://www.westpoint.edu,https://goarmywestpoint.com,https://www.westpoint.edu,2025-2026,2026-04-29
+United States Air Force Academy,united-states-air-force-academy,Colorado Springs,CO,USA,NCAA Division I,Mountain West,https://www.usafa.edu,https://goairforcefalcons.com,https://www.usafa.edu,2025-2026,2026-04-29
+University of Mississippi,university-of-mississippi,Oxford,MS,USA,NCAA Division I,SEC,https://olemiss.edu,https://olemisssports.com,https://olemiss.edu,2025-2026,2026-04-29
+Mississippi State University,mississippi-state-university,Starkville,MS,USA,NCAA Division I,SEC,https://www.msstate.edu,https://hailstate.com,https://www.msstate.edu,2025-2026,2026-04-29
+University of Kentucky,university-of-kentucky,Lexington,KY,USA,NCAA Division I,SEC,https://www.uky.edu,https://ukathletics.com,https://www.uky.edu,2025-2026,2026-04-29
+University of Arkansas,university-of-arkansas,Fayetteville,AR,USA,NCAA Division I,SEC,https://www.uark.edu,https://arkansasrazorbacks.com,https://www.uark.edu,2025-2026,2026-04-29
+University of Missouri,university-of-missouri,Columbia,MO,USA,NCAA Division I,SEC,https://missouri.edu,https://mutigers.com,https://missouri.edu,2025-2026,2026-04-29
+University of Minnesota,university-of-minnesota,Minneapolis,MN,USA,NCAA Division I,Big Ten,https://twin-cities.umn.edu,https://gophersports.com,https://twin-cities.umn.edu,2025-2026,2026-04-29
+Indiana University,indiana-university,Bloomington,IN,USA,NCAA Division I,Big Ten,https://www.iu.edu,https://iuhoosiers.com,https://www.iu.edu,2025-2026,2026-04-29
+Rutgers University-New Brunswick,rutgers-university-new-brunswick,New Brunswick,NJ,USA,NCAA Division I,Big Ten,https://www.rutgers.edu,https://scarletknights.com,https://www.rutgers.edu,2025-2026,2026-04-29
+University of Nebraska,university-of-nebraska,Lincoln,NE,USA,NCAA Division I,Big Ten,https://www.unl.edu,https://huskers.com,https://www.unl.edu,2025-2026,2026-04-29
+Michigan State University,michigan-state-university,East Lansing,MI,USA,NCAA Division I,Big Ten,https://msu.edu,https://msuspartans.com,https://msu.edu,2025-2026,2026-04-29
+UCLA,ucla,Los Angeles,CA,USA,NCAA Division I,Big Ten,https://www.ucla.edu,https://uclabruins.com,https://www.ucla.edu,2025-2026,2026-04-29
+University of Illinois,university-of-illinois,Champaign,IL,USA,NCAA Division I,Big Ten,https://illinois.edu,https://fightingillini.com,https://illinois.edu,2025-2026,2026-04-29
+University of Miami,university-of-miami,Coral Gables,FL,USA,NCAA Division I,ACC,https://www.miami.edu,https://miamihurricanes.com,https://www.miami.edu,2025-2026,2026-04-29
+North Carolina State University,north-carolina-state-university,Raleigh,NC,USA,NCAA Division I,ACC,https://www.ncsu.edu,https://gopack.com,https://www.ncsu.edu,2025-2026,2026-04-29

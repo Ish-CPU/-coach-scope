@@ -78,7 +78,8 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const reviewType = url.searchParams.get("type") as ReviewType | null;
   const targetId = url.searchParams.get("targetId");
-  const limit = Math.min(Number(url.searchParams.get("limit") ?? 20), 50);
+  // Default 100 reviews per query, capped at 500.
+  const limit = Math.min(Math.max(1, Number(url.searchParams.get("limit") ?? 100)), 500);
 
   if (!reviewType || !targetId) {
     return NextResponse.json({ error: "type and targetId are required" }, { status: 400 });

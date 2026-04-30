@@ -21,7 +21,20 @@ function get(sp: PageProps["searchParams"], k: string): string | undefined {
 
 const KINDS: SearchKind[] = ["all", "coach", "university", "dorm", "school"];
 
+// "Load More" steps. Each click bumps the URL `?limit=` to the next step,
+// re-rendering the page with more rows. Capped at MAX_LIMIT inside runSearch.
+const PAGE_SIZE = 100;
+const MAX_PAGE = 500;
+
+function parseLimit(raw: string | undefined): number {
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n <= 0) return PAGE_SIZE;
+  return Math.min(Math.max(1, Math.floor(n)), MAX_PAGE);
+}
+
 export default async function SearchPage({ searchParams }: PageProps) {
+  const limit = parseLimit(get(searchParams, "limit"));
+
   const filters = {
     q: get(searchParams, "q"),
     kind: (get(searchParams, "kind") as SearchKind) ?? "all",
@@ -35,9 +48,14 @@ export default async function SearchPage({ searchParams }: PageProps) {
     verifiedAthleteOnly: get(searchParams, "verifiedAthleteOnly") === "1",
     parentReviewsOnly: get(searchParams, "parentReviewsOnly") === "1",
     verifiedStudentOnly: get(searchParams, "verifiedStudentOnly") === "1",
+    limit,
   };
 
   const hits = await runSearch(filters);
+  // Heuristic: if we got back exactly `limit` rows, there's probably more
+  // to fetch. If fewer, we've reached the end.
+  const probablyMore = hits.length >= limit && limit < MAX_PAGE;
+  const nextLimit = Math.min(limit + PAGE_SIZE, MAX_PAGE);
 
   return (
     <div className="container-page py-8">
@@ -136,7 +154,20 @@ export default async function SearchPage({ searchParams }: PageProps) {
         </aside>
 
         <div>
-          <div className="mb-3 text-sm text-slate-500">{hits.length} results</div>
+          <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2 text-sm text-slate-500">
+            <span>
+              Showing <strong className="text-slate-800">{hits.length}</strong>
+              {probablyMore ? "+" : ""} result{hits.length === 1 ? "" : "s"}
+            </span>
+            {limit > PAGE_SIZE && (
+              <Link
+                href={withParam(searchParams, "limit", undefined)}
+                className="text-xs text-brand-700 hover:underline"
+              >
+                Reset to first {PAGE_SIZE}
+              </Link>
+            )}
+          </div>
           <AdSlot variant="banner" className="mb-4" />
           <div className="grid gap-3">
             {hits.length === 0 ? (
@@ -148,6 +179,23 @@ export default async function SearchPage({ searchParams }: PageProps) {
               hits.map((h) => <ResultCard key={`${h.type}:${h.id}`} hit={h} />)
             )}
           </div>
+
+          {probablyMore && (
+            <div className="mt-6 flex justify-center">
+              <Link
+                href={withParam(searchParams, "limit", String(nextLimit))}
+                className="btn-primary"
+                aria-label={`Load up to ${nextLimit} results`}
+              >
+                Load more →
+              </Link>
+            </div>
+          )}
+          {!probablyMore && limit >= MAX_PAGE && hits.length >= MAX_PAGE && (
+            <div className="mt-6 text-center text-xs text-slate-500">
+              Showing the maximum of {MAX_PAGE} results. Refine filters to narrow further.
+            </div>
+          )}
         </div>
       </div>
     </div>
