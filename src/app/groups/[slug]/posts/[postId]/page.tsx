@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { safe } from "@/lib/safe-query";
 import {
   canParticipateInGroup,
   describeGate,
@@ -20,19 +21,24 @@ export default async function PostPage({
 }: {
   params: { slug: string; postId: string };
 }) {
-  const post = await prisma.groupPost.findUnique({
-    where: { id: params.postId },
-    include: {
-      group: true,
-      author: { select: { id: true, role: true, verificationStatus: true } },
-      comments: {
-        orderBy: { createdAt: "asc" },
+  const post = await safe(
+    () =>
+      prisma.groupPost.findUnique({
+        where: { id: params.postId },
         include: {
+          group: true,
           author: { select: { id: true, role: true, verificationStatus: true } },
+          comments: {
+            orderBy: { createdAt: "asc" },
+            include: {
+              author: { select: { id: true, role: true, verificationStatus: true } },
+            },
+          },
         },
-      },
-    },
-  });
+      }),
+    null,
+    "post:findUnique"
+  );
   if (!post || post.group.slug !== params.slug || post.status !== "PUBLISHED") {
     notFound();
   }
@@ -41,9 +47,14 @@ export default async function PostPage({
   const canPost = canParticipateInGroup(session, post.group.groupType);
 
   const yourVote = session?.user?.id
-    ? await prisma.groupPostVote.findUnique({
-        where: { userId_postId: { userId: session.user.id, postId: post.id } },
-      })
+    ? await safe(
+        () =>
+          prisma.groupPostVote.findUnique({
+            where: { userId_postId: { userId: session.user.id, postId: post.id } },
+          }),
+        null,
+        "post:yourVote"
+      )
     : null;
 
   return (

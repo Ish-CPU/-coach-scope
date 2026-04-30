@@ -3,11 +3,18 @@ import { SearchBar } from "@/components/SearchBar";
 import { AdSlot } from "@/components/AdSlot";
 import { ResultCard } from "@/components/ResultCard";
 import { runSearch } from "@/lib/search";
+import { safe } from "@/lib/safe-query";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const trending = await runSearch({ kind: "all", limit: 6 });
+  // runSearch already returns [] on per-query failure, but wrap defensively
+  // so the homepage never bubbles a DB error to the global error boundary.
+  const trending = await safe(
+    () => runSearch({ kind: "all", limit: 6 }),
+    [],
+    "home:trending"
+  );
 
   return (
     <div>
@@ -61,9 +68,14 @@ export default async function HomePage() {
           </Link>
         </div>
         <div className="grid gap-3">
-          {trending.map((h) => (
-            <ResultCard key={`${h.type}:${h.id}`} hit={h} />
-          ))}
+          {trending.length === 0 ? (
+            <div className="card p-10 text-center text-sm text-slate-500">
+              <p className="font-medium text-slate-700">No results yet.</p>
+              <p className="mt-1">Data will appear here soon.</p>
+            </div>
+          ) : (
+            trending.map((h) => <ResultCard key={`${h.type}:${h.id}`} hit={h} />)
+          )}
         </div>
       </section>
 

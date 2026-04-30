@@ -10,6 +10,7 @@ import {
 import { slugify } from "@/lib/groups";
 import { isAllowedSport, SPORTS } from "@/lib/sports";
 import { rateLimit } from "@/lib/rate-limit";
+import { safe } from "@/lib/safe-query";
 import { GroupType, UserRole } from "@prisma/client";
 
 const schema = z.object({
@@ -34,24 +35,29 @@ export async function GET(req: Request) {
   const groupType = url.searchParams.get("type") as GroupType | null;
   const q = url.searchParams.get("q")?.trim();
 
-  const groups = await prisma.group.findMany({
-    where: {
-      ...(groupType ? { groupType } : {}),
-      ...(q
-        ? {
-            OR: [
-              { name: { contains: q, mode: "insensitive" } },
-              { description: { contains: q, mode: "insensitive" } },
-            ],
-          }
-        : {}),
-    },
-    orderBy: { createdAt: "desc" },
-    take: 60,
-    include: {
-      _count: { select: { members: true, posts: true } },
-    },
-  });
+  const groups = await safe(
+    () =>
+      prisma.group.findMany({
+        where: {
+          ...(groupType ? { groupType } : {}),
+          ...(q
+            ? {
+                OR: [
+                  { name: { contains: q, mode: "insensitive" } },
+                  { description: { contains: q, mode: "insensitive" } },
+                ],
+              }
+            : {}),
+        },
+        orderBy: { createdAt: "desc" },
+        take: 60,
+        include: {
+          _count: { select: { members: true, posts: true } },
+        },
+      }),
+    [],
+    "api:groups:list"
+  );
 
   return NextResponse.json({ groups });
 }

@@ -8,6 +8,7 @@ import {
   whyCannotParticipate,
 } from "@/lib/permissions";
 import { rateLimit } from "@/lib/rate-limit";
+import { safe } from "@/lib/safe-query";
 import type { PostSort } from "@/lib/groups";
 
 const schema = z.object({
@@ -71,7 +72,11 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
   const url = new URL(req.url);
   const sort = (url.searchParams.get("sort") as PostSort) ?? "top";
 
-  const group = await prisma.group.findUnique({ where: { slug: params.slug } });
+  const group = await safe(
+    () => prisma.group.findUnique({ where: { slug: params.slug } }),
+    null,
+    "api:group:findUnique"
+  );
   if (!group) return NextResponse.json({ error: "Group not found" }, { status: 404 });
 
   const orderBy =
@@ -83,14 +88,19 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
       ? { downvoteCount: "desc" as const }
       : { totalScore: "desc" as const };
 
-  const posts = await prisma.groupPost.findMany({
-    where: { groupId: group.id, status: "PUBLISHED" },
-    orderBy,
-    take: 50,
-    include: {
-      author: { select: { id: true, role: true, verificationStatus: true } },
-    },
-  });
+  const posts = await safe(
+    () =>
+      prisma.groupPost.findMany({
+        where: { groupId: group.id, status: "PUBLISHED" },
+        orderBy,
+        take: 50,
+        include: {
+          author: { select: { id: true, role: true, verificationStatus: true } },
+        },
+      }),
+    [],
+    "api:group:posts"
+  );
 
   return NextResponse.json({ posts });
 }

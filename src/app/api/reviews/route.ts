@@ -10,6 +10,7 @@ import {
 import { reviewSubmissionSchema } from "@/lib/review-schemas";
 import { deriveOverall, weightForRole } from "@/lib/review-weighting";
 import { rateLimit } from "@/lib/rate-limit";
+import { safe } from "@/lib/safe-query";
 import { Prisma, ReviewStatus, ReviewType } from "@prisma/client";
 
 export async function POST(req: Request) {
@@ -92,14 +93,19 @@ export async function GET(req: Request) {
     where.OR = [{ coachId: targetId }, { schoolId: targetId }];
   }
 
-  const reviews = await prisma.review.findMany({
-    where,
-    take: limit,
-    orderBy: [{ weight: "desc" }, { helpfulCount: "desc" }, { createdAt: "desc" }],
-    include: {
-      author: { select: { id: true, role: true, verificationStatus: true } },
-    },
-  });
+  const reviews = await safe(
+    () =>
+      prisma.review.findMany({
+        where,
+        take: limit,
+        orderBy: [{ weight: "desc" }, { helpfulCount: "desc" }, { createdAt: "desc" }],
+        include: {
+          author: { select: { id: true, role: true, verificationStatus: true } },
+        },
+      }),
+    [],
+    "reviews:list"
+  );
 
   return NextResponse.json({ reviews });
 }

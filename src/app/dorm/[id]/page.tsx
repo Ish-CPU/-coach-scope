@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { safe } from "@/lib/safe-query";
 import { canParticipate, getSession } from "@/lib/permissions";
 import { defaultReviewSort, weightedCategoryAverage, weightedOverall } from "@/lib/review-weighting";
 import { RATING_FIELDS } from "@/lib/review-schemas";
@@ -23,16 +24,21 @@ interface PageProps {
 }
 
 export default async function DormProfilePage({ params, searchParams }: PageProps) {
-  const dorm = await prisma.dorm.findUnique({
-    where: { id: params.id },
-    include: {
-      university: true,
-      reviews: {
-        where: { status: "PUBLISHED" },
-        include: { author: { select: { id: true, role: true, verificationStatus: true } } },
-      },
-    },
-  });
+  const dorm = await safe(
+    () =>
+      prisma.dorm.findUnique({
+        where: { id: params.id },
+        include: {
+          university: true,
+          reviews: {
+            where: { status: "PUBLISHED" },
+            include: { author: { select: { id: true, role: true, verificationStatus: true } } },
+          },
+        },
+      }),
+    null,
+    "dorm:findUnique"
+  );
   if (!dorm) notFound();
 
   const session = await getSession();

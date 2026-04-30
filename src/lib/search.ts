@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { safe } from "@/lib/safe-query";
 import { Division, Prisma, ReviewType } from "@prisma/client";
 
 export type SearchKind = "all" | "coach" | "university" | "dorm" | "school";
@@ -52,7 +53,14 @@ export async function runSearch(f: SearchFilters): Promise<SearchHit[]> {
     promises.push(searchSchools(q, f, limit, ratingFilter));
   }
 
-  const results = (await Promise.all(promises)).flat();
+  // Each searchX function already returns [] on its own DB error, so
+  // Promise.all itself shouldn't reject — but wrap defensively in case
+  // a future change throws synchronously (e.g. a bad filter mapping).
+  const results = await safe(
+    async () => (await Promise.all(promises)).flat(),
+    [],
+    "search:run"
+  );
   return results.slice(0, limit);
 }
 
@@ -72,16 +80,21 @@ async function searchCoaches(
     ],
   };
 
-  const rows = await prisma.coach.findMany({
-    where,
-    take: limit,
-    include: {
-      school: { include: { university: true } },
-      reviews: {
-        select: { overall: true, weight: true, reviewType: true, author: { select: { role: true } } },
-      },
-    },
-  });
+  const rows = await safe(
+    () =>
+      prisma.coach.findMany({
+        where,
+        take: limit,
+        include: {
+          school: { include: { university: true } },
+          reviews: {
+            select: { overall: true, weight: true, reviewType: true, author: { select: { role: true } } },
+          },
+        },
+      }),
+    [],
+    "search:coaches"
+  );
 
   return rows.map((c) => {
     const filtered = filterReviews(c.reviews, f);
@@ -117,15 +130,20 @@ async function searchUniversities(
       ratingFilter ?? {},
     ],
   };
-  const rows = await prisma.university.findMany({
-    where,
-    take: limit,
-    include: {
-      reviews: {
-        select: { overall: true, weight: true, reviewType: true, author: { select: { role: true } } },
-      },
-    },
-  });
+  const rows = await safe(
+    () =>
+      prisma.university.findMany({
+        where,
+        take: limit,
+        include: {
+          reviews: {
+            select: { overall: true, weight: true, reviewType: true, author: { select: { role: true } } },
+          },
+        },
+      }),
+    [],
+    "search:universities"
+  );
   return rows.map((u) => {
     const filtered = filterReviews(u.reviews, f);
     return {
@@ -153,16 +171,21 @@ async function searchDorms(
       ratingFilter ?? {},
     ],
   };
-  const rows = await prisma.dorm.findMany({
-    where,
-    take: limit,
-    include: {
-      university: true,
-      reviews: {
-        select: { overall: true, weight: true, reviewType: true, author: { select: { role: true } } },
-      },
-    },
-  });
+  const rows = await safe(
+    () =>
+      prisma.dorm.findMany({
+        where,
+        take: limit,
+        include: {
+          university: true,
+          reviews: {
+            select: { overall: true, weight: true, reviewType: true, author: { select: { role: true } } },
+          },
+        },
+      }),
+    [],
+    "search:dorms"
+  );
   return rows.map((d) => {
     const filtered = filterReviews(d.reviews, f);
     return {
@@ -199,16 +222,21 @@ async function searchSchools(
       ratingFilter ?? {},
     ],
   };
-  const rows = await prisma.school.findMany({
-    where,
-    take: limit,
-    include: {
-      university: true,
-      reviews: {
-        select: { overall: true, weight: true, reviewType: true, author: { select: { role: true } } },
-      },
-    },
-  });
+  const rows = await safe(
+    () =>
+      prisma.school.findMany({
+        where,
+        take: limit,
+        include: {
+          university: true,
+          reviews: {
+            select: { overall: true, weight: true, reviewType: true, author: { select: { role: true } } },
+          },
+        },
+      }),
+    [],
+    "search:schools"
+  );
   return rows.map((s) => {
     const filtered = filterReviews(s.reviews, f);
     return {

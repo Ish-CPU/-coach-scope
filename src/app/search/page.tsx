@@ -129,7 +129,8 @@ export default async function SearchPage({ searchParams }: PageProps) {
           <div className="grid gap-3">
             {hits.length === 0 ? (
               <div className="card p-10 text-center text-slate-500">
-                No results. Try adjusting your filters.
+                <p className="font-medium text-slate-700">No results yet.</p>
+                <p className="mt-1">Try adjusting your filters — data will appear here soon.</p>
               </div>
             ) : (
               hits.map((h) => <ResultCard key={`${h.type}:${h.id}`} hit={h} />)

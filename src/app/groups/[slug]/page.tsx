@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { safe } from "@/lib/safe-query";
 import {
   canParticipateInGroup,
   describeGate,
@@ -25,10 +26,17 @@ export default async function GroupPage({
     | undefined;
   const sort: PostSort = sortRaw ?? "top";
 
-  const group = await prisma.group.findUnique({
-    where: { slug: params.slug },
-    include: { _count: { select: { members: true, posts: true } } },
-  });
+  const group = await safe(
+    () =>
+      prisma.group.findUnique({
+        where: { slug: params.slug },
+        include: { _count: { select: { members: true, posts: true } } },
+      }),
+    null,
+    "group:findUnique"
+  );
+  // Treat both "missing record" and "DB error" as 404 — better than crashing
+  // to the global error boundary.
   if (!group) notFound();
 
   const session = await getSession();
@@ -43,17 +51,22 @@ export default async function GroupPage({
       ? { downvoteCount: "desc" as const }
       : { totalScore: "desc" as const };
 
-  const posts = await prisma.groupPost.findMany({
-    where: { groupId: group.id, status: "PUBLISHED" },
-    orderBy,
-    take: canPost ? 50 : 5, // free / wrong-role users get a small preview
-    include: {
-      author: { select: { id: true, role: true, verificationStatus: true } },
-      votes: session?.user?.id
-        ? { where: { userId: session.user.id }, select: { value: true } }
-        : false,
-    },
-  });
+  const posts = await safe(
+    () =>
+      prisma.groupPost.findMany({
+        where: { groupId: group.id, status: "PUBLISHED" },
+        orderBy,
+        take: canPost ? 50 : 5, // free / wrong-role users get a small preview
+        include: {
+          author: { select: { id: true, role: true, verificationStatus: true } },
+          votes: session?.user?.id
+            ? { where: { userId: session.user.id }, select: { value: true } }
+            : false,
+        },
+      }),
+    [],
+    "group:posts"
+  );
 
   const previewMessage = !canPost
     ? session?.user
@@ -116,7 +129,8 @@ export default async function GroupPage({
       <div className="mt-6 space-y-3">
         {posts.length === 0 ? (
           <div className="card p-8 text-center text-sm text-slate-500">
-            No posts yet — be the first.
+            <p className="font-medium text-slate-700">No results yet.</p>
+            <p className="mt-1">Data will appear here soon.</p>
           </div>
         ) : (
           posts.map((p) => (

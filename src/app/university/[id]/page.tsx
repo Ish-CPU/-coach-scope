@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { safe } from "@/lib/safe-query";
 import { canParticipate, getSession } from "@/lib/permissions";
 import { defaultReviewSort, weightedCategoryAverage, weightedOverall } from "@/lib/review-weighting";
 import { RATING_FIELDS } from "@/lib/review-schemas";
@@ -23,19 +24,24 @@ interface PageProps {
 }
 
 export default async function UniversityProfilePage({ params, searchParams }: PageProps) {
-  const uni = await prisma.university.findUnique({
-    where: { id: params.id },
-    include: {
-      schools: { include: { coaches: true } },
-      dorms: { orderBy: { name: "asc" } },
-      diningHalls: { orderBy: { name: "asc" } },
-      facilities: { orderBy: { name: "asc" } },
-      reviews: {
-        where: { status: "PUBLISHED" },
-        include: { author: { select: { id: true, role: true, verificationStatus: true } } },
-      },
-    },
-  });
+  const uni = await safe(
+    () =>
+      prisma.university.findUnique({
+        where: { id: params.id },
+        include: {
+          schools: { include: { coaches: true } },
+          dorms: { orderBy: { name: "asc" } },
+          diningHalls: { orderBy: { name: "asc" } },
+          facilities: { orderBy: { name: "asc" } },
+          reviews: {
+            where: { status: "PUBLISHED" },
+            include: { author: { select: { id: true, role: true, verificationStatus: true } } },
+          },
+        },
+      }),
+    null,
+    "university:findUnique"
+  );
   if (!uni) notFound();
 
   const session = await getSession();

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { safe } from "@/lib/safe-query";
 import { canParticipate, getSession, groupTypeForRole } from "@/lib/permissions";
 import { GROUP_TYPE_DESCRIPTIONS, GROUP_TYPE_LABELS } from "@/lib/groups";
 import { GroupType } from "@prisma/client";
@@ -14,16 +15,27 @@ export default async function GroupsPage({
   const session = await getSession();
   const myType = session?.user ? groupTypeForRole(session.user.role) : null;
 
-  const typeRaw = (Array.isArray(searchParams.type) ? searchParams.type[0] : searchParams.type) as
-    | GroupType
-    | undefined;
+  const rawType = Array.isArray(searchParams.type)
+  ? searchParams.type[0]
+  : searchParams.type;
 
-  const groups = await prisma.group.findMany({
-    where: typeRaw ? { groupType: typeRaw } : undefined,
-    orderBy: [{ createdAt: "desc" }],
-    take: 60,
-    include: { _count: { select: { members: true, posts: true } } },
-  });
+const validGroupTypes = Object.keys(GROUP_TYPE_LABELS) as GroupType[];
+
+const typeRaw = validGroupTypes.includes(rawType as GroupType)
+  ? (rawType as GroupType)
+  : undefined;
+
+  const groups = await safe(
+    () =>
+      prisma.group.findMany({
+        where: typeRaw ? { groupType: typeRaw } : undefined,
+        orderBy: [{ createdAt: "desc" }],
+        take: 60,
+        include: { _count: { select: { members: true, posts: true } } },
+      }),
+    [],
+    "groups:list"
+  );
 
   return (
     <div className="container-page py-10">
@@ -60,7 +72,8 @@ export default async function GroupsPage({
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
         {groups.length === 0 ? (
           <div className="card col-span-full p-8 text-center text-sm text-slate-500">
-            No groups yet. Be the first to create one.
+            <p className="font-medium text-slate-700">No groups have been created yet.</p>
+            <p className="mt-1">Data will appear here soon.</p>
           </div>
         ) : (
           groups.map((g) => {

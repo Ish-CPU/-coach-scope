@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { safe } from "@/lib/safe-query";
 import { canParticipate, getSession } from "@/lib/permissions";
 import { defaultReviewSort, weightedCategoryAverage, weightedOverall } from "@/lib/review-weighting";
 import { RATING_FIELDS } from "@/lib/review-schemas";
@@ -23,18 +24,23 @@ interface PageProps {
 }
 
 export default async function CoachProfilePage({ params, searchParams }: PageProps) {
-  const coach = await prisma.coach.findUnique({
-    where: { id: params.id },
-    include: {
-      school: { include: { university: true } },
-      reviews: {
-        where: { status: "PUBLISHED" },
+  const coach = await safe(
+    () =>
+      prisma.coach.findUnique({
+        where: { id: params.id },
         include: {
-          author: { select: { id: true, role: true, verificationStatus: true } },
+          school: { include: { university: true } },
+          reviews: {
+            where: { status: "PUBLISHED" },
+            include: {
+              author: { select: { id: true, role: true, verificationStatus: true } },
+            },
+          },
         },
-      },
-    },
-  });
+      }),
+    null,
+    "coach:findUnique"
+  );
   if (!coach) notFound();
 
   const session = await getSession();
