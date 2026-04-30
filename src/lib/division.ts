@@ -20,6 +20,7 @@ export const DIVISION_OPTIONS: DivisionOption[] = [
   { value: Division.D2, label: "NCAA Division II" },
   { value: Division.D3, label: "NCAA Division III" },
   { value: Division.NJCAA, label: "JUCO" },
+  { value: Division.NAIA, label: "NAIA" },
 ];
 
 const DIVISION_VALUES: ReadonlySet<string> = new Set(DIVISION_OPTIONS.map((d) => d.value));
@@ -30,6 +31,7 @@ const ALIASES: Record<string, Division> = {
   d2: Division.D2,
   d3: Division.D3,
   njcaa: Division.NJCAA,
+  naia: Division.NAIA,
   // Friendly labels users (or links from elsewhere) might pass.
   "ncaa division i": Division.D1,
   "ncaa division ii": Division.D2,
@@ -40,6 +42,7 @@ const ALIASES: Record<string, Division> = {
   juco: Division.NJCAA,
   "junior college": Division.NJCAA,
   "community college": Division.NJCAA,
+  "national association of intercollegiate athletics": Division.NAIA,
 };
 
 /**
