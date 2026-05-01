@@ -36,6 +36,10 @@ const MAX_LIMIT = 500;
 
 export async function runSearch(f: SearchFilters): Promise<SearchHit[]> {
   const limit = Math.min(Math.max(1, f.limit ?? DEFAULT_LIMIT), MAX_LIMIT);
+
+  // 👇 ADD THIS LINE
+  const perTypeLimit = f.kind === "all" || !f.kind ? MAX_LIMIT : limit;
+
   const q = f.q?.trim();
 
   const ratingFilter = f.minRating
@@ -45,28 +49,28 @@ export async function runSearch(f: SearchFilters): Promise<SearchHit[]> {
   const promises: Promise<SearchHit[]>[] = [];
 
   if (!f.kind || f.kind === "all" || f.kind === "coach") {
-    promises.push(searchCoaches(q, f, limit, ratingFilter));
+    promises.push(searchCoaches(q, f, perTypeLimit, ratingFilter));
   }
   if (!f.kind || f.kind === "all" || f.kind === "university") {
-    promises.push(searchUniversities(q, f, limit, ratingFilter));
+    promises.push(searchUniversities(q, f, perTypeLimit, ratingFilter));
   }
   if (!f.kind || f.kind === "all" || f.kind === "dorm") {
-    promises.push(searchDorms(q, f, limit, ratingFilter));
+    promises.push(searchDorms(q, f, perTypeLimit, ratingFilter));
   }
   if (!f.kind || f.kind === "all" || f.kind === "school") {
-    promises.push(searchSchools(q, f, limit, ratingFilter));
+    promises.push(searchSchools(q, f, perTypeLimit, ratingFilter));
   }
 
-  // Each searchX function already returns [] on its own DB error, so
-  // Promise.all itself shouldn't reject — but wrap defensively in case
-  // a future change throws synchronously (e.g. a bad filter mapping).
   const results = await safe(
     async () => (await Promise.all(promises)).flat(),
     [],
     "search:run"
   );
+
   return results;
 }
+
+  
 
 async function searchCoaches(
   q: string | undefined,
