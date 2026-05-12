@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "prisma generate && next build",
     "start": "next start",
+    "sync:coaches": "tsx scripts/sync-coaches.ts",
     "lint": "next lint",
     "postinstall": "prisma generate",
     "db:push": "prisma db push",
