@@ -17,6 +17,7 @@
     "db:import:samples": "tsx scripts/import-csv.ts samples",
     "requests:export": "tsx scripts/export-program-requests.ts",
     "seed:football-major": "tsx scripts/seed-major-football-programs.ts",
+    "seed:womens-basketball-major": "tsx scripts/seed-major-womens-basketball-programs.ts",
     "stripe:listen": "stripe listen --forward-to localhost:3000/api/stripe/webhook",
     "coaches:missing": "tsx scripts/export-missing-coaches-by-sport.ts"
   },
