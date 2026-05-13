@@ -77,6 +77,18 @@ enum Division {
   OTHER
 }
 
+// Lifecycle for athlete-submitted "my school/program isn't here" requests.
+// PENDING       — fresh submission, awaiting admin triage
+// NEEDS_REVIEW  — admin flagged for follow-up (missing info, suspect data)
+// APPROVED      — admin imported the school/program; request is closed
+// REJECTED      — admin rejected (duplicate, fake school, off-platform sport)
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  NEEDS_REVIEW
+}
+
 // Audience-based group segmentation per spec.
 enum GroupType {
   ATHLETE_GROUP
@@ -705,4 +717,45 @@ model GroupCommentVote {
 
   @@unique([userId, commentId])
   @@index([commentId])
+}
+
+// ---------------------------------------------------------------------------
+// Program / School Requests
+//
+// Athletes (or anyone) can submit a request when their school or program is
+// missing from the database. Admins triage them; approved requests become
+// the input for a future seed/import. We intentionally keep this model
+// lightweight — no FK to University because the whole point is the school
+// may not exist yet.
+// ---------------------------------------------------------------------------
+
+model ProgramRequest {
+  id            String        @id @default(cuid())
+  schoolName    String
+  sport         String
+  division      String?
+  conference    String?
+  state         String?
+  level         String?
+
+  // Free-text role tag from the requester (e.g. "Athlete", "Parent",
+  // "HS Coach"). Not joined to UserRole — anonymous submissions are allowed.
+  requesterRole  String?
+  requesterEmail String?
+
+  // Helpful pointers for the admin doing the import:
+  rosterUrl     String?
+  athleticsUrl  String?
+  notes         String?       @db.Text
+
+  status        RequestStatus @default(PENDING)
+  // Manual ranking knob admins can use to surface high-signal requests.
+  priorityScore Int           @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, createdAt])
+  @@index([schoolName])
+  @@index([sport])
 }

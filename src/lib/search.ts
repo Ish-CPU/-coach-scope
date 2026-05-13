@@ -1,6 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { safe } from "@/lib/safe-query";
 import { Division, Prisma, ReviewType } from "@prisma/client";
+import {
+  buildNameLikeClauses,
+  expandSchoolAliases,
+  scoreSearchHit,
+} from "@/lib/search-normalize";
 
 export type SearchKind = "all" | "coach" | "university" | "dorm" | "school";
 
@@ -28,6 +33,14 @@ export interface SearchHit {
   href: string;
 }
 
+/**
+ * Internal augmentation of SearchHit used for ranking only. The
+ * `universityName` lets the scorer reward alias matches against the
+ * backing university even when the title is something else (e.g. a coach
+ * name or "Florida Football").
+ */
+type ScoredSearchHit = SearchHit & { __universityName?: string };
+
 // Default 100 results per page (was 20). Hard cap of 500 is the largest a
 // single search query may request — keeps payload sizes and Postgres LIMIT
 // reasonable while still supporting "Load More" up to a meaningful ceiling.
@@ -36,8 +49,6 @@ const MAX_LIMIT = 500;
 
 export async function runSearch(f: SearchFilters): Promise<SearchHit[]> {
   const limit = Math.min(Math.max(1, f.limit ?? DEFAULT_LIMIT), MAX_LIMIT);
-
-  // 👇 ADD THIS LINE
   const perTypeLimit = f.kind === "all" || !f.kind ? MAX_LIMIT : limit;
 
   const q = f.q?.trim();
@@ -46,28 +57,57 @@ export async function runSearch(f: SearchFilters): Promise<SearchHit[]> {
     ? { reviews: { some: { overall: { gte: f.minRating } } } }
     : undefined;
 
-  const promises: Promise<SearchHit[]>[] = [];
+  // Pre-compute alias-expanded lookups once and share them with every
+  // per-type query. Empty arrays mean "no extra OR clauses" — same behavior
+  // as before for non-aliased queries.
+  const aliasNames = q ? expandSchoolAliases(q) : [];
+  const nameLikes = q ? buildNameLikeClauses(q) : [];
+
+  const promises: Promise<ScoredSearchHit[]>[] = [];
 
   if (!f.kind || f.kind === "all" || f.kind === "coach") {
-    promises.push(searchCoaches(q, f, perTypeLimit, ratingFilter));
+    promises.push(searchCoaches(q, f, perTypeLimit, ratingFilter, aliasNames, nameLikes));
   }
   if (!f.kind || f.kind === "all" || f.kind === "university") {
-    promises.push(searchUniversities(q, f, perTypeLimit, ratingFilter));
+    promises.push(searchUniversities(q, f, perTypeLimit, ratingFilter, aliasNames, nameLikes));
   }
   if (!f.kind || f.kind === "all" || f.kind === "dorm") {
-    promises.push(searchDorms(q, f, perTypeLimit, ratingFilter));
+    promises.push(searchDorms(q, f, perTypeLimit, ratingFilter, aliasNames, nameLikes));
   }
   if (!f.kind || f.kind === "all" || f.kind === "school") {
-    promises.push(searchSchools(q, f, perTypeLimit, ratingFilter));
+    promises.push(searchSchools(q, f, perTypeLimit, ratingFilter, aliasNames, nameLikes));
   }
 
-  const results = await safe(
+  const raw = await safe(
     async () => (await Promise.all(promises)).flat(),
-    [],
+    [] as ScoredSearchHit[],
     "search:run"
   );
 
-  return results;
+  // De-dupe by (type, id) — alias expansion can re-fetch the same row via
+  // different OR branches at the Prisma layer.
+  const seen = new Set<string>();
+  const results: ScoredSearchHit[] = [];
+  for (const r of raw) {
+    const key = `${r.type}:${r.id}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    results.push(r);
+  }
+
+  // Rank by relevance when there's a query — otherwise preserve insertion
+  // order so existing list views (no `q`) stay stable.
+  if (q) {
+    results.sort((a, b) => {
+      const sa = scoreSearchHit(q, { ...a, universityName: a.__universityName });
+      const sb = scoreSearchHit(q, { ...b, universityName: b.__universityName });
+      return sb - sa;
+    });
+  }
+
+  // Apply the caller's overall limit and strip the internal helper field
+  // so the public response shape stays exactly `SearchHit[]`.
+  return results.slice(0, limit).map(({ __universityName, ...rest }) => rest);
 }
 
   
@@ -76,11 +116,33 @@ async function searchCoaches(
   q: string | undefined,
   f: SearchFilters,
   limit: number,
-  ratingFilter: Prisma.CoachWhereInput | undefined
-): Promise<SearchHit[]> {
+  ratingFilter: Prisma.CoachWhereInput | undefined,
+  aliasNames: string[],
+  nameLikes: { contains: string; mode: "insensitive" }[]
+): Promise<ScoredSearchHit[]> {
+  // Coach matching widens to: literal coach name match (existing behavior)
+  // OR the coach's school being at a university whose name matches the
+  // user query / any alias expansion. This is what lets "bama" surface
+  // Alabama's coaches even though "Nick Saban" doesn't contain "bama".
+  const universityNameClauses = nameLikes.length
+    ? nameLikes.map((c) => ({ name: c }))
+    : [];
+  if (aliasNames.length) {
+    for (const n of aliasNames) universityNameClauses.push({ name: { equals: n, mode: "insensitive" } as any });
+  }
+
   const where: Prisma.CoachWhereInput = {
     AND: [
-      q ? { name: { contains: q, mode: "insensitive" } } : {},
+      q
+        ? {
+            OR: [
+              { name: { contains: q, mode: "insensitive" } },
+              ...(universityNameClauses.length
+                ? [{ school: { university: { OR: universityNameClauses } } }]
+                : []),
+            ],
+          }
+        : {},
       f.sport ? { school: { sport: { equals: f.sport, mode: "insensitive" } } } : {},
       f.division ? { school: { division: f.division } } : {},
       f.universityId ? { school: { universityId: f.universityId } } : {},
@@ -114,6 +176,7 @@ async function searchCoaches(
       rating: weightedAvg(filtered),
       reviewCount: filtered.length,
       href: `/coach/${c.id}`,
+      __universityName: c.school.university.name,
     };
   });
 }
@@ -122,8 +185,10 @@ async function searchUniversities(
   q: string | undefined,
   f: SearchFilters,
   limit: number,
-  ratingFilter: Prisma.UniversityWhereInput | undefined
-): Promise<SearchHit[]> {
+  ratingFilter: Prisma.UniversityWhereInput | undefined,
+  aliasNames: string[],
+  nameLikes: { contains: string; mode: "insensitive" }[]
+): Promise<ScoredSearchHit[]> {
   // Universities don't have a single "division" — they field many programs
   // across divisions. "Show D1 universities" → universities with at least one
   // program at that division. Sport filter scopes the same relation.
@@ -135,14 +200,21 @@ async function searchUniversities(
         }
       : undefined;
 
+  // OR-list for the name field, with alias-expanded variants added so
+  // "bama" pulls in "University of Alabama". `nameLikes` already includes
+  // the original query as a `contains` clause.
+  const nameOrClauses: Prisma.UniversityWhereInput[] = nameLikes.map((c) => ({ name: c }));
+  for (const n of aliasNames) nameOrClauses.push({ name: { equals: n, mode: "insensitive" } });
+
   const where: Prisma.UniversityWhereInput = {
     AND: [
       q
         ? {
             OR: [
-              { name: { contains: q, mode: "insensitive" } },
+              ...nameOrClauses,
               { city: { contains: q, mode: "insensitive" } },
               { state: { contains: q, mode: "insensitive" } },
+              { conference: { contains: q, mode: "insensitive" } },
             ],
           }
         : {},
@@ -174,6 +246,7 @@ async function searchUniversities(
       rating: weightedAvg(filtered),
       reviewCount: filtered.length,
       href: `/university/${u.id}`,
+      __universityName: u.name,
     };
   });
 }
@@ -182,8 +255,10 @@ async function searchDorms(
   q: string | undefined,
   f: SearchFilters,
   limit: number,
-  ratingFilter: Prisma.DormWhereInput | undefined
-): Promise<SearchHit[]> {
+  ratingFilter: Prisma.DormWhereInput | undefined,
+  aliasNames: string[],
+  nameLikes: { contains: string; mode: "insensitive" }[]
+): Promise<ScoredSearchHit[]> {
   // Dorms inherit their level from their university (which inherits via its
   // programs). Same join logic as universities.
   const programMatch: Prisma.SchoolWhereInput | undefined =
@@ -194,9 +269,23 @@ async function searchDorms(
         }
       : undefined;
 
+  // Either the dorm name matches, OR the dorm belongs to a university whose
+  // name matches the query / an alias. Lets "bama" surface Bryant Hall.
+  const universityNameClauses: Prisma.UniversityWhereInput[] = nameLikes.map((c) => ({ name: c }));
+  for (const n of aliasNames) universityNameClauses.push({ name: { equals: n, mode: "insensitive" } });
+
   const where: Prisma.DormWhereInput = {
     AND: [
-      q ? { name: { contains: q, mode: "insensitive" } } : {},
+      q
+        ? {
+            OR: [
+              { name: { contains: q, mode: "insensitive" } },
+              ...(universityNameClauses.length
+                ? [{ university: { OR: universityNameClauses } }]
+                : []),
+            ],
+          }
+        : {},
       f.universityId ? { universityId: f.universityId } : {},
       programMatch ? { university: { schools: { some: programMatch } } } : {},
       ratingFilter ?? {},
@@ -227,6 +316,7 @@ async function searchDorms(
       rating: weightedAvg(filtered),
       reviewCount: filtered.length,
       href: `/dorm/${d.id}`,
+      __universityName: d.university.name,
     };
   });
 }
@@ -235,15 +325,23 @@ async function searchSchools(
   q: string | undefined,
   f: SearchFilters,
   limit: number,
-  ratingFilter: Prisma.SchoolWhereInput | undefined
-): Promise<SearchHit[]> {
+  ratingFilter: Prisma.SchoolWhereInput | undefined,
+  aliasNames: string[],
+  nameLikes: { contains: string; mode: "insensitive" }[]
+): Promise<ScoredSearchHit[]> {
+  const universityNameClauses: Prisma.UniversityWhereInput[] = nameLikes.map((c) => ({ name: c }));
+  for (const n of aliasNames) universityNameClauses.push({ name: { equals: n, mode: "insensitive" } });
+
   const where: Prisma.SchoolWhereInput = {
     AND: [
       q
         ? {
             OR: [
               { sport: { contains: q, mode: "insensitive" } },
-              { university: { name: { contains: q, mode: "insensitive" } } },
+              { conference: { contains: q, mode: "insensitive" } },
+              ...(universityNameClauses.length
+                ? [{ university: { OR: universityNameClauses } }]
+                : []),
             ],
           }
         : {},
@@ -278,6 +376,7 @@ async function searchSchools(
       rating: weightedAvg(filtered),
       reviewCount: filtered.length,
       href: `/university/${s.universityId}?sport=${encodeURIComponent(s.sport)}`,
+      __universityName: s.university.name,
     };
   });
 }

@@ -9,9 +9,10 @@ export default async function AdminHomePage() {
   const session = await getSession();
   if (!isAdmin(session)) redirect("/");
 
-  const [openReports, pendingVerifications, totalReviews, totalUsers] = await Promise.all([
+  const [openReports, pendingVerifications, pendingRequests, totalReviews, totalUsers] = await Promise.all([
     prisma.report.count({ where: { status: "OPEN" } }),
     prisma.verificationRequest.count({ where: { status: "PENDING" } }),
+    prisma.programRequest.count({ where: { status: "PENDING" } }),
     prisma.review.count(),
     prisma.user.count(),
   ]);
@@ -23,9 +24,10 @@ export default async function AdminHomePage() {
         Moderation, verification approvals, and public-data imports.
       </p>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <Stat label="Open reports" value={openReports} href="/admin/reports" />
         <Stat label="Pending verifications" value={pendingVerifications} href="/admin/verifications" />
+        <Stat label="Pending school requests" value={pendingRequests} href="/admin/requests" />
         <Stat label="Total reviews" value={totalReviews} />
         <Stat label="Total users" value={totalUsers} />
       </div>

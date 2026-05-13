@@ -171,9 +171,21 @@ export default async function SearchPage({ searchParams }: PageProps) {
           <AdSlot variant="banner" className="mb-4" />
           <div className="grid gap-3">
             {hits.length === 0 ? (
-              <div className="card p-10 text-center text-slate-500">
-                <p className="font-medium text-slate-700">No results yet.</p>
-                <p className="mt-1">Try adjusting your filters — data will appear here soon.</p>
+              <div className="card p-10 text-center">
+                <p className="font-medium text-slate-700">No results found.</p>
+                <p className="mt-1 text-sm text-slate-500">
+                  Try adjusting your filters — or, if your school or program
+                  isn&rsquo;t in the database yet, request it and we&rsquo;ll add
+                  it.
+                </p>
+                <Link
+                  href={`/request-school${
+                    filters.q ? `?q=${encodeURIComponent(filters.q)}` : ""
+                  }`}
+                  className="btn-primary mt-4 inline-flex"
+                >
+                  Request your school or program →
+                </Link>
               </div>
             ) : (
               hits.map((h) => <ResultCard key={`${h.type}:${h.id}`} hit={h} />)
