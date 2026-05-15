@@ -2,12 +2,14 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import {
-  canParticipateInGroup,
+  canPostInGroup,
   describeGate,
   getSession,
   whyCannotParticipate,
 } from "@/lib/permissions";
 import { rateLimit } from "@/lib/rate-limit";
+import { createNotification } from "@/lib/notifications-inapp";
+import { NotificationType } from "@prisma/client";
 
 const schema = z.object({
   // value of 0 removes the vote; +1 upvotes; -1 downvotes
@@ -48,7 +50,17 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   });
   if (!post) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  if (!canParticipateInGroup(session, post.group.groupType)) {
+  const membership = await prisma.groupMembership.findUnique({
+    where: { userId_groupId: { userId, groupId: post.groupId } },
+    select: { id: true },
+  });
+  if (
+    !canPostInGroup(session, {
+      groupType: post.group.groupType,
+      visibility: post.group.visibility,
+      isMember: !!membership,
+    })
+  ) {
     return NextResponse.json(
       { error: describeGate("wrong-role", { groupType: post.group.groupType }) },
       { status: 403 }
@@ -64,7 +76,10 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     let downDelta = 0;
 
     if (newValue === 0) {
-      if (!existing) return post;
+      // Toggle off — only do work if there's a vote to remove. Either
+      // way return the unchanged post + zero delta so the outer code
+      // sees a consistent shape.
+      if (!existing) return { post, upDelta: 0 };
       if (existing.value === 1) upDelta = -1;
       else downDelta = -1;
       await tx.groupPostVote.delete({ where: { id: existing.id } });
@@ -87,23 +102,59 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         data: { value: newValue },
       });
     } else {
-      return post;
+      // Same vote re-cast — no-op.
+      return { post, upDelta: 0 };
     }
 
-    return tx.groupPost.update({
-      where: { id: postId },
-      data: {
-        upvoteCount: { increment: upDelta },
-        downvoteCount: { increment: downDelta },
-        totalScore: { increment: upDelta - downDelta },
-      },
-    });
+    // Bump the post author's cached `trustScore` so it tracks community
+    // signal in real time. We move score by the same amount the post's
+    // totalScore moved (`upDelta - downDelta`), capped per-vote so a
+    // single vote can't swing the meter wildly. No-op when delta is 0.
+    const trustDelta = upDelta - downDelta;
+    if (trustDelta !== 0) {
+      await tx.user.update({
+        where: { id: post.authorId },
+        data: { trustScore: { increment: trustDelta } },
+      });
+    }
+
+    return {
+      post: await tx.groupPost.update({
+        where: { id: postId },
+        data: {
+          upvoteCount: { increment: upDelta },
+          downvoteCount: { increment: downDelta },
+          totalScore: { increment: upDelta - downDelta },
+        },
+      }),
+      upDelta,
+    };
   });
 
+  // Notify the post author when this vote NET ADDED an upvote (moving
+  // 0→+1 or -1→+1). Avoids spamming on toggle-off and on downvotes
+  // (downvotes are intentionally silent — surfacing them would feel
+  // adversarial). Self-vote is short-circuited inside createNotification.
+  if (updated.upDelta > 0) {
+    void createNotification({
+      userId: post.authorId,
+      actorId: userId,
+      type: NotificationType.POST_UPVOTE,
+      subjectType: "GroupPost",
+      subjectId: postId,
+      data: {
+        title: post.title,
+        groupSlug: post.group.slug,
+        groupName: post.group.name,
+        totalScore: updated.post.totalScore,
+      },
+    });
+  }
+
   return NextResponse.json({
-    upvoteCount: updated.upvoteCount,
-    downvoteCount: updated.downvoteCount,
-    totalScore: updated.totalScore,
+    upvoteCount: updated.post.upvoteCount,
+    downvoteCount: updated.post.downvoteCount,
+    totalScore: updated.post.totalScore,
     yourVote: newValue,
   });
 }

@@ -80,14 +80,31 @@ export function ReviewCard({ review, canInteract }: { review: ReviewCardData; ca
       <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-slate-800">{review.body}</p>
 
       <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-1 text-xs sm:grid-cols-3">
-        {Object.entries(review.ratings).map(([k, v]) => (
-          <div key={k} className="flex items-center justify-between">
-            <dt className="text-slate-500">{RATING_LABELS[k] ?? k}</dt>
-            <dd className="font-medium text-slate-700">
-              {Number.isFinite(Number(v)) ? Number(v).toFixed(1) : "—"}
-            </dd>
-          </div>
-        ))}
+        {Object.entries(review.ratings).map(([k, v]) => {
+          // Three render states per category:
+          //   number > 0 → show 1-decimal value
+          //   null       → "N/A" pill (intentionally not applicable)
+          //   anything else → "—" so we never show a misleading 0.0
+          const isNA = v === null;
+          const numeric =
+            typeof v === "number" && Number.isFinite(v) && v > 0 ? v : null;
+          return (
+            <div key={k} className="flex items-center justify-between">
+              <dt className="text-slate-500">{RATING_LABELS[k] ?? k}</dt>
+              <dd className="font-medium text-slate-700">
+                {numeric !== null ? (
+                  numeric.toFixed(1)
+                ) : isNA ? (
+                  <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                    N/A
+                  </span>
+                ) : (
+                  "—"
+                )}
+              </dd>
+            </div>
+          );
+        })}
       </dl>
 
       <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-sm">

@@ -159,7 +159,25 @@
       "Bash(curl -s -L --max-time 6 -A \"Mozilla/5.0\" \"https://riceowls.com/sports/softball\")",
       "Bash(curl -s -L --max-time 6 -A \"Mozilla/5.0\" \"https://vcuathletics.com/sports/softball\")",
       "Bash(curl -s -L --max-time 6 -A \"Mozilla/5.0\" \"https://davidsonwildcats.com/sports/softball\")",
-      "Bash(curl -s -L --max-time 8 -A \"Mozilla/5.0\" \"https://athletics.claflin.edu/sports/baseball/coaches\")"
+      "Bash(curl -s -L --max-time 8 -A \"Mozilla/5.0\" \"https://athletics.claflin.edu/sports/baseball/coaches\")",
+      "Bash(cat src/app/api/onboarding/role/route.ts)",
+      "Bash(head -100 src/app/onboarding/page.tsx)",
+      "Bash(curl -s http://localhost:3000/api/universities/cmolqzznh00002xbsiqj0t8j6/schools)",
+      "Bash(npx tsx *)",
+      "Bash(curl -s http://localhost:3000/api/universities/cmol11lky000fpuxjlcxezl1l/schools)",
+      "Bash(curl -s http://localhost:3001/api/universities/cmol11lky000fpuxjlcxezl1l/schools)",
+      "Bash(curl -s \"http://localhost:3001/api/universities/search?q=colorado\")",
+      "Bash(curl -s \"http://localhost:3001/api/universities/search?q=\")",
+      "Bash(curl -sw \"%{http_code}\\\\n\" \"http://localhost:3001/api/universities/bogusid/schools\")",
+      "Bash(curl -fs -o /dev/null -w \"%{http_code}\" http://localhost:3000/)",
+      "Bash(curl -fs -o /dev/null -w \"%{http_code}\" http://localhost:3001/)",
+      "Bash(curl -s -b /tmp/cs-test.cookies -X POST http://localhost:3001/api/reviews -H 'content-type: application/json' -d '{\"reviewType\":\"RECRUITING\",\"body\":\"Should be blocked because the recruit has no RECRUITED_BY for this specific school row.\",\"schoolId\":\"cmonuradd0001kvvfm7r6u2bt\",\"universityId\":\"cmol11lky000fpuxjlcxezl1l\",\"ratings\":{\"recruitingHonesty\":5,\"communication\":5,\"offerClarity\":5,\"followThrough\":5,\"programInterestLevel\":5,\"overallRating\":5},\"isAnonymous\":true}' -w '\\\\nhttp=%{http_code}\\\\n')",
+      "Bash(curl -s \"http://localhost:3001/api/universities/search?q=Louisiana%20State\")",
+      "Bash(curl -s 'http://localhost:3001/api/universities/search?q=Stanford')",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\)['coaches']; print\\(f'count={len\\(d\\)}'\\); [print\\(f'  {c[\\\\\"name\\\\\"]}'\\) for c in d[:5]]\")",
+      "Bash(rm -f /tmp/cs-test.cookies)",
+      "Bash(curl -s -c /tmp/cs-test.cookies -b /tmp/cs-test.cookies http://localhost:3001/api/auth/csrf)",
+      "Bash(python3 -c \"import sys,json;d=json.load\\(sys.stdin\\)['groups'];print\\(f'count={len\\(d\\)}'\\); [print\\(f'  {g[\\\\\"name\\\\\"]} \\({g[\\\\\"groupType\\\\\"]}\\)'\\) for g in d[:5]]\")"
     ]
   }
 }

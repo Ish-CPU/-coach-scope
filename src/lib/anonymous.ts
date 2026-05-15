@@ -11,8 +11,12 @@ export function anonymousDisplayName(role: UserRole): string {
   switch (role) {
     case UserRole.VERIFIED_ATHLETE:
       return "Anonymous Verified Athlete";
+    case UserRole.VERIFIED_ATHLETE_ALUMNI:
+      return "Anonymous Verified Athlete Alumni";
     case UserRole.VERIFIED_STUDENT:
       return "Anonymous Verified Student";
+    case UserRole.VERIFIED_STUDENT_ALUMNI:
+      return "Anonymous Verified Student Alumni";
     case UserRole.VERIFIED_PARENT:
       return "Anonymous Verified Parent";
     case UserRole.ADMIN:

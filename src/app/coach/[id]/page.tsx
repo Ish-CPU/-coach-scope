@@ -32,7 +32,7 @@ export default async function CoachProfilePage({ params, searchParams }: PagePro
         include: {
           school: { include: { university: true } },
           reviews: {
-            where: { status: "PUBLISHED" },
+            where: { status: "PUBLISHED", moderationStatus: "PUBLISHED" },
             include: {
               author: { select: { id: true, name: true, role: true, verificationStatus: true } },
             },

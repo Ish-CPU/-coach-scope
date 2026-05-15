@@ -464,9 +464,21 @@ function filterReviews<
 >(reviews: R[], f: SearchFilters): R[] {
   return reviews.filter((r) => {
     if (f.reviewType && r.reviewType !== f.reviewType) return false;
-    if (f.verifiedAthleteOnly && r.author?.role !== "VERIFIED_ATHLETE") return false;
+    if (
+      f.verifiedAthleteOnly &&
+      r.author?.role !== "VERIFIED_ATHLETE" &&
+      // Alumni count as athlete-trusted reviewers per the verification spec.
+      r.author?.role !== "VERIFIED_ATHLETE_ALUMNI"
+    )
+      return false;
     if (f.parentReviewsOnly && r.author?.role !== "PARENT") return false;
-    if (f.verifiedStudentOnly && r.author?.role !== "VERIFIED_STUDENT") return false;
+    if (
+      f.verifiedStudentOnly &&
+      r.author?.role !== "VERIFIED_STUDENT" &&
+      // Student alumni are student-trusted per the verification spec.
+      r.author?.role !== "VERIFIED_STUDENT_ALUMNI"
+    )
+      return false;
     return true;
   });
 }

@@ -41,7 +41,7 @@ export default async function NewGroupPage() {
   }
 
   const myType =
-    session.user.role === UserRole.ADMIN ? null : groupTypeForRole(session.user.role);
+    session.user.role === UserRole.ADMIN || session.user.role === UserRole.MASTER_ADMIN ? null : groupTypeForRole(session.user.role);
 
   return (
     <div className="container-page py-10">

@@ -1,4 +1,4 @@
-import type { SubscriptionStatus, UserRole, VerificationStatus } from "@prisma/client";
+import type { AdminStatus, SubscriptionStatus, UserRole, VerificationStatus } from "@prisma/client";
 import "next-auth";
 import "next-auth/jwt";
 
@@ -13,6 +13,9 @@ declare module "next-auth" {
       paymentVerified: boolean;
       subscriptionStatus: SubscriptionStatus;
       verificationStatus: VerificationStatus;
+      // Admin lifecycle + per-action grant. `null` for non-admins.
+      adminStatus: AdminStatus | null;
+      adminPermissions: Record<string, boolean> | null;
     };
   }
 }
@@ -24,5 +27,7 @@ declare module "next-auth/jwt" {
     paymentVerified?: boolean;
     subscriptionStatus?: SubscriptionStatus;
     verificationStatus?: VerificationStatus;
+    adminStatus?: AdminStatus | null;
+    adminPermissions?: Record<string, boolean> | null;
   }
 }

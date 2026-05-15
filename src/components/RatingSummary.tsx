@@ -43,27 +43,43 @@ export function RatingSummary({
         </div>
 
         <div className="flex-1 grid grid-cols-1 gap-1 text-sm sm:grid-cols-2">
-          {Object.entries(categories).map(([k, v]) => (
-            <div key={k} className="flex items-center justify-between gap-3">
-              <span
-                className="text-slate-600"
-                title={RATING_DESCRIPTIONS[k] ?? undefined}
-              >
-                {RATING_LABELS[k] ?? k}
-              </span>
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-20 overflow-hidden rounded-full bg-slate-200 sm:w-24">
-                  <div
-                    className="h-full bg-brand-500"
-                    style={{ width: `${v > 0 ? (v / 5) * 100 : 0}%` }}
-                  />
-                </div>
-                <span className="w-8 text-right text-xs font-medium text-slate-700">
-                  {v > 0 ? v.toFixed(1) : "—"}
+          {Object.entries(categories).map(([k, v]) => {
+            // weightedCategoryAverage returns 0 when every contributing
+            // review marked this category N/A (or there are no reviews
+            // at all). Render that as the "N/A" badge instead of an
+            // empty bar so it's clear the category isn't applicable
+            // here, vs. just unrated.
+            const hasScore = v > 0;
+            return (
+              <div key={k} className="flex items-center justify-between gap-3">
+                <span
+                  className="text-slate-600"
+                  title={RATING_DESCRIPTIONS[k] ?? undefined}
+                >
+                  {RATING_LABELS[k] ?? k}
                 </span>
+                <div className="flex items-center gap-2">
+                  {hasScore ? (
+                    <>
+                      <div className="h-2 w-20 overflow-hidden rounded-full bg-slate-200 sm:w-24">
+                        <div
+                          className="h-full bg-brand-500"
+                          style={{ width: `${(v / 5) * 100}%` }}
+                        />
+                      </div>
+                      <span className="w-8 text-right text-xs font-medium text-slate-700">
+                        {v.toFixed(1)}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                      N/A
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

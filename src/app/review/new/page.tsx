@@ -6,7 +6,6 @@ import {
   getSession,
   whyCannotParticipate,
 } from "@/lib/permissions";
-import { prisma } from "@/lib/prisma";
 import { ReviewForm } from "@/components/ReviewForm";
 import { UpgradePrompt } from "@/components/UpgradePrompt";
 import { ReviewType } from "@prisma/client";
@@ -22,6 +21,27 @@ function get(sp: PageProps["searchParams"], k: string) {
   return Array.isArray(v) ? v[0] : v;
 }
 
+/**
+ * Write-a-Review entry point.
+ *
+ * Server responsibilities here are intentionally narrow:
+ *   1. Make sure the user is signed in and role-verified (page-level
+ *      participation gate).
+ *   2. Resolve which review types they're allowed to submit.
+ *   3. Forward any deep-link initial values from the URL (coachId,
+ *      schoolId, universityId, dormId).
+ *
+ * Everything else — searching universities, fetching programs, fetching
+ * coaches, fetching dorms — is owned by the live combobox-chain inside
+ * <ReviewForm>. We deliberately do NOT pre-scope target options to the
+ * user's approved connections anymore: that produced confusing UX (e.g.
+ * a recruit's dropdown showing only the two schools that recruited
+ * them) and didn't actually buy us security since the per-target
+ * permission gate runs at submit time inside /api/reviews via
+ * `describeReviewBlock`. Submitting against a school the user lacks a
+ * connection to returns a 403 with a clear rejection message that
+ * <ReviewForm> surfaces verbatim.
+ */
 export default async function NewReviewPage({ searchParams }: PageProps) {
   const session = await getSession();
   if (!session?.user) redirect("/sign-in?callbackUrl=/review/new");
@@ -64,20 +84,13 @@ export default async function NewReviewPage({ searchParams }: PageProps) {
   const requested = get(searchParams, "type") as ReviewType | undefined;
   const initialType: ReviewType = requested && allowed.includes(requested) ? requested : allowed[0];
 
+  // Deep-link initial values — passed through to the form so we can
+  // pre-seed the combobox chain (e.g. /coach/<id> → "Write a review"
+  // arrives with coachId pre-populated).
   const coachId = get(searchParams, "coachId");
   const schoolId = get(searchParams, "schoolId");
   const universityId = get(searchParams, "universityId");
   const dormId = get(searchParams, "dormId");
-
-  const [coaches, universities, dorms] = await Promise.all([
-    prisma.coach.findMany({
-      take: 200,
-      orderBy: { name: "asc" },
-      include: { school: { include: { university: true } } },
-    }),
-    prisma.university.findMany({ take: 200, orderBy: { name: "asc" } }),
-    prisma.dorm.findMany({ take: 200, orderBy: { name: "asc" }, include: { university: true } }),
-  ]);
 
   return (
     <div className="container-page py-10">
@@ -86,6 +99,17 @@ export default async function NewReviewPage({ searchParams }: PageProps) {
         <p className="mt-1 text-sm text-slate-600">
           Be specific, fair, and based on your personal experience. No harassment, threats, or false claims.
         </p>
+
+        <p className="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+          Search any university to start. If you don't have an approved connection
+          to the program/coach/school you pick, the submit step will tell you
+          which kind of connection you'd need first — visit{" "}
+          <Link href="/connections" className="underline">
+            /connections
+          </Link>{" "}
+          to add one.
+        </p>
+
         <div className="mt-6">
           <ReviewForm
             initial={{
@@ -94,15 +118,6 @@ export default async function NewReviewPage({ searchParams }: PageProps) {
               schoolId,
               universityId,
               dormId,
-            }}
-            options={{
-              coaches: coaches.map((c) => ({
-                id: c.id,
-                label: `${c.name} — ${c.school.sport} · ${c.school.university.name}`,
-                schoolId: c.schoolId,
-              })),
-              universities: universities.map((u) => ({ id: u.id, label: u.name })),
-              dorms: dorms.map((d) => ({ id: d.id, label: `${d.name} (${d.university.name})` })),
             }}
             allowed={allowed}
           />

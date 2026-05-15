@@ -30,7 +30,10 @@ export default function SignUpPage() {
     }
     await signIn("credentials", { email, password, redirect: false });
     setLoading(false);
-    router.push("/pricing");
+    // New accounts pick a role on /onboarding. Stripe / pricing can be
+    // inserted between this step and /verification later — but during MVP
+    // we go straight to role selection so the user can start verifying.
+    router.push("/onboarding");
     router.refresh();
   }
 
@@ -39,7 +42,8 @@ export default function SignUpPage() {
       <div className="card w-full max-w-md p-6">
         <h1 className="text-xl font-bold">Create your account</h1>
         <p className="mt-1 text-sm text-slate-600">
-          Free forever to read. Pick your role on the next step to participate.
+          Free forever to read. On the next step you'll pick your role
+          (Athlete, Athlete Alumni, Student, Parent, or Other) and start verification.
         </p>
         <form onSubmit={submit} className="mt-4 space-y-3">
           <div>

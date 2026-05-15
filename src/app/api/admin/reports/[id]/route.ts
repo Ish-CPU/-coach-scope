@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSession, isAdmin } from "@/lib/permissions";
+import { canModerateReviews } from "@/lib/admin-permissions";
+import { AUDIT_ACTIONS, logAdminAction } from "@/lib/audit-log";
 import { ReportStatus, ReviewStatus } from "@prisma/client";
 
 const schema = z.object({ action: z.enum(["hide", "remove", "dismiss"]) });
@@ -9,6 +11,12 @@ const schema = z.object({ action: z.enum(["hide", "remove", "dismiss"]) });
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   const session = await getSession();
   if (!isAdmin(session)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!canModerateReviews(session)) {
+    return NextResponse.json(
+      { error: "You don't have permission to moderate reviews." },
+      { status: 403 }
+    );
+  }
 
   let body: unknown;
   try {
@@ -44,6 +52,15 @@ if (!report.reviewId) {
       data: { status: ReportStatus.RESOLVED, resolvedAt: new Date(), resolvedBy: session!.user.id },
     }),
   ]);
+
+  // Capture moderation action so master admin sees it on the dashboard.
+  await logAdminAction({
+    actorUserId: session!.user.id,
+    action: AUDIT_ACTIONS.REVIEW_REMOVED,
+    targetType: "Review",
+    targetId: report.reviewId,
+    metadata: { reportId: report.id, action: parsed.data.action, newStatus: newReviewStatus },
+  });
 
   return NextResponse.json({ ok: true });
 }

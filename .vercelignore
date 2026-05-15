@@ -1,0 +1,33 @@
+# Vercel build context — keep the upload small and avoid shipping CSV
+# fixtures, scratch files, and local seed scripts to the build container.
+#
+# Anything matched here is excluded from the deployment build but is still
+# committed to git for local use.
+node_modules
+.next
+.git
+.DS_Store
+
+# Local-only env / log files
+.env
+.env.local
+.env.*.local
+*.log
+
+# Local data dumps + scratch
+Data/
+seed/
+missing-football-batch-*
+missing-football-coaches.csv
+ratemyu@0.1.0
+next
+env.txt
+
+# tsbuildinfo from local typecheck
+tsconfig.tsbuildinfo
+
+# README / setup notes don't need to ship in the build artifact
+README.md
+SETUP.md
+SECURITY.md
+PRODUCTION.md

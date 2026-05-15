@@ -2,18 +2,24 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import {
-  canParticipateInGroup,
+  canPostInGroup,
   describeGate,
   getSession,
   whyCannotParticipate,
 } from "@/lib/permissions";
 import { rateLimit } from "@/lib/rate-limit";
 import { safe } from "@/lib/safe-query";
+import { isSafeHttpUrl } from "@/lib/safe-url";
 import type { PostSort } from "@/lib/groups";
+import { GroupPostTag } from "@prisma/client";
 
 const schema = z.object({
   title: z.string().min(3).max(200),
   body: z.string().min(1).max(10000),
+  // Optional categorical tags + media URL list. Tags constrained to the
+  // canonical enum so unknown values are silently dropped.
+  tags: z.array(z.nativeEnum(GroupPostTag)).max(5).optional(),
+  mediaUrls: z.array(z.string().url()).max(8).optional(),
 });
 
 export async function POST(req: Request, { params }: { params: { slug: string } }) {
@@ -27,7 +33,19 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
   if (gate) {
     return NextResponse.json({ error: describeGate(gate) }, { status: 403 });
   }
-  if (!canParticipateInGroup(session, group.groupType)) {
+  const membership = await prisma.groupMembership.findUnique({
+    where: {
+      userId_groupId: { userId: session!.user.id, groupId: group.id },
+    },
+    select: { id: true },
+  });
+  if (
+    !canPostInGroup(session, {
+      groupType: group.groupType,
+      visibility: group.visibility,
+      isMember: !!membership,
+    })
+  ) {
     return NextResponse.json(
       { error: describeGate("wrong-role", { groupType: group.groupType }) },
       { status: 403 }
@@ -50,14 +68,29 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
 
-  const post = await prisma.groupPost.create({
-    data: {
-      groupId: group.id,
-      authorId: session!.user.id,
-      title: parsed.data.title,
-      body: parsed.data.body,
-    },
-  });
+  // Sanitize media URLs — only keep public http(s) links. Drops any
+  // shorteners / data: / file: scheme defensively.
+  const mediaUrls = (parsed.data.mediaUrls ?? []).filter((u) => isSafeHttpUrl(u));
+
+  // Create the post and bump the group's cached postCount in one
+  // transaction so the landing-page card sort stays accurate without a
+  // periodic recompute job.
+  const [post] = await prisma.$transaction([
+    prisma.groupPost.create({
+      data: {
+        groupId: group.id,
+        authorId: session!.user.id,
+        title: parsed.data.title,
+        body: parsed.data.body,
+        tags: parsed.data.tags ?? [],
+        mediaUrls,
+      },
+    }),
+    prisma.group.update({
+      where: { id: group.id },
+      data: { postCount: { increment: 1 } },
+    }),
+  ]);
 
   await prisma.groupMembership.upsert({
     where: { userId_groupId: { userId: session!.user.id, groupId: group.id } },
@@ -79,14 +112,23 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
   );
   if (!group) return NextResponse.json({ error: "Group not found" }, { status: 404 });
 
-  const orderBy =
+  // Pinned posts always sort to the top, regardless of the chosen
+  // sort. Compose by leading the orderBy array with `isPinned desc`.
+  const sortOrderBy =
     sort === "new"
-      ? { createdAt: "desc" as const }
+      ? [{ createdAt: "desc" as const }]
       : sort === "comments"
-      ? { commentCount: "desc" as const }
+      ? [{ commentCount: "desc" as const }]
       : sort === "controversial"
-      ? { downvoteCount: "desc" as const }
-      : { totalScore: "desc" as const };
+      ? [{ downvoteCount: "desc" as const }]
+      : sort === "hot"
+      ? [{ totalScore: "desc" as const }, { createdAt: "desc" as const }]
+      : [{ totalScore: "desc" as const }];
+  const orderBy = [
+    { isPinned: "desc" as const },
+    { pinnedAt: "desc" as const },
+    ...sortOrderBy,
+  ];
 
   const posts = await safe(
     () =>

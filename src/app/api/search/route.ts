@@ -3,9 +3,16 @@ import { runSearch, type SearchKind } from "@/lib/search";
 import { normalizeSport } from "@/lib/sports";
 import { parseMinRating } from "@/lib/rating-filter";
 import { parseDivision } from "@/lib/division";
+import { rateLimit } from "@/lib/rate-limit";
 import { ReviewType } from "@prisma/client";
 
 export async function GET(req: Request) {
+  // Anonymous, scrapable endpoint — rate-limit by IP. The cap is generous
+  // enough for a real user clicking through search results but cheap enough
+  // that a script can't enumerate the whole graph in a minute.
+  const limited = rateLimit(req, "search", { max: 60, windowMs: 60_000 });
+  if (limited) return limited;
+
   const url = new URL(req.url);
   const sp = url.searchParams;
 

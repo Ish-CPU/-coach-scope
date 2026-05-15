@@ -2,7 +2,12 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSession, isPaymentVerified } from "@/lib/permissions";
-import { UserRole, VerificationMethod, VerificationStatus } from "@prisma/client";
+import {
+  UserRole,
+  VerificationMethod,
+  VerificationRequestStatus,
+  VerificationStatus,
+} from "@prisma/client";
 import {
   parseEduEmail,
   recentAttemptCount,
@@ -110,7 +115,12 @@ export async function POST(req: Request) {
         targetRole: role,
         method: VerificationMethod.EDU_EMAIL,
         eduEmail: email,
-        status: VerificationStatus.VERIFIED,
+        // Email-code success path auto-approves the request — admin doesn't
+        // need to look at this one. The user's verificationStatus also
+        // jumps straight to VERIFIED via the user.update below.
+        status: VerificationRequestStatus.APPROVED,
+        schoolEmailVerified: true,
+        confidenceScore: 100,
         reviewedAt: new Date(),
         attemptNumber: attempts + 1,
         isParentRequest: role === UserRole.VERIFIED_PARENT,

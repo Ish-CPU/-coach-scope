@@ -17,9 +17,79 @@ datasource db {
 enum UserRole {
   VIEWER
   VERIFIED_ATHLETE
+  // Former college athlete. Same access surface as VERIFIED_ATHLETE so they
+  // can review coaches/programs/universities/dorms, but reviews are weighted
+  // slightly lower (REVIEW_WEIGHTS.VERIFIED_ATHLETE_ALUMNI) and rendered with
+  // a distinct badge so readers can tell current from alumni perspectives.
+  VERIFIED_ATHLETE_ALUMNI
+  // Prospective athlete being recruited but not yet on a roster. EXCLUSIVELY
+  // permitted to write RECRUITING reviews against schools that recruited
+  // them (verified by structured proof — official visit, camp invite,
+  // staff DM, recruiting questionnaire, offer letter, recruiting profile
+  // link). Cannot review coaches, programs, universities, dorms, or
+  // student-life — they haven't actually attended. When they commit /
+  // walk on / enroll they upgrade to VERIFIED_ATHLETE through the regular
+  // verification flow and inherit full athlete-trusted access.
+  VERIFIED_RECRUIT
   VERIFIED_STUDENT
+  // Former student. Same access surface as VERIFIED_STUDENT — can review
+  // universities, dorms, and campus life — but reviews are weighted slightly
+  // lower (REVIEW_WEIGHTS.VERIFIED_STUDENT_ALUMNI) and render with a distinct
+  // badge so readers can tell current from former students apart.
+  VERIFIED_STUDENT_ALUMNI
   VERIFIED_PARENT
+  // Staff admin — moderates the queues the master admin gives them access
+  // to via `User.adminPermissions`. Cannot create/disable other admins,
+  // cannot change owner-level settings, cannot manage MASTER_ADMIN rows.
   ADMIN
+  // Owner / creator. Exactly one of these is expected per deployment
+  // (created via scripts/create-master-admin.ts). Implicitly has every
+  // admin permission and is the only role that can manage other admins
+  // and edit the recovery-email list.
+  MASTER_ADMIN
+}
+
+// Lifecycle of an admin/staff account. Stored on User.adminStatus and is
+// non-null only for ADMIN / MASTER_ADMIN rows. Drives the team list UI,
+// gates sign-in, and zeroes permissions for any non-ACTIVE state.
+//
+// State transitions are master-admin only:
+//   INVITED → ACTIVE        (after onboarding)
+//   ACTIVE  → DISABLED      (hard-stop, requires reactivation to return)
+//   ACTIVE  → SUSPENDED     (temporary block while master investigates)
+//   ACTIVE  → REMOVED       (former admin; row preserved for history)
+//   DISABLED/SUSPENDED → ACTIVE (reactivate)
+//   anything → REMOVED      (terminal soft-archive — keeps audit history)
+enum AdminStatus {
+  // Created via the team page but the user hasn't accepted their invite
+  // (set their password / accepted the admin rules) yet.
+  INVITED
+  // Live admin account.
+  ACTIVE
+  // Hard-disabled by the master admin. Sign-in is rejected and every
+  // permission check returns false. Master can reactivate.
+  DISABLED
+  // Temporarily blocked pending review (e.g. master is investigating an
+  // incident). Same access surface as DISABLED — no sign-in, zero perms —
+  // but rendered separately in the team UI so the "this is temporary"
+  // signal is obvious.
+  SUSPENDED
+  // Terminal soft-archive. The user row stays so audit logs and historical
+  // approvals (`reviewedBy`) keep their actor reference, but they cannot
+  // sign in or hold any permission. Always paired with a removalReason.
+  REMOVED
+}
+
+// Why a master admin removed/disabled/suspended a staff admin. Free-form
+// custom notes live alongside this on User.removalNote. Optional — set on
+// the same PATCH that flips adminStatus into a blocking state.
+enum AdminRemovalReason {
+  QUIT
+  TERMINATED
+  INACTIVITY
+  POLICY_VIOLATION
+  TEMPORARY_SUSPENSION
+  OTHER
 }
 
 enum SubscriptionStatus {
@@ -41,6 +111,29 @@ enum VerificationStatus {
   REJECTED
 }
 
+// Per-request lifecycle for VerificationRequest. Distinct from User.verificationStatus
+// (which stays NONE/PENDING/VERIFIED/REJECTED for downstream gates).
+//
+// At submit time the auto-confidence scorer (src/lib/verification-confidence.ts)
+// stamps one of HIGH_CONFIDENCE / NEEDS_REVIEW / LOW_CONFIDENCE based on the
+// evidence the user provided. Admins re-sort the queue by that score so
+// obviously-real submissions can be approved fast and dubious ones get
+// human eyes. Admin actions move the row to APPROVED, REJECTED, or
+// NEEDS_MORE_INFO (which kicks the row back to the user with a note).
+//
+// PENDING is reserved for the moment between "row inserted" and "score
+// computed" — in practice the API computes the score in the same
+// transaction so this state is rarely seen.
+enum VerificationRequestStatus {
+  PENDING
+  HIGH_CONFIDENCE
+  NEEDS_REVIEW
+  LOW_CONFIDENCE
+  NEEDS_MORE_INFO
+  APPROVED
+  REJECTED
+}
+
 enum VerificationMethod {
   EDU_EMAIL
   ROSTER_LINK
@@ -54,6 +147,53 @@ enum ReviewType {
   UNIVERSITY
   DORM
   PARENT_INSIGHT
+  // Recruiting review — submitted by athletes who were RECRUITED_BY a program
+  // but did not necessarily play for it. Targets a school (program), rates the
+  // recruiting process. The form may name a specific recruiter/coach, but the
+  // structured ratings are about the program/process — not a coach attack.
+  RECRUITING
+  // Admissions / campus-visit review — submitted by students who applied or
+  // visited but did not enroll. Targets a university, rates the admissions
+  // process / campus visit experience. Same idea as RECRUITING, but for the
+  // student side.
+  ADMISSIONS
+}
+
+// How an athlete is connected to a school's program. Drives every per-target
+// permission check at review-submit time. A user may have multiple
+// connections (e.g. RECRUITED_BY school X, then COMMITTED to / TRANSFERRED_FROM
+// Y, then ATHLETE_ALUMNI of Z). Each connection is independently reviewable
+// by an admin.
+enum AthleteConnectionType {
+  CURRENT_ATHLETE
+  ATHLETE_ALUMNI
+  RECRUITED_BY
+  TRANSFERRED_FROM
+  COMMITTED
+  WALK_ON
+}
+
+enum AthleteConnectionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// Mirrors AthleteConnectionType but for students. CURRENT_STUDENT and
+// STUDENT_ALUMNI unlock university/dorm reviews; ADMITTED_TO and
+// VISITED_CAMPUS unlock ADMISSIONS reviews only.
+enum StudentConnectionType {
+  CURRENT_STUDENT
+  STUDENT_ALUMNI
+  ADMITTED_TO
+  TRANSFERRED_FROM
+  VISITED_CAMPUS
+}
+
+enum StudentConnectionStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 enum ReportStatus {
@@ -65,6 +205,25 @@ enum ReportStatus {
 enum ReviewStatus {
   PUBLISHED
   HIDDEN
+  REMOVED
+}
+
+// Moderation outcome for a single Review row. Distinct from `ReviewStatus`
+// (which is the publishing state set by admin moderation actions on
+// reports). New rows are auto-classified by src/lib/review-risk.ts at
+// submit time:
+//   PUBLISHED      — low risk, visible immediately (default)
+//   PENDING_REVIEW — medium risk, hidden from public reads until admin
+//                    approves; user sees "pending moderation" message
+//   FLAGGED        — high risk OR contains harassment, hidden from
+//                    public reads, surfaced as a priority queue item,
+//                    fires a moderation alert email
+//   REMOVED        — admin-removed (terminal). Mirrors ReviewStatus.REMOVED
+//                    so downstream filters can branch on either column.
+enum ReviewModerationStatus {
+  PUBLISHED
+  PENDING_REVIEW
+  FLAGGED
   REMOVED
 }
 
@@ -90,10 +249,91 @@ enum RequestStatus {
 }
 
 // Audience-based group segmentation per spec.
+// Two generations of group taxonomy live side by side, intentionally:
+//   - Audience types (ATHLETE_GROUP / STUDENT_GROUP / PARENT_GROUP) — the
+//     original audience-segmented model used by `canParticipateInGroup`
+//     and the legacy /groups landing. Kept so existing rows stay valid.
+//   - Entity types (UNIVERSITY / PROGRAM / COACH / PARENT / RECRUITING) —
+//     the new entity-anchored taxonomy. Each row points at a real
+//     University / School / Coach via the corresponding nullable FK.
+//
+// New seeded + user-created groups should prefer entity types. The
+// landing page renders entity types under their own sections; legacy
+// audience types fall through to a generic "Audience communities"
+// bucket so they're never lost.
 enum GroupType {
   ATHLETE_GROUP
   STUDENT_GROUP
   PARENT_GROUP
+  UNIVERSITY
+  PROGRAM
+  COACH
+  PARENT
+  RECRUITING
+}
+
+// Visibility supersedes the legacy `Group.isPrivate` boolean. The boolean
+// stays on the model for back-compat reads but new code reads `visibility`.
+//   PUBLIC        — anyone (signed-in or not) can view
+//   VERIFIED_ONLY — sign-in + role-verified required to view + post
+//   PRIVATE       — visible only to current members + admins
+enum GroupVisibility {
+  PUBLIC
+  VERIFIED_ONLY
+  PRIVATE
+}
+
+// Group access + posting mode — supersedes `Group.visibility` for new
+// rows. Splits "who can view" from "who can post" so a public-readable
+// recruiting group can still gate posts to verified accounts. The legacy
+// `visibility` enum stays on the model for older rows; new code reads
+// `accessMode`.
+enum GroupAccessMode {
+  PUBLIC_VIEW_PUBLIC_POST    // anyone reads; anyone signed-in posts
+  PUBLIC_VIEW_VERIFIED_POST  // anyone reads; only verified accounts post
+  VERIFIED_ONLY              // verified accounts only — read AND post
+  PRIVATE                    // members-only — read AND post
+}
+
+// GroupMembership.role replaces the legacy `isAdmin` boolean. Three tiers:
+//   MEMBER     — vanilla member; can post / comment / vote
+//   MODERATOR  — group-scoped moderator (master admin appoints); can pin
+//                / lock / remove posts and review reports for THIS group
+//   ADMIN      — group owner (the user who created the group via the
+//                team form). Same powers as MODERATOR plus moderator
+//                assignment within the group.
+enum GroupMembershipRole {
+  MEMBER
+  MODERATOR
+  ADMIN
+}
+
+// Tag taxonomy for group posts. Stored as a Postgres enum array on
+// GroupPost.tags so a single post can carry multiple tags (e.g. a
+// recruiting + transfer-portal question). Add new values at the end —
+// removing a value is a breaking schema change.
+enum GroupPostTag {
+  RECRUITING
+  TRANSFER_PORTAL
+  NIL
+  FACILITIES
+  PLAYING_TIME
+  TEAM_CULTURE
+  DORM_LIFE
+  PARENT_QUESTION
+  COACH_QUESTION
+}
+
+// In-app notification taxonomy. Free-form `data Json` on the row carries
+// the per-type payload (post id, vote count, mod action label, etc.).
+enum NotificationType {
+  REPLY_TO_POST
+  REPLY_TO_COMMENT
+  POST_UPVOTE
+  MOD_ACTION
+  ADMIN_ACTION
+  GROUP_INVITE
+  GROUP_APPROVAL
 }
 
 enum PostStatus {
@@ -127,6 +367,59 @@ model User {
   schoolId             String?
   sport                String?
 
+  // --- Admin / master-admin fields (null for normal users) ---
+  // Lifecycle state. Set when the user is promoted/created as an admin.
+  adminStatus          AdminStatus?
+  // JSON object of granular permission flags. See src/lib/admin-permissions.ts
+  // for the canonical shape. Master admins ignore this — they're implicitly
+  // all-true. Storing as Json keeps the schema flexible while we iterate.
+  adminPermissions     Json?
+  // Work email distinct from the primary login email (which is `email`).
+  // Master admin captures this on the team form so personal/work addresses
+  // can stay separate even when the login email is the work one.
+  workEmail            String?
+  // Updated on every successful credentials sign-in. Surfaced on the team
+  // list so master admin can see who's stale.
+  lastLoginAt          DateTime?
+  // Set the first time an admin completes the onboarding flow
+  // (/admin/onboarding) — accepting the admin rules. Until non-null we
+  // route admins through onboarding on every admin page hit. Kept as the
+  // canonical timestamp; `onboardingCompleted` mirrors it as a boolean
+  // for cheaper checks on hot paths.
+  acceptedAdminRulesAt DateTime?
+  // Boolean mirror of `acceptedAdminRulesAt`. We persist both so the
+  // staff layout can do a single boolean read on every request without
+  // serializing a Date, and so existing master-admin rows (which may have
+  // a non-null `acceptedAdminRulesAt` from older code) still satisfy the
+  // gate. Set true on successful onboarding submit. The seed script
+  // pre-flips this for master admins so they bypass onboarding entirely.
+  onboardingCompleted  Boolean            @default(false)
+  // Invite flow. `inviteToken` is a single-use random token; the invitee
+  // visits /admin/onboarding?token=… to complete signup before it expires.
+  inviteToken          String?            @unique
+  inviteExpiresAt      DateTime?
+  // Recovery email addresses for the master admin only. Used by the
+  // password-reset flow as alternate destinations. Regular admins cannot
+  // edit this list — enforced at the API layer.
+  recoveryEmails       String[]           @default([])
+  // Set when the master admin disables / suspends / removes this account.
+  // Drives the team detail UI and is included in the audit log metadata.
+  removalReason        AdminRemovalReason?
+  removalNote          String?            @db.Text
+  // Force-logout timestamp. The auth JWT callback compares this against
+  // each token's `iat`; tokens issued before this timestamp are treated as
+  // signed out on the next request. Bumped automatically when an admin
+  // is disabled / suspended / removed and on demand via the master's
+  // "Force logout" button.
+  sessionsRevokedAt    DateTime?
+  // Per-admin email notification preferences. Read by
+  // src/lib/email/recipients.ts; structure is a JSON map of category →
+  // boolean (e.g. `{ verifications: true, connections: false }`). When
+  // null, the recipient is treated as opted-in to every category — that's
+  // the default so a freshly-promoted admin starts seeing alerts. Master
+  // admins ignore this field; they always receive every notification.
+  notificationPreferences Json?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -139,6 +432,8 @@ model User {
   verificationRequests VerificationRequest[]
   emailCodes           EmailVerificationCode[]
   subscription         Subscription?
+  athleteConnections   AthleteProgramConnection[]
+  studentConnections   StudentUniversityConnection[]
 
   // Groups
   groupMemberships     GroupMembership[]
@@ -148,9 +443,91 @@ model User {
   postVotes            GroupPostVote[]
   commentVotes         GroupCommentVote[]
 
+  // Audit log entries this user authored (admin actions).
+  adminActions         AdminActionLog[]
+
+  // Cached community trust score — sum of received upvotes minus a
+  // small report penalty, refreshed on vote / report events. We cache
+  // because computing on demand would require summing every vote on
+  // every page render.
+  trustScore           Int                @default(0)
+
+  // In-app notifications targeted at this user (recipient).
+  notifications        Notification[]     @relation("NotificationRecipient")
+  // Notifications this user triggered (actor — they upvoted, replied, etc.).
+  notificationsSent    Notification[]     @relation("NotificationActor")
+
   @@index([role])
   @@index([subscriptionStatus])
   @@index([verificationStatus])
+  @@index([adminStatus])
+  @@index([trustScore])
+}
+
+// ---------------------------------------------------------------------------
+// Notifications (in-app)
+// ---------------------------------------------------------------------------
+//
+// Append-only-ish log of notifications routed to a single user. The
+// `data` JSON carries per-type payload (post id, vote count, mod action
+// label, group slug, etc.) — keeps the schema flexible without one
+// nullable column per use case. Read state is a simple boolean +
+// timestamp. We never delete rows; old notifications fall off the
+// /notifications page list naturally.
+model Notification {
+  id          String           @id @default(cuid())
+  userId      String           // recipient
+  actorId     String?          // who triggered the notification (nullable for system events)
+  type        NotificationType
+  // Polymorphic target — `subjectType` is the model name, `subjectId`
+  // its primary key. Nullable so admin-action notifications without a
+  // single concrete target still fit.
+  subjectType String?
+  subjectId   String?
+  // Free-form payload — title, group slug, vote delta, etc.
+  data        Json?
+  read        Boolean          @default(false)
+  readAt      DateTime?
+  createdAt   DateTime         @default(now())
+
+  user  User  @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  actor User? @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([userId, read, createdAt])
+  @@index([userId, createdAt])
+  @@index([type, createdAt])
+}
+
+// Append-only log of every admin action. Drives /admin/settings → activity
+// view and is the authoritative record for "who did what, when."
+//
+// Never UPDATE or DELETE rows here in application code. Schema doesn't
+// enforce that (Prisma can't), but the API routes only ever INSERT.
+model AdminActionLog {
+  id          String   @id @default(cuid())
+  // The admin who performed the action. Optional only because hard-deleting
+  // an admin would otherwise cascade-orphan history; in practice we
+  // soft-disable instead so this stays populated.
+  actorUserId String?
+  // Free-form action key — see src/lib/audit-log.ts for the list of
+  // canonical strings used by callers. Not an enum so we can add new
+  // actions without a migration.
+  action      String
+  // What kind of row was touched (User, VerificationRequest,
+  // AthleteProgramConnection, etc.). Always paired with `targetId`.
+  targetType  String?
+  targetId    String?
+  // Anything the action wants to capture (before/after diffs, reason,
+  // bucketed status, etc.). Free-form JSON.
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  actor User? @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([actorUserId, createdAt])
+  @@index([action, createdAt])
+  @@index([targetType, targetId])
+  @@index([createdAt])
 }
 
 model Account {
@@ -236,6 +613,7 @@ model School {
   reviews    Review[]
   favorites  Favorite[]
   groups     Group[]
+  athleteConnections AthleteProgramConnection[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -276,6 +654,10 @@ model Coach {
   school    School    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   reviews   Review[]
   favorites Favorite[]
+  // Back-relation for COACH-typed Group rows. SetNull on the Group side
+  // keeps a coach group around as an "ex-coach" archive if the Coach row
+  // is ever deleted; nothing in app code actually deletes coaches today.
+  groups    Group[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -319,6 +701,8 @@ model University {
   reviews     Review[]
   favorites   Favorite[]
   groups      Group[]
+  athleteConnections AthleteProgramConnection[]
+  studentConnections StudentUniversityConnection[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -448,6 +832,20 @@ model Review {
   // new submissions stay anonymous unless the author explicitly opts out.
   isAnonymous  Boolean      @default(true)
 
+  // ---------- Trust + risk scoring (set at submit time) ----------
+  // Set by src/lib/review-risk.ts. Both 0..100. `trustScore` is the
+  // *author* signal at submit time (verified, has connection, mature
+  // account, etc.); `riskScore` is the per-submission signal that
+  // gates moderationStatus. `credibilityReason` stores the rule-by-rule
+  // breakdown so admins can see exactly why a review was flagged
+  // without re-running the scorer.
+  trustScore           Int                    @default(50)
+  riskScore            Int                    @default(0)
+  credibilityReason    Json?
+  // Default PUBLISHED preserves the historical behavior for any code
+  // path that creates a Review row outside the risk-scored API.
+  moderationStatus     ReviewModerationStatus @default(PUBLISHED)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -466,6 +864,9 @@ model Review {
   @@index([universityId])
   @@index([dormId])
   @@index([authorId])
+  // Powers the /admin/reviews moderation queue (PENDING_REVIEW +
+  // FLAGGED sorted by risk score desc → most-suspicious first).
+  @@index([moderationStatus, riskScore])
 }
 
 model Rating {
@@ -558,11 +959,50 @@ model VerificationRequest {
   eduEmail        String?
   rosterUrl       String?
   proofUrl        String?
+  // Structured athlete/alumni proof fields. Optional at the schema layer so
+  // older rows continue to load; the API enforces required combinations per
+  // role at submit time.
+  // - sport / universityName: what we're verifying against
+  // - studentIdUrl: link to a hosted image of the student ID (or alumni ID)
+  // - rosterScreenshotUrl: optional supporting screenshot — never sufficient
+  //   on its own per the verification copy
+  // - gradYear / playingYears: alumni-only context for admin review
+  sport           String?
+  universityName  String?
+  // Structured selector output. When the user picks a real University /
+  // School row from the shared combobox these get populated so admin
+  // tooling (and the recruit-→-athlete upgrade auto-create) can skip the
+  // fragile name fuzzy-match step. `universityName` / `sport` stay as
+  // the display strings + fallback for legacy rows and free-form entry.
+  universityId    String?
+  schoolId        String?
+  studentIdUrl    String?
+  rosterScreenshotUrl String?
+  gradYear        Int?
+  playingYears    String?
+  // External profile cross-checks. None are required, all are surfaced in
+  // the admin scorecard so a reviewer can spot-check identity across
+  // independent sources without leaving the admin page.
+  linkedinUrl         String?
+  hudlUrl             String?
+  recruitingProfileUrl String?  // 247, On3, NCSA, MaxPreps — single canonical
+  schoolDirectoryUrl  String?
+  // Auto-computed at submit time. Persisted so admins can re-sort the
+  // queue without re-running the scorer. Drives the admin checklist UI
+  // (src/components/admin/VerificationScorecard.tsx).
+  confidenceScore Int?
+  // True when a school-email code-verification round-trip completed for
+  // this user/email combo before the request was submitted, or when the
+  // request itself uses the EDU_EMAIL method and the code was confirmed.
+  schoolEmailVerified Boolean @default(false)
   notes           String?             @db.Text
-  status          VerificationStatus  @default(PENDING)
+  status          VerificationRequestStatus  @default(PENDING)
 
   reviewedAt DateTime?
   reviewedBy String?
+  // Optional admin-supplied reason shown back to the user on rejection.
+  // Free-text, not user-edited.
+  rejectionReason String? @db.Text
 
   // Anti-fake counter — bumped on each retry by this same user.
   attemptNumber  Int @default(1)
@@ -593,6 +1033,103 @@ model EmailVerificationCode {
   @@index([expiresAt])
 }
 
+// Athlete ↔ Program connection. Drives every per-target review permission
+// check (see src/lib/connection-permissions.ts).
+//
+// Examples:
+//   - User X is the current shortstop at Texas A&M Baseball
+//     → CURRENT_ATHLETE, schoolId = <TAMU Baseball School row>
+//   - User Y graduated from Florida Football in 2021
+//     → ATHLETE_ALUMNI, schoolId = <UF Football>, endYear = 2021
+//   - User Z was recruited by LSU Softball but committed to Alabama
+//     → RECRUITED_BY for LSU + COMMITTED for Alabama (two rows)
+//
+// Connection rows default to PENDING and require admin approval before they
+// unlock review submission. Admins can approve, reject, and edit them.
+//
+// `schoolId` is optional only because some early connections may be captured
+// before the program/School row exists in our DB — such requests should be
+// rejected by admins until a real program is linked. Production code should
+// always supply both `universityId` AND `schoolId` together.
+model AthleteProgramConnection {
+  id              String                  @id @default(cuid())
+  userId          String
+  universityId    String
+  schoolId        String?
+  sport           String
+  connectionType  AthleteConnectionType
+  status          AthleteConnectionStatus @default(PENDING)
+
+  // Optional supporting evidence — admin reviews these manually.
+  rosterUrl           String?
+  recruitingProofUrl  String?
+  notes               String? @db.Text
+
+  startYear       Int?
+  endYear         Int?
+
+  reviewedAt      DateTime?
+  reviewedBy      String?
+  rejectionReason String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  university  University  @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  school      School?     @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+
+  // We only allow one connection of a given type per (user, university, sport)
+  // — re-submitting a duplicate is a "patch the existing row" workflow, not
+  // a "create another row" workflow.
+  @@unique([userId, universityId, sport, connectionType])
+  @@index([userId, status])
+  @@index([universityId, status])
+  @@index([schoolId, status])
+  @@index([status, createdAt])
+}
+
+// Student ↔ University connection. Mirrors AthleteProgramConnection but at
+// the university level — students don't connect to a specific sport program.
+// CURRENT_STUDENT and STUDENT_ALUMNI unlock UNIVERSITY/DORM reviews;
+// ADMITTED_TO and VISITED_CAMPUS unlock ADMISSIONS reviews only.
+//
+// Default status is PENDING — admin approval is required before any review
+// permission unlocks.
+model StudentUniversityConnection {
+  id              String                  @id @default(cuid())
+  userId          String
+  universityId    String
+  connectionType  StudentConnectionType
+  status          StudentConnectionStatus @default(PENDING)
+
+  // Optional supporting evidence — admins review manually.
+  schoolEmail     String?
+  studentIdUrl    String?
+  proofUrl        String?
+  notes           String? @db.Text
+
+  startYear       Int?
+  endYear         Int?
+
+  reviewedAt      DateTime?
+  reviewedBy      String?
+  rejectionReason String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  university  University  @relation(fields: [universityId], references: [id], onDelete: Cascade)
+
+  // One row per (user, university, connectionType) — re-submitting an
+  // existing combo patches it instead of creating a duplicate.
+  @@unique([userId, universityId, connectionType])
+  @@index([userId, status])
+  @@index([universityId, status])
+  @@index([status, createdAt])
+}
+
 // ---------------------------------------------------------------------------
 // Verified Groups (Reddit-style, audience-segmented)
 // ---------------------------------------------------------------------------
@@ -602,13 +1139,34 @@ model Group {
   slug         String     @unique
   name         String
   description  String?    @db.Text
-  // Audience that owns the group — only members of the matching role can post.
+  // Either an audience type (legacy) or an entity type (UNIVERSITY /
+  // PROGRAM / COACH / PARENT / RECRUITING). See GroupType for the split.
   groupType    GroupType
-  // Optional ties to a university / sport / school for topic flavor.
+  // Optional ties to a university / sport / school / coach. Entity-typed
+  // groups should always populate the matching FK so the landing page
+  // can group + link them. Legacy audience-typed rows may have all null.
   universityId String?
   schoolId     String?
+  coachId      String?
   sport        String?
+  // Legacy boolean; new code reads `visibility` instead. Kept so older
+  // rows that set isPrivate=true still surface as PRIVATE-equivalent on
+  // permission checks.
   isPrivate    Boolean    @default(false)
+  visibility   GroupVisibility @default(PUBLIC)
+  // Splits "who can view" from "who can post" — see GroupAccessMode.
+  // New rows should set this; legacy rows fall back to a derived value
+  // computed from `visibility` in src/lib/groups-permissions.ts.
+  accessMode   GroupAccessMode @default(PUBLIC_VIEW_PUBLIC_POST)
+  // Free-form group rules surfaced in the sidebar. Markdown-ish text;
+  // we render it as plain text plus newlines for safety.
+  rules        String?    @db.Text
+  // Cached counters refreshed on membership / post create-delete (and
+  // by the seed script on initial backfill). Counts are also recomputable
+  // from `_count` if these ever drift; UI should prefer cached values
+  // for landing-page lists, `_count` for the detail page.
+  memberCount  Int        @default(0)
+  postCount    Int        @default(0)
 
   createdById  String
   createdAt    DateTime   @default(now())
@@ -617,19 +1175,26 @@ model Group {
   creator      User             @relation("GroupCreator", fields: [createdById], references: [id], onDelete: Cascade)
   university   University?      @relation(fields: [universityId], references: [id], onDelete: SetNull)
   school       School?          @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  coach        Coach?           @relation(fields: [coachId], references: [id], onDelete: SetNull)
   members      GroupMembership[]
   posts        GroupPost[]
 
   @@index([groupType])
   @@index([universityId])
+  @@index([schoolId])
+  @@index([coachId])
   @@index([sport])
+  @@index([visibility])
 }
 
 model GroupMembership {
-  id       String  @id @default(cuid())
+  id       String              @id @default(cuid())
   userId   String
   groupId  String
-  isAdmin  Boolean @default(false)
+  // Legacy boolean — true = group creator. Keep for back-compat reads;
+  // new code should branch on `role`.
+  isAdmin  Boolean             @default(false)
+  role     GroupMembershipRole @default(MEMBER)
 
   joinedAt DateTime @default(now())
 
@@ -638,6 +1203,7 @@ model GroupMembership {
 
   @@unique([userId, groupId])
   @@index([groupId])
+  @@index([groupId, role])
 }
 
 model GroupPost {
@@ -647,6 +1213,22 @@ model GroupPost {
   title         String
   body          String     @db.Text
   status        PostStatus @default(PUBLISHED)
+  // Moderator-set flags:
+  //   isPinned/pinnedAt — surface above the regular feed; broken out as
+  //                       both a flag and a timestamp so tied pins sort
+  //                       by recency.
+  //   lockedAt          — when set, new comments are rejected at the
+  //                       comment-create endpoint; existing comments
+  //                       stay readable.
+  isPinned      Boolean    @default(false)
+  pinnedAt      DateTime?
+  lockedAt      DateTime?
+  // Stored as a Postgres enum array — a single post may carry several
+  // tags (recruiting + transfer-portal). Empty array = untagged.
+  tags          GroupPostTag[] @default([])
+  // External media URLs (images / video links). MVP avoids first-party
+  // hosting — users paste a public URL the post detail page renders.
+  mediaUrls     String[]   @default([])
 
   upvoteCount   Int        @default(0)
   downvoteCount Int        @default(0)
@@ -664,6 +1246,7 @@ model GroupPost {
 
   @@index([groupId, createdAt])
   @@index([groupId, totalScore])
+  @@index([groupId, isPinned, totalScore])
   @@index([authorId])
 }
 

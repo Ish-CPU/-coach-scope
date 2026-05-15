@@ -37,7 +37,7 @@ export default async function UniversityProfilePage({ params, searchParams }: Pa
                 orderBy: { name: "asc" },
                 include: {
                   reviews: {
-                    where: { status: "PUBLISHED" },
+                    where: { status: "PUBLISHED", moderationStatus: "PUBLISHED" },
                     select: { overall: true, weight: true },
                   },
                 },
@@ -48,7 +48,7 @@ export default async function UniversityProfilePage({ params, searchParams }: Pa
           diningHalls: { orderBy: { name: "asc" } },
           facilities: { orderBy: { name: "asc" } },
           reviews: {
-            where: { status: "PUBLISHED" },
+            where: { status: "PUBLISHED", moderationStatus: "PUBLISHED" },
             include: { author: { select: { id: true, name: true, role: true, verificationStatus: true } } },
           },
         },
@@ -143,7 +143,7 @@ export default async function UniversityProfilePage({ params, searchParams }: Pa
                 {sportTabs.map((s) => (
                   <SportPill
                     key={s}
-                    active={activeSport === s}
+                    active={activeSport?.toLowerCase() === s.toLowerCase()}
                     href={`/university/${uni.id}?sport=${encodeURIComponent(s)}`}
                     label={s}
                   />

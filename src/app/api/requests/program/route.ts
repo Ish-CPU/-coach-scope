@@ -5,6 +5,7 @@ import { rateLimit, clientIpFrom } from "@/lib/rate-limit";
 import { isAllowedSport } from "@/lib/sports";
 import { isSafeHttpUrl } from "@/lib/safe-url";
 import { normalizeName } from "@/lib/normalize";
+import { sendProgramRequestEmail } from "@/lib/email/notifications";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -127,6 +128,18 @@ export async function POST(req: Request) {
       status: "PENDING",
     },
     select: { id: true },
+  });
+
+  // Notify admins. Anonymous submissions are allowed here so the
+  // requester contact is best-effort.
+  void sendProgramRequestEmail({
+    requestId: created.id,
+    schoolName: data.schoolName,
+    sport: data.sport,
+    state: data.state ?? null,
+    division: data.division ?? null,
+    requesterRole: data.requesterRole ?? null,
+    requesterEmail: data.requesterEmail ?? null,
   });
 
   return NextResponse.json(

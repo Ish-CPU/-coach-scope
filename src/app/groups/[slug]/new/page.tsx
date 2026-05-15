@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import {
-  canParticipateInGroup,
+  canPostInGroup,
   describeGate,
   getSession,
 } from "@/lib/permissions";
@@ -19,7 +19,20 @@ export default async function NewPostPage({ params }: { params: { slug: string }
   const group = await prisma.group.findUnique({ where: { slug: params.slug } });
   if (!group) notFound();
 
-  if (!canParticipateInGroup(session, group.groupType)) {
+  // Membership matters for PRIVATE groups; the new gate consumes it.
+  const membership = await prisma.groupMembership.findUnique({
+    where: {
+      userId_groupId: { userId: session.user.id, groupId: group.id },
+    },
+    select: { id: true },
+  });
+  const accessShape = {
+    groupType: group.groupType,
+    visibility: group.visibility,
+    isMember: !!membership,
+  };
+
+  if (!canPostInGroup(session, accessShape)) {
     return (
       <div className="container-page py-16">
         <div className="mx-auto max-w-xl space-y-3">

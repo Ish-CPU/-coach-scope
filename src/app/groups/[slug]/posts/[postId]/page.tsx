@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { safe } from "@/lib/safe-query";
 import {
-  canParticipateInGroup,
+  canPostInGroup,
   describeGate,
   getSession,
 } from "@/lib/permissions";
@@ -44,7 +44,19 @@ export default async function PostPage({
   }
 
   const session = await getSession();
-  const canPost = canParticipateInGroup(session, post.group.groupType);
+  const membership = session?.user?.id
+    ? await prisma.groupMembership.findUnique({
+        where: {
+          userId_groupId: { userId: session.user.id, groupId: post.group.id },
+        },
+        select: { id: true },
+      })
+    : null;
+  const canPost = canPostInGroup(session, {
+    groupType: post.group.groupType,
+    visibility: post.group.visibility,
+    isMember: !!membership,
+  });
 
   const yourVote = session?.user?.id
     ? await safe(

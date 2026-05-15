@@ -11,7 +11,7 @@ import { slugify } from "@/lib/groups";
 import { isAllowedSport, SPORTS } from "@/lib/sports";
 import { rateLimit } from "@/lib/rate-limit";
 import { safe } from "@/lib/safe-query";
-import { GroupType, UserRole } from "@prisma/client";
+import { GroupType, GroupVisibility, UserRole } from "@prisma/client";
 
 const schema = z.object({
   name: z.string().min(3).max(80),
@@ -19,6 +19,8 @@ const schema = z.object({
   groupType: z.nativeEnum(GroupType),
   universityId: z.string().cuid().optional(),
   schoolId: z.string().cuid().optional(),
+  // Entity-typed COACH groups carry a coachId. Optional otherwise.
+  coachId: z.string().cuid().optional(),
   // Free text — but we validate against the canonical SPORTS list when present.
   sport: z
     .string()
@@ -27,7 +29,10 @@ const schema = z.object({
     .refine((v) => v === undefined || isAllowedSport(v), {
       message: `Sport must be one of: ${SPORTS.join(", ")}`,
     }),
+  // Legacy boolean kept for back-compat. New callers should send
+  // `visibility` instead.
   isPrivate: z.boolean().optional().default(false),
+  visibility: z.nativeEnum(GroupVisibility).optional(),
 });
 
 export async function GET(req: Request) {
@@ -35,23 +40,35 @@ export async function GET(req: Request) {
   const groupType = url.searchParams.get("type") as GroupType | null;
   const q = url.searchParams.get("q")?.trim();
 
+  // Search spans name + description + the linked university's name +
+  // sport. Hits the public landing page typeahead so users can find
+  // "michigan football" by typing either the school or the program.
+  const search = q
+    ? {
+        OR: [
+          { name: { contains: q, mode: "insensitive" as const } },
+          { description: { contains: q, mode: "insensitive" as const } },
+          { sport: { contains: q, mode: "insensitive" as const } },
+          {
+            university: { name: { contains: q, mode: "insensitive" as const } },
+          },
+        ],
+      }
+    : undefined;
+
   const groups = await safe(
     () =>
       prisma.group.findMany({
         where: {
           ...(groupType ? { groupType } : {}),
-          ...(q
-            ? {
-                OR: [
-                  { name: { contains: q, mode: "insensitive" } },
-                  { description: { contains: q, mode: "insensitive" } },
-                ],
-              }
-            : {}),
+          ...(search ?? {}),
         },
-        orderBy: { createdAt: "desc" },
+        orderBy: [{ memberCount: "desc" }, { postCount: "desc" }, { createdAt: "desc" }],
         take: 60,
         include: {
+          university: { select: { id: true, name: true } },
+          school: { select: { id: true, sport: true, division: true } },
+          coach: { select: { id: true, name: true } },
           _count: { select: { members: true, posts: true } },
         },
       }),
@@ -89,16 +106,75 @@ export async function POST(req: Request) {
   }
   const data = parsed.data;
 
-  // A user can only create a group of their own audience type.
-  if (session!.user.role !== UserRole.ADMIN) {
-    const allowed = groupTypeForRole(session!.user.role);
-    if (!allowed || allowed !== data.groupType) {
-      return NextResponse.json(
-        { error: "You can only create groups for your own role." },
-        { status: 403 }
-      );
+  // Creation rules:
+  //   - Admin / master admin: any group type, any entity link.
+  //   - Audience-typed groups (ATHLETE_GROUP / STUDENT_GROUP / PARENT_GROUP):
+  //     user can only create their own audience.
+  //   - Entity-typed groups (UNIVERSITY / PROGRAM / COACH / PARENT /
+  //     RECRUITING): any verified user can create as long as the matching
+  //     entity FK is supplied (universityId for UNIVERSITY/PARENT,
+  //     schoolId for PROGRAM/RECRUITING, coachId for COACH). The seed
+  //     script bulk-creates one per entity, so user creation here is a
+  //     fallback for niche cases (regional parent group, etc.).
+  if (
+    session!.user.role !== UserRole.ADMIN &&
+    session!.user.role !== UserRole.MASTER_ADMIN
+  ) {
+    const audience = groupTypeForRole(session!.user.role);
+    const isLegacyAudience =
+      data.groupType === GroupType.ATHLETE_GROUP ||
+      data.groupType === GroupType.STUDENT_GROUP ||
+      data.groupType === GroupType.PARENT_GROUP;
+    if (isLegacyAudience) {
+      if (!audience || audience !== data.groupType) {
+        return NextResponse.json(
+          { error: "You can only create audience groups for your own role." },
+          { status: 403 }
+        );
+      }
+    } else {
+      // Entity-typed — require the matching FK so the row makes sense.
+      const needsUni =
+        data.groupType === GroupType.UNIVERSITY ||
+        data.groupType === GroupType.PARENT;
+      const needsSchool =
+        data.groupType === GroupType.PROGRAM ||
+        data.groupType === GroupType.RECRUITING;
+      const needsCoach = data.groupType === GroupType.COACH;
+      if (needsUni && !data.universityId) {
+        return NextResponse.json(
+          { error: "universityId is required for that group type." },
+          { status: 400 }
+        );
+      }
+      if (needsSchool && !data.schoolId) {
+        return NextResponse.json(
+          { error: "schoolId is required for that group type." },
+          { status: 400 }
+        );
+      }
+      if (needsCoach && !data.coachId) {
+        return NextResponse.json(
+          { error: "coachId is required for that group type." },
+          { status: 400 }
+        );
+      }
     }
   }
+
+  // Default visibility: PUBLIC for entity-typed (open communities),
+  // VERIFIED_ONLY for legacy audience types (those have always been
+  // role-gated). The new `visibility` enum supersedes `isPrivate` but
+  // we mirror `isPrivate=true` → PRIVATE so the boolean still works.
+  const defaultVisibility =
+    data.visibility ??
+    (data.isPrivate
+      ? GroupVisibility.PRIVATE
+      : data.groupType === GroupType.ATHLETE_GROUP ||
+        data.groupType === GroupType.STUDENT_GROUP ||
+        data.groupType === GroupType.PARENT_GROUP
+      ? GroupVisibility.VERIFIED_ONLY
+      : GroupVisibility.PUBLIC);
 
   let slug = slugify(data.name);
   let attempt = 0;
@@ -116,8 +192,12 @@ export async function POST(req: Request) {
       groupType: data.groupType,
       universityId: data.universityId,
       schoolId: data.schoolId,
+      coachId: data.coachId,
       sport: data.sport,
       isPrivate: data.isPrivate,
+      visibility: defaultVisibility,
+      // Creator counts as a member, so seed memberCount at 1.
+      memberCount: 1,
       createdById: session!.user.id,
       members: {
         create: {

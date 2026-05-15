@@ -3,6 +3,13 @@ import "./globals.css";
 import { Providers } from "@/components/Providers";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
+import { assertProductionEnv } from "@/lib/env";
+
+// Boot-time env validation. Runs once per server process. In production this
+// throws on the first request if a required var is missing, surfacing the
+// misconfiguration immediately instead of letting downstream features fail
+// one by one (Stripe in checkout, NextAuth in sign-in, etc.).
+assertProductionEnv();
 
 export const metadata: Metadata = {
   title: "RateMyU — Honest reviews of college coaches, programs & dorms",

@@ -31,7 +31,7 @@ export default async function DormProfilePage({ params, searchParams }: PageProp
         include: {
           university: true,
           reviews: {
-            where: { status: "PUBLISHED" },
+            where: { status: "PUBLISHED", moderationStatus: "PUBLISHED" },
             include: { author: { select: { id: true, name: true, role: true, verificationStatus: true } } },
           },
         },

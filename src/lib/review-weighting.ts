@@ -2,19 +2,37 @@ import type { Review, UserRole } from "@prisma/client";
 
 /**
  * Weights:
- *   Verified Athlete = 2.00
- *   Verified Student = 1.25
- *   Verified Parent  = 1.25 (for insights where applicable)
+ *   Verified Athlete         = 2.00  (current college athlete)
+ *   Verified Athlete Alumni  = 1.75  (former college athlete — slightly less
+ *                                     than current per the verification spec
+ *                                     so present-day program reality dominates,
+ *                                     while still surfacing experienced voices)
+ *   Verified Student         = 1.25
+ *   Verified Student Alumni  = 1.10  (former student — slightly less than
+ *                                     current students, parallel to the
+ *                                     athlete / athlete-alumni gap)
+ *   Verified Parent          = 1.25  (for insights where applicable)
  *
  * Anything else (Viewer, Admin without role context) defaults to 1.0
  * but only verified, paid roles can submit, so this is just a safety floor.
  */
 export const REVIEW_WEIGHTS = {
   VERIFIED_ATHLETE: 2.0,
+  VERIFIED_ATHLETE_ALUMNI: 1.75,
   VERIFIED_STUDENT: 1.25,
+  VERIFIED_STUDENT_ALUMNI: 1.1,
   VERIFIED_PARENT: 1.25,
+  // Recruits write only RECRUITING reviews — for that specific surface
+  // they're the canonical first-person source (they were actually
+  // recruited), so they weight on par with current students rather than
+  // alumni. Their lack of any other review surface keeps their influence
+  // narrow regardless.
+  VERIFIED_RECRUIT: 1.25,
   VIEWER: 1.0,
   ADMIN: 1.0,
+  // Master admin reviews are an edge case (admins rarely post user-facing
+  // reviews). Treat them like staff admins for weighting parity.
+  MASTER_ADMIN: 1.0,
 } as const satisfies Record<UserRole, number>;
 
 export function weightForRole(role: UserRole): number {
@@ -48,9 +66,18 @@ export function weightedCategoryAverage(
 ): number {
   const items = reviews
     .map((r) => {
-      const raw = (r.ratings as Record<string, number> | null)?.[category];
+      const raw = (r.ratings as Record<string, unknown> | null)?.[category];
+      // N/A handling: `null` (explicit "Not applicable") and `undefined`
+      // (legacy / missing key) are both excluded from the average. Without
+      // this short-circuit `Number(null)` would silently coerce to 0 and
+      // tank the category's score.
+      if (raw === null || raw === undefined) return null;
       const value = typeof raw === "number" ? raw : Number(raw);
-      return Number.isFinite(value) ? { weight: r.weight, value } : null;
+      // Defensive lower bound — a legacy 0 is also treated as N/A so old
+      // bad data doesn't produce a spurious low score.
+      return Number.isFinite(value) && value > 0
+        ? { weight: r.weight, value }
+        : null;
     })
     .filter((x): x is { weight: number; value: number } => !!x);
 
@@ -111,13 +138,19 @@ export function defaultReviewSort<
 }
 
 export function deriveOverall(ratings: Record<string, unknown>): number {
+  // Headline categories must be a real number per review-schemas.ts — use
+  // them as-is when present.
   const explicit = ratings.overallRating ?? ratings.overallExperience;
-  if (typeof explicit === "number" && Number.isFinite(explicit)) {
+  if (typeof explicit === "number" && Number.isFinite(explicit) && explicit > 0) {
     return Number(explicit.toFixed(2));
   }
+  // Fallback: average across the remaining categories, dropping null
+  // (intentional N/A) and undefined (legacy / missing) entries so an
+  // N/A doesn't drag the overall down.
   const values = Object.values(ratings)
+    .filter((v) => v !== null && v !== undefined)
     .map((v) => (typeof v === "number" ? v : Number(v)))
-    .filter((n) => Number.isFinite(n));
+    .filter((n) => Number.isFinite(n) && n > 0);
   if (values.length === 0) return 0;
   return Number((values.reduce((a, b) => a + b, 0) / values.length).toFixed(2));
 }
