@@ -15,6 +15,7 @@ import { AdSlot } from "@/components/AdSlot";
 import { UpgradePrompt } from "@/components/UpgradePrompt";
 import { ReviewType } from "@prisma/client";
 import { ANONYMITY_DISCLAIMER } from "@/lib/anonymous";
+import { divisionLabel } from "@/lib/division";
 
 export const dynamic = "force-dynamic";
 
@@ -29,13 +30,26 @@ export default async function UniversityProfilePage({ params, searchParams }: Pa
       prisma.university.findUnique({
         where: { id: params.id },
         include: {
-          schools: { include: { coaches: true } },
+          schools: {
+            orderBy: { sport: "asc" },
+            include: {
+              coaches: {
+                orderBy: { name: "asc" },
+                include: {
+                  reviews: {
+                    where: { status: "PUBLISHED" },
+                    select: { overall: true, weight: true },
+                  },
+                },
+              },
+            },
+          },
           dorms: { orderBy: { name: "asc" } },
           diningHalls: { orderBy: { name: "asc" } },
           facilities: { orderBy: { name: "asc" } },
           reviews: {
             where: { status: "PUBLISHED" },
-            include: { author: { select: { id: true, role: true, verificationStatus: true } } },
+            include: { author: { select: { id: true, name: true, role: true, verificationStatus: true } } },
           },
         },
       }),
@@ -43,6 +57,14 @@ export default async function UniversityProfilePage({ params, searchParams }: Pa
     "university:findUnique"
   );
   if (!uni) notFound();
+
+  // Optional sport filter from `?sport=Football`. Trimmed + case-insensitive.
+  const rawSport = Array.isArray(searchParams.sport) ? searchParams.sport[0] : searchParams.sport;
+  const activeSport = rawSport?.trim() || null;
+  const visiblePrograms = activeSport
+    ? uni.schools.filter((s) => s.sport.toLowerCase() === activeSport.toLowerCase())
+    : uni.schools;
+  const sportTabs = Array.from(new Set(uni.schools.map((s) => s.sport))).sort();
 
   const session = await getSession();
   const canInteract = canParticipate(session);
@@ -90,6 +112,87 @@ export default async function UniversityProfilePage({ params, searchParams }: Pa
         <RatingSummary overall={overall} reviewCount={uni.reviews.length} categories={categories} />
       </div>
 
+      {/* --- Athletic programs (sport filter + coach lists) --- */}
+      <section className="mt-8">
+        <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
+          <h2 className="text-lg font-semibold">
+            Athletic programs ({uni.schools.length})
+          </h2>
+          {activeSport && (
+            <Link
+              href={`/university/${uni.id}`}
+              className="text-xs text-brand-700 hover:underline"
+            >
+              Clear sport filter
+            </Link>
+          )}
+        </div>
+
+        {uni.schools.length === 0 ? (
+          <ProgramsEmpty universityName={uni.name} />
+        ) : (
+          <>
+            {/* Sport filter pills */}
+            {sportTabs.length > 1 && (
+              <div className="-mx-1 mb-4 flex flex-wrap gap-1.5">
+                <SportPill
+                  active={!activeSport}
+                  href={`/university/${uni.id}`}
+                  label={`All sports (${uni.schools.length})`}
+                />
+                {sportTabs.map((s) => (
+                  <SportPill
+                    key={s}
+                    active={activeSport === s}
+                    href={`/university/${uni.id}?sport=${encodeURIComponent(s)}`}
+                    label={s}
+                  />
+                ))}
+              </div>
+            )}
+
+            {visiblePrograms.length === 0 ? (
+              <div className="card p-8 text-center text-sm text-slate-500">
+                No programs match{" "}
+                <span className="font-medium text-slate-700">{activeSport}</span>.
+                <Link
+                  href={`/university/${uni.id}`}
+                  className="ml-2 text-xs text-brand-700 hover:underline"
+                >
+                  Show all
+                </Link>
+              </div>
+            ) : (
+              <div className="grid gap-4 lg:grid-cols-2">
+                {visiblePrograms.map((s) => (
+                  <ProgramCard
+                    key={s.id}
+                    schoolId={s.id}
+                    sport={s.sport}
+                    divisionFriendly={divisionLabel(s.division)}
+                    conference={s.conference ?? uni.conference ?? null}
+                    coaches={s.coaches.map((c) => {
+                      const wsum = c.reviews.reduce((acc, r) => acc + (r.weight || 1), 0);
+                      const sum = c.reviews.reduce(
+                        (acc, r) => acc + r.overall * (r.weight || 1),
+                        0
+                      );
+                      return {
+                        id: c.id,
+                        name: c.name,
+                        title: c.title ?? "Coach",
+                        rating: wsum > 0 ? sum / wsum : 0,
+                        reviewCount: c.reviews.length,
+                      };
+                    })}
+                  />
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </section>
+
       <section className="mt-8 grid gap-6 lg:grid-cols-[1fr_280px]">
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">
@@ -126,14 +229,25 @@ export default async function UniversityProfilePage({ params, searchParams }: Pa
           <AdSlot variant="sidebar" />
           <div className="card p-4">
             <h3 className="text-sm font-semibold">Athletic programs</h3>
-            <ul className="mt-2 space-y-1 text-sm">
-              {uni.schools.map((s) => (
-                <li key={s.id} className="flex items-center justify-between">
-                  <span>{s.sport}</span>
-                  <span className="text-xs text-slate-500">{s.coaches.length} coaches</span>
-                </li>
-              ))}
-            </ul>
+            {uni.schools.length === 0 ? (
+              <p className="mt-1 text-xs text-slate-500">No programs listed yet.</p>
+            ) : (
+              <ul className="mt-2 space-y-1 text-sm">
+                {uni.schools.map((s) => (
+                  <li key={s.id} className="flex items-center justify-between gap-3">
+                    <Link
+                      href={`/school/${s.id}`}
+                      className="truncate hover:text-brand-700 hover:underline"
+                    >
+                      {s.sport}
+                    </Link>
+                    <span className="shrink-0 text-xs text-slate-500">
+                      {s.coaches.length} {s.coaches.length === 1 ? "coach" : "coaches"}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
           <div className="card p-4">
             <h3 className="text-sm font-semibold">Dorms</h3>
@@ -193,6 +307,148 @@ export default async function UniversityProfilePage({ params, searchParams }: Pa
   );
 }
 
+function SportPill({
+  active,
+  href,
+  label,
+}: {
+  active: boolean;
+  href: string;
+  label: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className={`rounded-full px-3 py-1 text-xs font-medium ${
+        active
+          ? "bg-brand-600 text-white"
+          : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+      }`}
+    >
+      {label}
+    </Link>
+  );
+}
+
+interface ProgramCardCoach {
+  id: string;
+  name: string;
+  title: string;
+  rating: number;
+  reviewCount: number;
+}
+
+function ProgramCard({
+  schoolId,
+  sport,
+  divisionFriendly,
+  conference,
+  coaches,
+}: {
+  schoolId: string;
+  sport: string;
+  divisionFriendly: string;
+  conference: string | null;
+  coaches: ProgramCardCoach[];
+}) {
+  return (
+    <div className="card p-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="text-base font-semibold text-slate-900">{sport}</h3>
+          <div className="mt-1 flex flex-wrap gap-1">
+            <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700">
+              {divisionFriendly}
+            </span>
+            {conference && (
+              <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700">
+                {conference}
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="flex shrink-0 gap-2">
+          <Link
+            href={`/school/${schoolId}`}
+            className="rounded-lg bg-brand-50 px-3 py-1.5 text-xs font-semibold text-brand-700 hover:bg-brand-600 hover:text-white"
+          >
+            View program →
+          </Link>
+        </div>
+      </div>
+
+      {coaches.length === 0 ? (
+        <p className="mt-4 rounded-lg bg-slate-50 p-3 text-xs text-slate-500">
+          No coaches added yet.
+        </p>
+      ) : (
+        <ul className="mt-4 divide-y divide-slate-100">
+          {coaches.map((c) => (
+            <li
+              key={c.id}
+              className="flex items-center justify-between gap-3 py-2 text-sm"
+            >
+              <div className="min-w-0">
+                <Link
+                  href={`/coach/${c.id}`}
+                  className="block truncate font-medium text-slate-900 hover:text-brand-700 hover:underline"
+                >
+                  {c.name}
+                </Link>
+                <div className="truncate text-xs text-slate-500">{c.title}</div>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <GradeBadge
+                  rating={c.rating}
+                  reviewCount={c.reviewCount}
+                  size="sm"
+                  showPercentage={false}
+                  showCount={false}
+                />
+                <Link
+                  href={`/coach/${c.id}`}
+                  className="hidden rounded-md border border-slate-200 px-2 py-1 text-[11px] font-medium text-slate-700 hover:border-slate-300 hover:bg-slate-50 sm:inline-block"
+                >
+                  View
+                </Link>
+                <Link
+                  href={`/review/new?type=COACH&coachId=${c.id}`}
+                  className="rounded-md bg-brand-50 px-2 py-1 text-[11px] font-medium text-brand-700 hover:bg-brand-100"
+                >
+                  Review
+                </Link>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function ProgramsEmpty({ universityName }: { universityName: string }) {
+  return (
+    <div className="card flex flex-col items-center gap-3 p-10 text-center">
+      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-2xl">
+        🏟️
+      </div>
+      <h3 className="text-base font-semibold text-slate-900">
+        No programs listed yet
+      </h3>
+      <p className="max-w-md text-sm text-slate-600">
+        We haven&rsquo;t imported athletic programs for {universityName} yet.
+        Request a program below and we&rsquo;ll add it from official sources.
+      </p>
+      <Link
+        href={`/request-school?q=${encodeURIComponent(universityName)}`}
+        className="btn-primary mt-1"
+      >
+        Request a program
+      </Link>
+    </div>
+  );
+}
+
 function toCard(r: any) {
   return {
     id: r.id,
@@ -203,6 +459,7 @@ function toCard(r: any) {
     overall: r.overall,
     helpfulCount: r.helpfulCount,
     createdAt: r.createdAt,
+    isAnonymous: r.isAnonymous ?? true,
     author: r.author,
   };
 }

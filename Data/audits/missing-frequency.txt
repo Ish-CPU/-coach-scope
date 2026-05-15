@@ -1,0 +1,562 @@
+   1 Youngstown State University,Men's Soccer,D1,Horizon League
+   1 Worcester Polytechnic Institute,Women's Basketball,D3,New England Women's and Men's Athletic Conference
+   1 Wittenberg University,Baseball,D3,NCAC
+   1 Winona State University,Baseball,D2,NSIC
+   1 Wilmington College Ohio,Softball,D3,Ohio Athletic Conference
+   1 Wilmington College Ohio,Men's Soccer,D3,Ohio Athletic Conference
+   1 Williams College,Baseball,D3,NESCAC
+   1 William Penn University,Softball,NAIA,Heart of America Athletic Conference
+   1 William Penn University,Baseball,NAIA,Heart of America Athletic Conference
+   1 William Peace University,Women's Soccer,D3,USA South Athletic Conference
+   1 William Peace University,Women's Basketball,D3,USA South Athletic Conference
+   1 William Paterson University,Women's Soccer,D3,New Jersey Athletic Conference
+   1 William Paterson University,Women's Basketball,D3,New Jersey Athletic Conference
+   1 William Paterson University,Men's Soccer,D3,New Jersey Athletic Conference
+   1 William Paterson University,Baseball,D3,New Jersey Athletic Conference
+   1 Willamette University,Women's Basketball,D3,Northwest Conference
+   1 Widener University,Women's Soccer,D3,Middle Atlantic Conferences Commonwealth
+   1 Widener University,Women's Basketball,D3,Middle Atlantic Conferences Commonwealth
+   1 Whitworth University,Women's Soccer,D3,Northwest Conference
+   1 Whitworth University,Women's Basketball,D3,Northwest Conference
+   1 Whittier College,Women's Soccer,D3,Southern California Intercollegiate Athletic Conference
+   1 Whittier College,Women's Basketball,D3,Southern California Intercollegiate Athletic Conference
+   1 Whitman College,Women's Basketball,D3,Northwest Conference
+   1 Wheaton College MA,Women's Soccer,D3,New England Women's and Men's Athletic Conference
+   1 Wheaton College MA,Women's Basketball,D3,New England Women's and Men's Athletic Conference
+   1 Westminster College PA,Women's Basketball,D3,Presidents' Athletic Conference
+   1 Western Oklahoma State College,Baseball,NJCAA,NJCAA Region 2
+   1 Western New Mexico University,Baseball,D2,Lone Star Conference
+   1 Western Colorado University,Men's Soccer,D2,RMAC
+   1 Western Carolina University,Men's Soccer,D1,Southern Conference
+   1 Wesleyan University,Women's Basketball,D3,NESCAC
+   1 Wesleyan University,Softball,D3,NESCAC
+   1 Wesleyan University,Baseball,D3,NESCAC
+   1 Webber International University,Women's Soccer,NAIA,The Sun Conference
+   1 Webber International University,Baseball,NAIA,Sun Conference
+   1 Waynesburg University,Women's Soccer,D3,Presidents' Athletic Conference
+   1 Waynesburg University,Women's Basketball,D3,Presidents' Athletic Conference
+   1 Washington University in St. Louis,Softball,D3,UAA
+   1 Washington University in St. Louis,Men's Soccer,D3,UAACal Poly Humboldt,Softball,D2,CCAA
+   1 Washington State University,Baseball,D1,Pac-12
+   1 Washington and Lee University,Women's Basketball,D3,ODAC
+   1 Washington & Jefferson College,Women's Basketball,D3,Presidents' Athletic Conference
+   1 Wartburg College,Women's Basketball,D3,American Rivers Conference
+   1 Warner University,Baseball,NAIA,Sun Conference
+   1 Wagner College,Baseball,D1,Northeast Conference
+   1 Wabash College,Baseball,D3,NCAC
+   1 Virginia Wesleyan University,Men's Soccer,D3,ODAC
+   1 Virginia Wesleyan University,Baseball,D3,ODAC
+   1 Vassar College,Baseball,D3,Liberty League
+   1 Valparaiso University,Men's Soccer,D1,Missouri Valley Conference
+   1 Valparaiso University,Baseball,D1,Missouri Valley Conference
+   1 Valdosta State University,Baseball,D2,Gulf South Conference
+   1 University of Wisconsin-Parkside,Softball,D2,GLIAC
+   1 University of West Florida,Baseball,D2,Gulf South Conference
+   1 University of West Alabama,Softball,D2,Gulf South Conference
+   1 University of the Cumberlands,Women's Soccer,NAIA,Mid-South Conference
+   1 University of Texas Permian Basin,Baseball,D2,Lone Star Conference
+   1 University of Texas at El Paso,Baseball,D1,Conference USA
+   1 University of Tennessee at Chattanooga,Baseball,D1,Southern Conference
+   1 University of Tampa,Softball,D2,Sunshine State Conference
+   1 University of Tampa,Men's Soccer,D2,Sunshine State Conference
+   1 University of St. Thomas Minnesota,Men's Soccer,D1,Summit League
+   1 University of South Dakota,Baseball,D1,Summit League
+   1 University of Saint Mary,Women's Soccer,NAIA,KCAC
+   1 University of Saint Mary,Women's Basketball,NAIA,KCAC
+   1 University of Saint Mary,Softball,NAIA,KCAC
+   1 University of Saint Francis,Women's Soccer,NAIA,Crossroads League
+   1 University of Redlands,Women's Soccer,D3,Southern California Intercollegiate Athletic Conference
+   1 University of Redlands,Women's Basketball,D3,Southern California Intercollegiate Athletic Conference
+   1 University of Redlands,Men's Soccer,D3,SCIAC
+   1 University of Puget Sound,Women's Soccer,D3,Northwest Conference
+   1 University of Puget Sound,Women's Basketball,D3,Northwest Conference
+   1 University of Pittsburgh at Johnstown,Men's Soccer,D2,PSAC
+   1 University of Pittsburgh at Johnstown,Baseball,D2,PSAC
+   1 University of Pikeville,Women's Soccer,NAIA,Mid-South Conference
+   1 University of Pikeville,Softball,NAIA,Mid-South Conference
+   1 University of North Texas,Baseball,D1,American Athletic Conference
+   1 University of North Dakota,Baseball,D1,Summit League
+   1 University of New Orleans,Baseball,D1,Southland Conference
+   1 University of Montevallo,Baseball,D2,Gulf South Conference
+   1 University of Montana Western,Women's Soccer,NAIA,Frontier Conference
+   1 University of Missouri-St. Louis,Softball,D2,GLVC
+   1 University of Missouri-St. Louis,Men's Soccer,D2,GLVC
+   1 University of Mary,Baseball,D2,NSIC
+   1 University of Lynchburg,Women's Basketball,D3,ODAC
+   1 University of La Verne,Women's Basketball,D3,Southern California Intercollegiate Athletic Conference
+   1 University of La Verne,Men's Soccer,D3,SCIAC
+   1 University of Evansville,Men's Soccer,D1,Missouri Valley Conference
+   1 University of Evansville,Baseball,D1,Missouri Valley Conference
+   1 University of Dubuque,Women's Basketball,D3,American Rivers Conference
+   1 University of Colorado Colorado Springs,Men's Soccer,D2,RMAC
+   1 University at Buffalo,Men's Soccer,D1,Mid-American Conference
+   1 Union University Tennessee,Softball,D2,Gulf South Conference
+   1 Union University Tennessee,Baseball,D2,Gulf South Conference
+   1 Union College NY,Baseball,D3,Liberty League
+   1 Tuskegee University,Women's Basketball,D2,SIAC
+   1 Tusculum University,Women's Basketball,D2,South Atlantic Conference
+   1 Tusculum University,Men's Soccer,D2,South Atlantic Conference
+   1 Tufts University,Women's Basketball,D3,NESCAC
+   1 Tufts University,Baseball,D3,NESCAC
+   1 Trinity Valley Community College,Women's Basketball,NJCAA,NJCAA Region 14
+   1 Trinity College,Women's Basketball,D3,NESCAC
+   1 Trinity College Connecticut,Baseball,D3,NESCAC
+   1 Trevecca Nazarene University,Softball,D2,Gulf South Conference
+   1 Trevecca Nazarene University,Baseball,D2,Gulf South Conference
+   1 Thomas University,Baseball,NAIA,Sun Conference
+   1 Thomas More University,Baseball,NAIA,Mid-South Conference
+   1 Thiel College,Women's Soccer,D3,Presidents' Athletic Conference
+   1 Thiel College,Women's Basketball,D3,Presidents' Athletic Conference
+   1 The College of Wooster,Baseball,D3,NCAC
+   1 The College of New Jersey,Men's Soccer,D3,New Jersey Athletic Conference
+   1 The Citadel,Baseball,D1,Southern Conference
+   1 Texas A&M University-Kingsville,Baseball,D2,Lone Star Conference
+   1 Texas A&M University-Corpus Christi,Baseball,D1,Southland Conference
+   1 Texas A&M University-Commerce,Softball,D2,Lone Star Conference
+   1 Tennessee Wesleyan University,Baseball,NAIA,Mid-South Conference
+   1 Susquehanna University,Women's Soccer,D3,Centennial Conference
+   1 Susquehanna University,Women's Basketball,D3,Centennial Conference
+   1 Susquehanna University,Men's Soccer,D3,Centennial Conference
+   1 SUNY Potsdam,Women's Basketball,D3,State University of New York Athletic Conference
+   1 SUNY Plattsburgh,Women's Soccer,D3,State University of New York Athletic Conference
+   1 SUNY Plattsburgh,Women's Basketball,D3,State University of New York Athletic Conference
+   1 SUNY Plattsburgh,Softball,D3,SUNYAC
+   1 SUNY Oswego,Women's Soccer,D3,State University of New York Athletic Conference
+   1 SUNY Oswego,Women's Basketball,D3,State University of New York Athletic Conference
+   1 SUNY Oswego,Softball,D3,SUNYAC
+   1 SUNY Oneonta,Women's Basketball,D3,State University of New York Athletic Conference
+   1 SUNY New Paltz,Women's Soccer,D3,State University of New York Athletic Conference
+   1 SUNY New Paltz,Women's Basketball,D3,State University of New York Athletic Conference
+   1 SUNY New Paltz,Softball,D3,SUNYAC
+   1 SUNY Geneseo,Women's Basketball,D3,State University of New York Athletic Conference
+   1 SUNY Cortland,Women's Basketball,D3,State University of New York Athletic Conference
+   1 SUNY Brockport,Women's Soccer,D3,State University of New York Athletic Conference
+   1 SUNY Brockport,Women's Basketball,D3,State University of New York Athletic Conference
+   1 SUNY Brockport,Softball,D3,SUNYAC
+   1 Stonehill College,Baseball,D1,Northeast Conference
+   1 Stockton University,Women's Basketball,D3,New Jersey Athletic Conference
+   1 Stockton University,Men's Soccer,D3,New Jersey Athletic Conference
+   1 Stevenson University,Women's Soccer,D3,Middle Atlantic Conferences Commonwealth
+   1 Stevenson University,Women's Basketball,D3,Middle Atlantic Conferences Commonwealth
+   1 Stevens Institute of Technology,Men's Soccer,D3,New Jersey Athletic Conference
+   1 Sterling College,Women's Soccer,NAIA,KCAC
+   1 Sterling College,Softball,NAIA,KCAC
+   1 State College of Florida Manatee-Sarasota,Baseball,NJCAA,NJCAA Region 8
+   1 St. Thomas University,Baseball,NAIA,Sun Conference
+   1 St. Petersburg College,Baseball,NJCAA,NJCAA Region 8
+   1 St. Mary's University Texas,Baseball,D2,Lone Star Conference
+   1 St. Lawrence University,Women's Basketball,D3,Liberty League
+   1 St. Lawrence University,Baseball,D3,Liberty League
+   1 St. John Fisher University,Women's Soccer,D3,Empire 8 Conference
+   1 St. John Fisher University,Women's Basketball,D3,Empire 8 Conference
+   1 St. Edward's University,Softball,D2,Lone Star Conference
+   1 St. Edward's University,Baseball,D2,Lone Star Conference
+   1 Springfield College,Women's Basketball,D3,New England Women's and Men's Athletic Conference
+   1 Southwestern Oklahoma State University,Softball,D2,Great American Conference
+   1 Southwestern Iowa Community College,Baseball,NJCAA,NJCAA Region 16
+   1 Southwestern College,Women's Soccer,NAIA,KCAC
+   1 Southwestern College Kansas,Softball,NAIA,KCAC
+   1 Southwest Mississippi Community College,Women's Basketball,NJCAA,MACCC
+   1 Southern Methodist University,Baseball,D1,ACC
+   1 Southern Illinois University,Baseball,D1,Missouri Valley Conference
+   1 Southern Arkansas University,Softball,D2,Great American Conference
+   1 Southeastern University,Baseball,NAIA,Sun Conference
+   1 Southeastern Oklahoma State University,Softball,D2,Great American Conference
+   1 South Florida State College,Baseball,NJCAA,NJCAA Region 8
+   1 South Dakota School of Mines and Technology,Women's Basketball,D2,RMAC
+   1 Snow College,Women's Basketball,NJCAA,Scenic West Athletic ConferenceDickinson College,Women's Soccer,D3,Centennial Conference
+   1 Snow College,Softball,NJCAA,NJCAA Region 18
+   1 Skidmore College,Baseball,D3,Liberty League
+   1 Simpson College,Women's Basketball,D3,American Rivers Conference
+   1 Simpson College,Softball,D3,American Rivers Conference
+   1 Simon Fraser University,Men's Soccer,D2,GNAC
+   1 Sierra College,Softball,NJCAA,California Community College Athletic Association
+   1 Shepherd University,Baseball,D2,PSAC
+   1 Shenandoah University,Women's Basketball,D3,ODAC
+   1 Shenandoah University,Men's Soccer,D3,ODAC
+   1 Shenandoah University,Baseball,D3,ODAC
+   1 Shawnee State University,Baseball,NAIA,Mid-South Conference
+   1 Sewanee The University of the South,Women's Basketball,D3,Southern Athletic Association
+   1 Seton Hill University,Men's Soccer,D2,PSAC
+   1 Seton Hill University,Baseball,D2,PSAC
+   1 Seminole State College,Baseball,NJCAA,NJCAA Region 2
+   1 Seattle Pacific University,Men's Soccer,D2,GNAC
+   1 Santa Fe College,Baseball,NJCAA,NJCAA Region 8
+   1 Saint Vincent College,Women's Soccer,D3,Presidents' Athletic Conference
+   1 Saint Vincent College,Women's Basketball,D3,Presidents' Athletic Conference
+   1 Saint Olaf College,Women's Basketball,D3,Minnesota Intercollegiate Athletic Conference
+   1 Saint Mary's University of Minnesota,Women's Soccer,D3,Minnesota Intercollegiate Athletic Conference
+   1 Saint Mary's University of Minnesota,Women's Basketball,D3,Minnesota Intercollegiate Athletic Conference
+   1 Saint Martin's University,Men's Soccer,D2,GNAC
+   1 Saint Francis University,Baseball,D1,Northeast Conference
+   1 Saginaw Valley State University,Softball,D2,GLIAC
+   1 Saddleback College,Women's Basketball,NJCAA,California Community College Athletic Association
+   1 Rutgers University-Newark,Women's Basketball,D3,New Jersey Athletic Conference
+   1 Rutgers University-Newark,Men's Soccer,D3,New Jersey Athletic Conference
+   1 Rutgers University-Camden,Men's Soccer,D3,New Jersey Athletic Conference
+   1 Rutgers University-Camden,Baseball,D3,New Jersey Athletic Conference
+   1 Rowan University,Men's Soccer,D3,New Jersey Athletic Conference
+   1 Rose State College,Baseball,NJCAA,NJCAA Region 2
+   1 Rochester Institute of Technology,Women's Basketball,D3,Liberty League
+   1 Roanoke College,Women's Basketball,D3,ODAC
+   1 Riverside City College,Baseball,NJCAA,California Community College Athletic Association
+   1 Rhodes College,Women's Basketball,D3,Southern Athletic Association
+   1 Rensselaer Polytechnic Institute,Women's Basketball,D3,Liberty League
+   1 Rensselaer Polytechnic Institute,Baseball,D3,Liberty League
+   1 Reinhardt University,Women's Soccer,NAIA,Appalachian Athletic Conference
+   1 Redlands Community College,Baseball,NJCAA,NJCAA Region 2
+   1 Randolph-Macon College,Women's Basketball,D3,ODAC
+   1 Randolph-Macon College,Men's Soccer,D3,ODAC
+   1 Ramapo College,Women's Basketball,D3,New Jersey Athletic Conference
+   1 Ramapo College,Men's Soccer,D3,New Jersey Athletic Conference
+   1 Ramapo College,Baseball,D3,New Jersey Athletic Conference
+   1 Quincy University,Softball,D2,GLVC
+   1 Quincy University,Men's Soccer,D2,GLVC
+   1 Pomona-Pitzer Colleges,Women's Basketball,D3,Southern California Intercollegiate Athletic Conference
+   1 Polk State College,Baseball,NJCAA,NJCAA Region 8
+   1 Pittsburg State University,Softball,D2,MIAA
+   1 Pikeville University,Baseball,NAIA,Mid-South Conference
+   1 Pfeiffer University,Women's Soccer,D3,USA South Athletic Conference
+   1 Pfeiffer University,Women's Basketball,D3,USA South Athletic Conference
+   1 Peru State College,Softball,NAIA,Heart of America Athletic Conference
+   1 Pepperdine University,Men's Soccer,D1,West Coast Conference
+   1 Pasco-Hernando State College,Baseball,NJCAA,NJCAA Region 8
+   1 Pasadena City College,Women's Basketball,NJCAA,California Community College Athletic Association
+   1 Palomar College,Softball,NJCAA,California Community College Athletic Association
+   1 Pacific University,Women's Basketball,D3,Northwest Conference
+   1 Pacific Lutheran University,Women's Basketball,D3,Northwest Conference
+   1 Otterbein University,Women's Basketball,D3,Ohio Athletic Conference
+   1 Otterbein University,Men's Soccer,D3,Ohio Athletic Conference
+   1 Ottawa University,Baseball,NAIA,KCAC
+   1 Oregon State University,Baseball,D1,Pac-12
+   1 Orange Coast College,Softball,NJCAA,California Community College Athletic Association
+   1 Old Dominion University,Men's Soccer,D1,Sun Belt Conference
+   1 Oklahoma Wesleyan University,Baseball,NAIA,KCAC
+   1 Oklahoma Christian University,Softball,D2,Lone Star Conference
+   1 Oklahoma Christian University,Baseball,D2,Lone Star Conference
+   1 Oklahoma Baptist University,Softball,D2,Great American Conference
+   1 Ohio Wesleyan University,Baseball,D3,NCAC
+   1 Ohio Northern University,Women's Soccer,D3,Ohio Athletic Conference
+   1 Ohio Northern University,Women's Basketball,D3,Ohio Athletic Conference
+   1 Ohio Northern University,Men's Soccer,D3,Ohio Athletic Conference
+   1 Occidental College,Women's Basketball,D3,Southern California Intercollegiate Athletic Conference
+   1 Oberlin College,Baseball,D3,NCAC
+   1 Norwich University,Women's Basketball,D3,New England Women's and Men's Athletic Conference
+   1 Northwood University,Softball,D2,GLIAC
+   1 Northwestern Oklahoma State University,Softball,D2,Great American Conference
+   1 Northwestern College Iowa,Softball,NAIA,Great Plains Athletic Conference
+   1 Northwest Nazarene University,Men's Soccer,D2,GNAC
+   1 Northwest Mississippi Community College,Women's Basketball,NJCAA,MACCC
+   1 Northern State University,Softball,D2,NSIC
+   1 Northern State University,Baseball,D2,NSIC
+   1 Northern Oklahoma College,Women's Basketball,NJCAA,NJCAA
+   1 Northern Michigan University,Softball,D2,GLIAC
+   1 Northeastern Oklahoma A&M College,Women's Basketball,NJCAA,NJCAA
+   1 Northeastern Oklahoma A&M College,Baseball,NJCAA,NJCAA Region 2
+   1 North Park University,Women's Basketball,D3,CCIW
+   1 Newberry College,Women's Basketball,D2,South Atlantic Conference
+   1 Newberry College,Men's Soccer,D2,South Atlantic Conference
+   1 New Mexico Highlands University,Men's Soccer,D2,RMAC
+   1 New Jersey City University,Men's Soccer,D3,New Jersey Athletic Conference
+   1 New Jersey City University,Baseball,D3,New Jersey Athletic Conference
+   1 Nebraska Wesleyan University,Softball,D3,American Rivers Conference
+   1 Nazareth University,Women's Soccer,D3,Empire 8 Conference
+   1 Nazareth University,Women's Basketball,D3,Empire 8 Conference
+   1 Navarro College,Women's Basketball,NJCAA,NJCAA Region 14
+   1 Muskingum University,Softball,D3,Ohio Athletic Conference
+   1 Muskingum University,Men's Soccer,D3,Ohio Athletic Conference
+   1 Murray State University,Baseball,D1,Missouri Valley Conference
+   1 Murray State College,Baseball,NJCAA,NJCAA Region 2
+   1 Mount Union University,Softball,D3,Ohio Athletic Conference
+   1 Mount Union University,Men's Soccer,D3,Ohio Athletic Conference
+   1 Mount Mercy University,Women's Soccer,NAIA,Heart of America Athletic Conference
+   1 Mount Mercy University,Softball,NAIA,Heart of America Athletic Conference
+   1 Mount Marty University,Softball,NAIA,Great Plains Athletic Conference
+   1 Morningside University,Softball,NAIA,Great Plains Athletic Conference
+   1 Montana Tech of the University of Montana,Women's Soccer,NAIA,Frontier Conference
+   1 Missouri Western State University,Softball,D2,MIAA
+   1 Missouri Valley College,Softball,NAIA,Heart of America Athletic Conference
+   1 Missouri State University,Baseball,D1,Missouri Valley Conference
+   1 Missouri S&T,Men's Soccer,D2,GLVC
+   1 Mississippi Gulf Coast Community College,Women's Soccer,NJCAA,MACCC
+   1 Mississippi Delta Community College,Women's Basketball,NJCAA,MACCC
+   1 Mississippi College,Baseball,D2,Gulf South Conference
+   1 Minot State University,Softball,D2,NSIC
+   1 Minot State University,Baseball,D2,NSIC
+   1 Minnesota State University Moorhead,Softball,D2,NSIC
+   1 Minnesota State University Moorhead,Baseball,D2,NSIC
+   1 Mineral Area College,Baseball,NJCAA,NJCAA Region 16
+   1 Millsaps College,Women's Soccer,D3,Southern Athletic Association
+   1 Millsaps College,Women's Basketball,D3,Southern Athletic Association
+   1 Millikin University,Women's Basketball,D3,CCIW
+   1 Midwestern State University,Baseball,D2,Lone Star Conference
+   1 Midland University,Softball,NAIA,Great Plains Athletic Conference
+   1 Middlebury College,Women's Basketball,D3,NESCAC
+   1 Middlebury College,Baseball,D3,NESCAC
+   1 MidAmerica Nazarene University,Women's Soccer,NAIA,Heart of America Athletic Conference
+   1 MidAmerica Nazarene University,Women's Basketball,NAIA,Heart of America Athletic Conference
+   1 MidAmerica Nazarene University,Softball,NAIA,Heart of America Athletic Conference
+   1 Michigan Tech University,Softball,D2,GLIAC
+   1 Metropolitan State University of Denver,Men's Soccer,D2,RMAC
+   1 Metropolitan State University of Denver,Baseball,D2,RMAC
+   1 Messiah University,Women's Basketball,D3,Middle Atlantic Conferences Commonwealth
+   1 Meredith College,Women's Soccer,D3,USA South Athletic Conference
+   1 Meredith College,Women's Basketball,D3,USA South Athletic Conference
+   1 Mercyhurst University,Baseball,D1,Northeast Conference
+   1 McPherson College,Women's Soccer,NAIA,KCAC
+   1 McPherson College,Softball,NAIA,KCAC
+   1 McPherson College,Baseball,NAIA,KCAC
+   1 Maryville University Saint Louis,Softball,D2,GLVC
+   1 Maryville University Saint Louis,Men's Soccer,D2,GLVC
+   1 Mary Baldwin University,Women's Soccer,D3,USA South Athletic Conference
+   1 Mary Baldwin University,Women's Basketball,D3,USA South Athletic Conference
+   1 Mars Hill University,Women's Basketball,D2,South Atlantic Conference
+   1 Mars Hill University,Men's Soccer,D2,South Atlantic Conference
+   1 Marietta College,Women's Soccer,D3,Ohio Athletic Conference
+   1 Marietta College,Women's Basketball,D3,Ohio Athletic Conference
+   1 Marietta College,Softball,D3,Ohio Athletic Conference
+   1 Marietta College,Men's Soccer,D3,Ohio Athletic Conference
+   1 Macalester College,Women's Basketball,D3,Minnesota Intercollegiate Athletic Conference
+   1 Lycoming College,Women's Basketball,D3,Middle Atlantic Conferences Commonwealth
+   1 Luther College,Women's Basketball,D3,American Rivers Conference
+   1 Loyola University Maryland,Baseball,D1,Patriot League
+   1 Loras College,Women's Basketball,D3,American Rivers Conference
+   1 Loras College,Softball,D3,American Rivers Conference
+   1 Long Island University,Baseball,D1,Northeast Conference
+   1 Lock Haven University,Baseball,D2,PSAC
+   1 Linfield University,Women's Basketball,D3,Northwest Conference
+   1 Lindsey Wilson College,Women's Soccer,NAIA,Mid-South Conference
+   1 Lindsey Wilson College,Baseball,NAIA,Mid-South Conference
+   1 Lincoln University Missouri,Softball,D2,MIAA
+   1 Limestone University,Women's Basketball,D2,South Atlantic Conference
+   1 Limestone University,Men's Soccer,D2,South Atlantic Conference
+   1 Life University,Baseball,NAIA,Mid-South Conference
+   1 Lewis-Clark State College,Women's Soccer,NAIA,Frontier Conference
+   1 Lewis and Clark College,Women's Basketball,D3,Northwest Conference
+   1 Lee University,Softball,D2,Gulf South Conference
+   1 Lee University,Baseball,D2,Gulf South Conference
+   1 Lebanon Valley College,Women's Soccer,D3,Middle Atlantic Conferences Commonwealth
+   1 Lebanon Valley College,Women's Basketball,D3,Middle Atlantic Conferences Commonwealth
+   1 Le Moyne College,Baseball,D1,Northeast Conference
+   1 Lamar University,Baseball,D1,Southland Conference
+   1 Lake Superior State University,Softball,D2,GLIAC
+   1 Lafayette College,Baseball,D1,Patriot League
+   1 Kutztown University,Men's Soccer,D2,PSAC
+   1 Kutztown University,Baseball,D2,PSAC
+   1 Kirkwood Community College,Women's Soccer,NJCAA,ICCAC
+   1 Kilgore College,Women's Basketball,NJCAA,NJCAA Region 14
+   1 Kenyon College,Baseball,D3,NCAC
+   1 Kentucky Christian University,Baseball,NAIA,Mid-South Conference
+   1 Keiser University,Women's Soccer,NAIA,The Sun Conference
+   1 Keiser University,Baseball,NAIA,Sun Conference
+   1 Kean University,Women's Basketball,D3,New Jersey Athletic Conference
+   1 Kean University,Men's Soccer,D3,New Jersey Athletic Conference
+   1 Kean University,Baseball,D3,New Jersey Athletic Conference
+   1 Kansas Wesleyan University,Women's Soccer,NAIA,KCAC
+   1 Kansas Wesleyan University,Baseball,NAIA,KCAC
+   1 John Carroll University,Women's Basketball,D3,Ohio Athletic Conference
+   1 John Carroll University,Men's Soccer,D3,Ohio Athletic Conference
+   1 Ithaca College,Women's Basketball,D3,Liberty League
+   1 Itawamba Community College,Women's Basketball,NJCAA,MACCC
+   1 Iowa Lakes Community College,Women's Basketball,NJCAA,ICCAC
+   1 Iowa Central Community College,Baseball,NJCAA,NJCAA Region 16
+   1 Indiana University of Pennsylvania,Men's Soccer,D2,PSAC
+   1 Indiana State University,Baseball,D1,Missouri Valley Conference
+   1 Illinois State University,Baseball,D1,Missouri Valley Conference
+   1 Huntington University,Women's Soccer,NAIA,Crossroads League
+   1 Holmes Community College,Women's Basketball,NJCAA,MACCC
+   1 Hobart College,Baseball,D3,Liberty League
+   1 Hobart and William Smith Colleges,Women's Basketball,D3,Liberty League
+   1 Hiram College,Baseball,D3,NCAC
+   1 Hendrix College,Women's Basketball,D3,Southern Athletic Association
+   1 Henderson State University,Softball,D2,Great American Conference
+   1 Heidelberg University,Women's Soccer,D3,Ohio Athletic Conference
+   1 Heidelberg University,Women's Basketball,D3,Ohio Athletic Conference
+   1 Heidelberg University,Men's Soccer,D3,Ohio Athletic Conference
+   1 Heidelberg University,Baseball,D3,Ohio Athletic Conference
+   1 Hastings College,Women's Soccer,NAIA,Great Plains Athletic Conference
+   1 Hampden-Sydney College,Baseball,D3,ODAC
+   1 Hamline University,Women's Basketball,D3,Minnesota Intercollegiate Athletic Conference
+   1 Hamilton College,Women's Basketball,D3,NESCAC
+   1 Hamilton College,Baseball,D3,NESCAC
+   1 Gustavus Adolphus College,Women's Basketball,D3,Minnesota Intercollegiate Athletic Conference
+   1 Guilford College,Women's Basketball,D3,ODAC
+   1 Guilford College,Men's Soccer,D3,ODAC
+   1 Grove City College,Women's Soccer,D3,Presidents' Athletic Conference
+   1 Grove City College,Women's Basketball,D3,Presidents' Athletic Conference
+   1 Grand View University,Softball,NAIA,Heart of America Athletic Conference
+   1 Graceland University,Softball,NAIA,Heart of America Athletic Conference
+   1 Georgetown College,Baseball,NAIA,Mid-South Conference
+   1 George Fox University,Women's Soccer,D3,Northwest Conference
+   1 George Fox University,Women's Basketball,D3,Northwest Conference
+   1 Geneva College,Women's Soccer,D3,Presidents' Athletic Conference
+   1 Geneva College,Women's Basketball,D3,Presidents' Athletic Conference
+   1 Friends University,Baseball,NAIA,KCAC
+   1 Freed-Hardeman University,Softball,NAIA,Mid-South Conference
+   1 Freed-Hardeman University,Baseball,NAIA,Mid-South Conference
+   1 Fort Valley State University,Women's Basketball,D2,SIAC
+   1 Fordham University,Men's Soccer,D1,Atlantic 10 Conference
+   1 Florida Memorial University,Women's Soccer,NAIA,The Sun Conference
+   1 Florida Memorial University,Baseball,NAIA,Sun Conference
+   1 Florida College,Baseball,NAIA,Sun Conference
+   1 Ferrum College,Men's Soccer,D3,ODAC
+   1 Ferris State University,Softball,D2,GLIAC
+   1 Faulkner University,Women's Soccer,NAIA,The Sun Conference
+   1 Fairleigh Dickinson University,Baseball,D1,Northeast Conference
+   1 Evangel University,Softball,NAIA,Heart of America Athletic Conference
+   1 Emory & Henry College,Men's Soccer,D2,South Atlantic Conference
+   1 Ellsworth Community College,Women's Basketball,NJCAA,ICCAC
+   1 Edinboro University,Men's Soccer,D2,PSAC
+   1 Eckerd College,Softball,D2,Sunshine State Conference
+   1 Eckerd College,Men's Soccer,D2,Sunshine State Conference
+   1 Eastern Oregon University,Women's Soccer,NAIA,Cascade Collegiate Conference
+   1 Eastern Oklahoma State College,Softball,NJCAA,NJCAA Region 2Millersville University,Women's Basketball,D2,PSAC
+   1 Eastern Oklahoma State College,Baseball,NJCAA,NJCAA Region 2
+   1 Eastern New Mexico University,Softball,D2,Lone Star Conference
+   1 Eastern New Mexico University,Baseball,D2,Lone Star Conference
+   1 Eastern Mennonite University,Men's Soccer,D3,ODAC
+   1 East Texas A&M University,Baseball,D1,Southland Conference
+   1 East Central University,Softball,D2,Great American Conference
+   1 East Central Community College,Women's Basketball,NJCAA,MACCC
+   1 Dordt University,Women's Soccer,NAIA,Great Plains Athletic Conference
+   1 Dordt University,Women's Basketball,NAIA,Great Plains Athletic Conference
+   1 Dordt University,Baseball,NAIA,Great Plains Athletic Conference
+   1 Doane University,Women's Soccer,NAIA,Great Plains Athletic Conference
+   1 Doane University,Softball,NAIA,Great Plains Athletic Conference
+   1 Doane University,Baseball,NAIA,Great Plains Athletic Conference
+   1 Dickinson College,Men's Soccer,D3,Centennial Conference
+   1 DePauw University,Women's Basketball,D3,NCAC
+   1 Denison University,Baseball,D3,NCAC
+   1 Delta State University,Baseball,D2,Gulf South Conference
+   1 Daytona State College,Baseball,NJCAA,NJCAA Region 8University of North Alabama,Men's Soccer,D1,ASUN Conference
+   1 Dakota Wesleyan University,Softball,NAIA,Great Plains Athletic Conference
+   1 Cumberland University,Women's Soccer,NAIA,Mid-South Conference
+   1 Cumberland University,Softball,NAIA,Mid-South Conference
+   1 Cumberland University,Baseball,NAIA,Mid-South Conference
+   1 Culver-Stockton College,Softball,NAIA,Heart of America Athletic Conference
+   1 Crowder College,Softball,NJCAA,NJCAA Region 16
+   1 Copiah-Lincoln Community College,Women's Basketball,NJCAA,MACCC
+   1 Connors State College,Baseball,NJCAA,NJCAA Region 2
+   1 Connecticut College,Women's Basketball,D3,NESCAC
+   1 Concordia University Saint Paul,Softball,D2,NSIC
+   1 Concordia University Portland,Baseball,D2,GNAC
+   1 Concordia University Nebraska,Softball,NAIA,Great Plains Athletic Conference
+   1 Concordia College,Women's Soccer,D3,Minnesota Intercollegiate Athletic Conference
+   1 Concordia College,Women's Basketball,D3,Minnesota Intercollegiate Athletic Conference
+   1 Compton College,Women's Basketball,NJCAA,California Community College Athletic Association
+   1 Colorado School of Mines,Baseball,D2,RMAC
+   1 Colorado Christian University,Men's Soccer,D2,RMAC
+   1 Colorado Christian University,Baseball,D2,RMAC
+   1 College of the Holy Cross,Baseball,D1,Patriot League
+   1 College of Central Florida,Baseball,NJCAA,NJCAA Region 8
+   1 Colby College,Women's Basketball,D3,NESCAC
+   1 Colby College,Baseball,D3,NESCAC
+   1 Coker University,Men's Soccer,D2,South Atlantic Conference
+   1 Coffeyville Community College,Women's Basketball,NJCAA,KJCCC
+   1 Coe College,Women's Basketball,D3,American Rivers Conference
+   1 Coastal Georgia,Baseball,NAIA,Sun Conference
+   1 Coahoma Community College,Women's Basketball,NJCAA,MACCC
+   1 Clarkson University,Women's Basketball,D3,Liberty League
+   1 Clarkson University,Baseball,D3,Liberty League
+   1 Clarke University,Softball,NAIA,Heart of America Athletic Conference
+   1 Clark University,Women's Basketball,D3,New England Women's and Men's Athletic Conference
+   1 Claremont-Mudd-Scripps,Women's Basketball,D3,Southern California Intercollegiate Athletic Conference
+   1 Citrus College,Women's Basketball,NJCAA,California Community College Athletic Association
+   1 Cisco College,Women's Basketball,NJCAA,NJCAA Region 14
+   1 Christian Brothers University,Softball,D2,Gulf South Conference
+   1 Christian Brothers University,Baseball,D2,Gulf South Conference
+   1 Chipola College,Baseball,NJCAA,NJCAA Region 8
+   1 Chatham University,Women's Soccer,D3,Presidents' Athletic Conference
+   1 Chatham University,Women's Basketball,D3,Presidents' Athletic Conference
+   1 Chapman University,Women's Basketball,D3,Southern California Intercollegiate Athletic Conference
+   1 Chadron State College,Women's Basketball,D2,RMAC
+   1 Centre College,Women's Basketball,D3,Southern Athletic Association
+   1 Central Methodist University,Softball,NAIA,Heart of America Athletic Conference
+   1 Central Connecticut State University,Baseball,D1,Northeast Conference
+   1 Central Arizona College,Softball,NJCAA,NJCAA Region 1
+   1 Catawba College,Women's Basketball,D2,South Atlantic Conference
+   1 Catawba College,Men's Soccer,D2,South Atlantic Conference
+   1 Carson-Newman University,Women's Basketball,D2,South Atlantic Conference
+   1 Carson-Newman University,Men's Soccer,D2,South Atlantic Conference
+   1 Carnegie Mellon University,Softball,D3,UAA
+   1 Carnegie Mellon University,Men's Soccer,D3,UAA
+   1 Carleton College,Women's Basketball,D3,Minnesota Intercollegiate Athletic Conference
+   1 Carl Albert State College,Baseball,NJCAA,NJCAA Region 2
+   1 Capital University,Women's Basketball,D3,Ohio Athletic Conference
+   1 Capital University,Softball,D3,Ohio Athletic Conference
+   1 Capital University,Men's Soccer,D3,Ohio Athletic Conference
+   1 Campbellsville University,Women's Soccer,NAIA,Mid-South Conference
+   1 Campbellsville University,Baseball,NAIA,Mid-South Conference
+   1 Cameron University,Softball,D2,Lone Star Conference
+   1 Cameron University,Baseball,D2,Lone Star Conference
+   1 California University of Pennsylvania,Men's Soccer,D2,PSAC
+   1 California University of Pennsylvania,Baseball,D2,PSAC
+   1 California State University, Stanislaus,Softball,D2,CCAA
+   1 California State University, Stanislaus,Men's Soccer,D2,CCAA
+   1 California State University, San Marcos,Softball,D2,CCAA
+   1 California State University, San Marcos,Men's Soccer,D2,CCAA
+   1 California State University, Monterey Bay,Softball,D2,CCAA
+   1 California State University, Monterey Bay,Men's Soccer,D2,CCAA
+   1 California State University, Los Angeles,Softball,D2,CCAA
+   1 California State University, Los Angeles,Men's Soccer,D2,CCAA
+   1 California State University, East Bay,Softball,D2,CCAA
+   1 California State University, East Bay,Men's Soccer,D2,CCAA
+   1 California Lutheran University,Women's Basketball,D3,Southern California Intercollegiate Athletic Conference
+   1 California Institute of Technology,Men's Soccer,D3,SCIAC
+   1 Cal Poly Pomona,Softball,D2,CCAA
+   1 Buena Vista University,Women's Basketball,D3,American Rivers Conference
+   1 Bucknell University,Baseball,D1,Patriot League
+   1 Bridgewater College,Women's Basketball,D3,ODAC
+   1 Bridgewater College,Men's Soccer,D3,ODAC
+   1 Briar Cliff University,Women's Soccer,NAIA,Great Plains Athletic Conference
+   1 Briar Cliff University,Women's Basketball,NAIA,Great Plains Athletic Conference
+   1 Brevard College,Women's Soccer,D3,USA South Athletic Conference
+   1 Brevard College,Women's Basketball,D3,USA South Athletic Conference
+   1 Bradley University,Baseball,D1,Missouri Valley Conference
+   1 Bowdoin College,Women's Basketball,D3,NESCAC
+   1 Bowdoin College,Baseball,D3,NESCAC
+   1 Boston University,Baseball,D1,Patriot League
+   1 Blue Mountain Christian University,Baseball,NAIA,Mid-South Conference
+   1 Blinn College,Women's Basketball,NJCAA,NJCAA Region 14
+   1 Black Hills State University,Women's Basketball,D2,RMAC
+   1 Bethel University Tennessee,Softball,NAIA,Mid-South Conference
+   1 Bethel University Tennessee,Baseball,NAIA,Mid-South Conference
+   1 Bethel University MN,Women's Basketball,D3,Minnesota Intercollegiate Athletic Conference
+   1 Bethel University Indiana,Women's Soccer,NAIA,Crossroads League
+   1 Bethel University Indiana,Women's Basketball,NAIA,Crossroads League
+   1 Bethel College Kansas,Softball,NAIA,KCAC
+   1 Bethel College Kansas,Baseball,NAIA,KCAC
+   1 Bethany College WV,Women's Soccer,D3,Presidents' Athletic Conference
+   1 Bethany College WV,Women's Basketball,D3,Presidents' Athletic Conference
+   1 Bethany College Kansas,Softball,NAIA,KCAC
+   1 Bethany College Kansas,Baseball,NAIA,KCAC
+   1 Berry College,Women's Basketball,D3,Southern Athletic Association
+   1 Benedictine College,Softball,NAIA,Heart of America Athletic Conference
+   1 Benedictine College,Baseball,NAIA,Heart of America Athletic Conference
+   1 Belmont University,Baseball,D1,Missouri Valley Conference
+   1 Bates College,Women's Basketball,D3,NESCAC
+   1 Bates College,Baseball,D3,NESCAC
+   1 Barry University,Softball,D2,Sunshine State Conference
+   1 Barry University,Men's Soccer,D2,Sunshine State Conference
+   1 Bard College,Women's Basketball,D3,Liberty League
+   1 Baldwin Wallace University,Women's Basketball,D3,Ohio Athletic Conference
+   1 Baldwin Wallace University,Men's Soccer,D3,Ohio Athletic Conference
+   1 Baker University,Softball,NAIA,Heart of America Athletic Conference
+   1 Babson College,Women's Soccer,D3,New England Women's and Men's Athletic Conference
+   1 Ave Maria University,Baseball,NAIA,Sun Conference
+   1 Augsburg University,Women's Basketball,D3,Minnesota Intercollegiate Athletic Conference
+   1 Auburn University at Montgomery,Softball,D2,Gulf South Conference
+   1 Auburn University at Montgomery,Baseball,D2,Gulf South Conference
+   1 Asbury University,Women's Soccer,NAIA,Mid-South Conference
+   1 Army West Point,Men's Soccer,D1,Patriot League
+   1 Anderson University South Carolina,Men's Soccer,D2,South Atlantic Conference
+   1 Amherst College,Women's Basketball,D3,NESCAC
+   1 Amherst College,Softball,D3,NESCAC
+   1 Amherst College,Baseball,D3,NESCAC
+   1 Alvernia University,Women's Basketball,D3,Middle Atlantic Conferences Commonwealth
+   1 Allegheny College,Women's Basketball,D3,Presidents' Athletic Conference
+   1 Allegheny College,Baseball,D3,NCAC
+   1 Albright College,Women's Basketball,D3,Middle Atlantic Conferences Commonwealth
+   1 Albany State University,Women's Basketball,D2,SIAC
+   1 Alabama-Huntsville,Baseball,D2,Gulf South Conference
+   1 Adams State University,Men's Soccer,D2,RMAC

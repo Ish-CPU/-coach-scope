@@ -67,6 +67,7 @@ export async function POST(req: Request) {
       ratings: data.ratings as Prisma.InputJsonValue,
       overall,
       weight,
+      isAnonymous: data.isAnonymous,
       status: ReviewStatus.PUBLISHED,
     },
   });

@@ -32,7 +32,7 @@ export default async function DormProfilePage({ params, searchParams }: PageProp
           university: true,
           reviews: {
             where: { status: "PUBLISHED" },
-            include: { author: { select: { id: true, role: true, verificationStatus: true } } },
+            include: { author: { select: { id: true, name: true, role: true, verificationStatus: true } } },
           },
         },
       }),
@@ -121,6 +121,7 @@ export default async function DormProfilePage({ params, searchParams }: PageProp
                   overall: r.overall,
                   helpfulCount: r.helpfulCount,
                   createdAt: r.createdAt,
+                  isAnonymous: r.isAnonymous ?? true,
                   author: r.author,
                 }}
                 canInteract={canInteract}

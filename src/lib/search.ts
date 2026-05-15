@@ -14,6 +14,10 @@ export interface SearchFilters {
   kind?: SearchKind;
   sport?: string;
   division?: Division;
+  /** 2-letter US state code, matched case-insensitively (e.g. "AL", "ca"). */
+  state?: string;
+  /** Conference name substring, matched case-insensitively (e.g. "SEC", "ACC", "Big Ten"). */
+  conference?: string;
   universityId?: string;
   minRating?: number;
   reviewType?: ReviewType;
@@ -31,6 +35,18 @@ export interface SearchHit {
   rating?: number;
   reviewCount?: number;
   href: string;
+  /**
+   * Type-specific metadata. Lets ResultCard render a richer coach/program
+   * card without forcing every hit type to carry the same shape.
+   */
+  meta?: {
+    sport?: string | null;
+    division?: Division | null;
+    conference?: string | null;
+    schoolName?: string | null;   // university.name
+    coachTitle?: string | null;   // coach.title (e.g. "Head Coach")
+    state?: string | null;        // 2-letter state code
+  };
 }
 
 /**
@@ -145,6 +161,15 @@ async function searchCoaches(
         : {},
       f.sport ? { school: { sport: { equals: f.sport, mode: "insensitive" } } } : {},
       f.division ? { school: { division: f.division } } : {},
+      f.conference
+        ? {
+            OR: [
+              { school: { conference: { contains: f.conference, mode: "insensitive" } } },
+              { school: { university: { conference: { contains: f.conference, mode: "insensitive" } } } },
+            ],
+          }
+        : {},
+      f.state ? { school: { university: { state: { equals: f.state, mode: "insensitive" } } } } : {},
       f.universityId ? { school: { universityId: f.universityId } } : {},
       ratingFilter ?? {},
     ],
@@ -176,6 +201,14 @@ async function searchCoaches(
       rating: weightedAvg(filtered),
       reviewCount: filtered.length,
       href: `/coach/${c.id}`,
+      meta: {
+        sport: c.school.sport,
+        division: c.school.division,
+        conference: c.school.conference ?? c.school.university.conference ?? null,
+        schoolName: c.school.university.name,
+        coachTitle: c.title ?? "Coach",
+        state: c.school.university.state ?? null,
+      },
       __universityName: c.school.university.name,
     };
   });
@@ -219,6 +252,15 @@ async function searchUniversities(
           }
         : {},
       programMatch ? { schools: { some: programMatch } } : {},
+      f.state ? { state: { equals: f.state, mode: "insensitive" } } : {},
+      f.conference
+        ? {
+            OR: [
+              { conference: { contains: f.conference, mode: "insensitive" } },
+              { schools: { some: { conference: { contains: f.conference, mode: "insensitive" } } } },
+            ],
+          }
+        : {},
       ratingFilter ?? {},
     ],
   };
@@ -246,6 +288,10 @@ async function searchUniversities(
       rating: weightedAvg(filtered),
       reviewCount: filtered.length,
       href: `/university/${u.id}`,
+      meta: {
+        conference: u.conference ?? null,
+        state: u.state ?? null,
+      },
       __universityName: u.name,
     };
   });
@@ -288,6 +334,17 @@ async function searchDorms(
         : {},
       f.universityId ? { universityId: f.universityId } : {},
       programMatch ? { university: { schools: { some: programMatch } } } : {},
+      f.state ? { university: { state: { equals: f.state, mode: "insensitive" } } } : {},
+      f.conference
+        ? {
+            university: {
+              OR: [
+                { conference: { contains: f.conference, mode: "insensitive" } },
+                { schools: { some: { conference: { contains: f.conference, mode: "insensitive" } } } },
+              ],
+            },
+          }
+        : {},
       ratingFilter ?? {},
     ],
   };
@@ -348,6 +405,15 @@ async function searchSchools(
       f.sport ? { sport: { equals: f.sport, mode: "insensitive" } } : {},
       f.division ? { division: f.division } : {},
       f.universityId ? { universityId: f.universityId } : {},
+      f.conference
+        ? {
+            OR: [
+              { conference: { contains: f.conference, mode: "insensitive" } },
+              { university: { conference: { contains: f.conference, mode: "insensitive" } } },
+            ],
+          }
+        : {},
+      f.state ? { university: { state: { equals: f.state, mode: "insensitive" } } } : {},
       ratingFilter ?? {},
     ],
   };
@@ -375,7 +441,14 @@ async function searchSchools(
       subtitle: `${s.division} · ${s.conference ?? "Conference n/a"}`,
       rating: weightedAvg(filtered),
       reviewCount: filtered.length,
-      href: `/university/${s.universityId}?sport=${encodeURIComponent(s.sport)}`,
+      href: `/school/${s.id}`,
+      meta: {
+        sport: s.sport,
+        division: s.division,
+        conference: s.conference ?? s.university.conference ?? null,
+        schoolName: s.university.name,
+        state: s.university.state ?? null,
+      },
       __universityName: s.university.name,
     };
   });

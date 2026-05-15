@@ -1,6 +1,7 @@
 import { runSearch, type SearchKind } from "@/lib/search";
 import { SearchBar } from "@/components/SearchBar";
 import { ResultCard } from "@/components/ResultCard";
+import { LocationFilters } from "@/components/LocationFilters";
 import { AdSlot } from "@/components/AdSlot";
 import { ReviewType } from "@prisma/client";
 import Link from "next/link";
@@ -43,6 +44,8 @@ export default async function SearchPage({ searchParams }: PageProps) {
     // values become `undefined` (i.e. no filter), which prevents an arbitrary
     // ?division=foo from silently matching nothing OR throwing.
     division: parseDivision(get(searchParams, "division")) ?? undefined,
+    state: get(searchParams, "state"),
+    conference: get(searchParams, "conference"),
     minRating: parseMinRating(get(searchParams, "minRating")) ?? undefined,
     reviewType: get(searchParams, "reviewType") as ReviewType | undefined,
     verifiedAthleteOnly: get(searchParams, "verifiedAthleteOnly") === "1",
@@ -63,6 +66,22 @@ export default async function SearchPage({ searchParams }: PageProps) {
 
       <div className="grid gap-6 md:grid-cols-[260px_1fr]">
         <aside className="space-y-4">
+          {/* Mobile: collapse the whole filter rail behind a summary so the
+              results list is visible immediately on small screens. */}
+          <details className="card p-4 md:hidden" open={false}>
+            <summary className="cursor-pointer text-sm font-semibold text-slate-800">
+              Filters
+              {(filters.sport || filters.division || filters.state || filters.conference || filters.minRating) && (
+                <span className="ml-2 rounded-full bg-brand-50 px-2 py-0.5 text-[10px] font-medium text-brand-700">
+                  active
+                </span>
+              )}
+            </summary>
+            <p className="mt-2 text-xs text-slate-500">
+              Tap a filter card below to narrow results.
+            </p>
+          </details>
+
           <FilterCard title="Type">
             <div className="flex flex-wrap gap-2">
               {KINDS.map((k) => (
@@ -102,6 +121,10 @@ export default async function SearchPage({ searchParams }: PageProps) {
                 </FilterPill>
               ))}
             </div>
+          </FilterCard>
+
+          <FilterCard title="Location & conference">
+            <LocationFilters />
           </FilterCard>
 
           <FilterCard title="Min rating">

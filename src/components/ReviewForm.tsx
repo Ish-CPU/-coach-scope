@@ -39,6 +39,7 @@ export function ReviewForm({ initial, options, allowed }: Props) {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [ratings, setRatings] = useState<Record<string, number>>({});
+  const [isAnonymous, setIsAnonymous] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -72,6 +73,7 @@ export function ReviewForm({ initial, options, allowed }: Props) {
         universityId: reviewType === "UNIVERSITY" ? universityId : undefined,
         dormId: reviewType === "DORM" ? dormId : undefined,
         ratings,
+        isAnonymous,
       }),
     });
     setSubmitting(false);
@@ -207,9 +209,27 @@ export function ReviewForm({ initial, options, allowed }: Props) {
           placeholder="What was your experience? Be specific and fair."
         />
         <div className="mt-1 text-xs text-slate-500">
-          You'll appear publicly under an anonymous handle (e.g. “Anonymous Verified Athlete”).
-          Your identity stays private but is tracked internally to prevent abuse.
+          {isAnonymous
+            ? "You'll appear publicly under an anonymous handle (e.g. “Anonymous Verified Athlete”). Your identity stays private but is tracked internally to prevent abuse."
+            : "You'll appear publicly under your account display name. You can change this back to anonymous below."}
         </div>
+      </div>
+
+      <div>
+        <label className="flex items-start gap-2 text-sm text-slate-700">
+          <input
+            type="checkbox"
+            checked={isAnonymous}
+            onChange={(e) => setIsAnonymous(e.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+          />
+          <span>
+            <span className="font-medium">Post anonymously</span>
+            <span className="block text-xs text-slate-500">
+              Default. Uncheck to publish under your account display name.
+            </span>
+          </span>
+        </label>
       </div>
 
       {error && <div className="rounded-lg bg-red-50 p-2 text-sm text-red-700">{error}</div>}

@@ -16,6 +16,7 @@ const coachOrProgramRatings = z.object({
   trustworthiness: score,
   teamCulture: score,
   nilOpportunity: score,
+  playingTimeTransparency: score,
   foodRating: score,
   facilityRating: score,
   overallRating: score,
@@ -55,6 +56,7 @@ export const RATING_LABELS: Record<string, string> = {
   trustworthiness: "Trustworthiness",
   teamCulture: "Team Culture",
   nilOpportunity: "NIL Opportunity",
+  playingTimeTransparency: "Playing Time Transparency",
   foodRating: "Food Rating",
   facilityRating: "Facility Rating",
   overallRating: "Overall",
@@ -72,6 +74,8 @@ export const RATING_LABELS: Record<string, string> = {
 
 // Hover-help / sublabel content for the new athlete categories.
 export const RATING_DESCRIPTIONS: Record<string, string> = {
+  playingTimeTransparency:
+    "How clearly the coach/program communicates roles, depth chart movement, opportunities, and playing time expectations.",
   foodRating:
     "Quality of athlete meals, training table, meal-plan support, nutrition support, and overall food access for athletes.",
   facilityRating:
@@ -88,6 +92,9 @@ export const reviewSubmissionSchema = z
     universityId: z.string().cuid().optional(),
     dormId: z.string().cuid().optional(),
     ratings: z.record(z.string(), z.number().min(1).max(5)),
+    // Per-review anonymity opt-in. Defaults to true so the safer choice
+    // wins if the client omits the field.
+    isAnonymous: z.boolean().optional().default(true),
   })
   .superRefine((data, ctx) => {
     switch (data.reviewType) {

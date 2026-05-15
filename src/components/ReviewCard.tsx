@@ -17,11 +17,28 @@ export interface ReviewCardData {
   overall: number;
   helpfulCount: number;
   createdAt: string | Date;
+  /** Author opted to keep their identity hidden on this review. */
+  isAnonymous: boolean;
   author: {
     id: string;
+    /** Display name from the user's account. May be null if never set. */
+    name?: string | null;
     role: UserRole;
     verificationStatus: VerificationStatus;
   };
+}
+
+/**
+ * Decide what to render in the byline. We prefer the author's account name
+ * when they explicitly opted out of anonymity, but fall back to the
+ * role-based anonymous label if no name is set so we never render a blank.
+ */
+function bylineFor(review: ReviewCardData): string {
+  if (review.isAnonymous) return anonymousDisplayName(review.author.role);
+  if (review.author.name && review.author.name.trim().length > 0) {
+    return review.author.name;
+  }
+  return anonymousDisplayName(review.author.role);
 }
 
 export function ReviewCard({ review, canInteract }: { review: ReviewCardData; canInteract: boolean }) {
@@ -43,7 +60,7 @@ export function ReviewCard({ review, canInteract }: { review: ReviewCardData; ca
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2 text-sm text-slate-700">
-            <span className="font-medium">{anonymousDisplayName(review.author.role)}</span>
+            <span className="font-medium">{bylineFor(review)}</span>
             <Badge role={review.author.role} compact />
             <span className="text-slate-400">·</span>
             <span className="text-slate-500">{new Date(review.createdAt).toLocaleDateString()}</span>

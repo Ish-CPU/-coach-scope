@@ -18,6 +18,13 @@
     "requests:export": "tsx scripts/export-program-requests.ts",
     "seed:football-major": "tsx scripts/seed-major-football-programs.ts",
     "seed:womens-basketball-major": "tsx scripts/seed-major-womens-basketball-programs.ts",
+    "seed:womens-soccer-major": "tsx scripts/seed-major-womens-soccer-programs.ts",
+    "seed:softball-major": "tsx scripts/seed-major-softball-programs.ts",
+    "seed:mens-soccer-expanded": "tsx scripts/seed-expanded-mens-soccer.ts",
+    "seed:baseball-expanded": "tsx scripts/seed-expanded-baseball.ts",
+    "cleanup:invalid-programs": "tsx scripts/remove-invalid-programs.ts",
+    "seed:gliac-programs": "tsx scripts/seed-gliac-programs.ts",
+    "seed:conference": "tsx scripts/seed-conference.ts",
     "stripe:listen": "stripe listen --forward-to localhost:3000/api/stripe/webhook",
     "coaches:missing": "tsx scripts/export-missing-coaches-by-sport.ts"
   },
