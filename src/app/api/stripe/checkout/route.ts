@@ -8,10 +8,14 @@ import { appUrl, requireEnv } from "@/lib/env";
 import { BillingInterval, UserRole } from "@prisma/client";
 
 // Roles a user can pick at checkout — admin/viewer not selectable here.
+// VERIFIED_RECRUIT lives here too: recruits buy the same monthly/yearly plan
+// and later upgrade to VERIFIED_ATHLETE through the verification flow on the
+// same account. No separate Stripe price.
 const SelectableRole = z.enum([
   UserRole.VERIFIED_ATHLETE,
   UserRole.VERIFIED_STUDENT,
   UserRole.VERIFIED_PARENT,
+  UserRole.VERIFIED_RECRUIT,
 ]);
 
 const schema = z.object({

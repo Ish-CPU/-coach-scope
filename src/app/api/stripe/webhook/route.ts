@@ -7,10 +7,16 @@ import { SubscriptionStatus, UserRole, VerificationStatus } from "@prisma/client
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+// Roles the webhook is willing to flip a fresh VIEWER into based on
+// `selectedRole` metadata from checkout. Mirrors `SelectableRole` in
+// /api/stripe/checkout. Recruits live here so a high-school user can pay
+// and be seated as VERIFIED_RECRUIT immediately; they later upgrade to
+// VERIFIED_ATHLETE on the same account via the verification flow.
 const SELECTABLE_ROLES = new Set<UserRole>([
   UserRole.VERIFIED_ATHLETE,
   UserRole.VERIFIED_STUDENT,
   UserRole.VERIFIED_PARENT,
+  UserRole.VERIFIED_RECRUIT,
 ]);
 
 function mapStripeStatus(s: Stripe.Subscription.Status): SubscriptionStatus {

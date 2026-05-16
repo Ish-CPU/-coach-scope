@@ -140,7 +140,7 @@ NEXT_PUBLIC_APP_URL="http://localhost:3000"
 2. Developers → API keys — copy the **Secret key** (`sk_test_…`) and **Publishable key** (`pk_test_…`).
 3. Product catalog → Add product → name “Verified Member”. Add **two recurring prices**:
    - Monthly: **$5.99 / month**
-   - Yearly: **$55 / year** (saves ~23% vs paying monthly)
+   - Yearly: **$55.99 / year** (saves ~22% vs paying monthly)
 4. Copy each price ID (`price_…`).
 5. (Optional) under **Settings → Payment methods**, enable Apple Pay and Google Pay; you'll need to add and verify your domain there too. Card payments work without any extra setup.
 
