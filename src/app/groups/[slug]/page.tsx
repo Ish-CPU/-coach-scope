@@ -182,7 +182,10 @@ export default async function GroupPage({
               universityId: group.universityId,
               id: { not: group.id },
             },
-            orderBy: [{ memberCount: "desc" }, { createdAt: "desc" }],
+            // Alphabetical so the sidebar's "Related at this university"
+            // is scannable — matches the /groups landing sort default.
+            // Stable secondary key on `id` to keep ordering deterministic.
+            orderBy: [{ name: "asc" }, { id: "asc" }],
             take: 6,
             select: {
               id: true,

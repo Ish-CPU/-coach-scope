@@ -180,7 +180,8 @@
       "Bash(python3 -c \"import sys,json;d=json.load\\(sys.stdin\\)['groups'];print\\(f'count={len\\(d\\)}'\\); [print\\(f'  {g[\\\\\"name\\\\\"]} \\({g[\\\\\"groupType\\\\\"]}\\)'\\) for g in d[:5]]\")",
       "Bash(grep -rln \"69\\\\.99\\\\|69 99\\\\|\\\\$69\" src/ scripts/ prisma/)",
       "Bash(grep -rn \"69\\\\.99\\\\|69 99\\\\|\\\\\\\\\\\\$69\\\\|7188\\\\|71\\\\.88\" src/ scripts/ prisma/ README.md PRODUCTION.md SETUP.md SECURITY.md .env.example)",
-      "Bash(grep -rn \"69\\\\.99\\\\|69 99\\\\|\\\\\\\\\\\\$69\" src/ scripts/ prisma/ README.md PRODUCTION.md SETUP.md SECURITY.md .env.example)"
+      "Bash(grep -rn \"69\\\\.99\\\\|69 99\\\\|\\\\\\\\\\\\$69\" src/ scripts/ prisma/ README.md PRODUCTION.md SETUP.md SECURITY.md .env.example)",
+      "Bash(grep -rn '\"\\\\$55\"\\\\|\\\\$55 /\\\\|\\\\$55/year\\\\|\\\\$55 annually\\\\|\\\\$55$\\\\| 55 /' src/ scripts/ README.md PRODUCTION.md SETUP.md .env.example)"
     ]
   }
 }

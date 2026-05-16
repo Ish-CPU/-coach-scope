@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import { GroupType } from "@prisma/client";
 
 /**
@@ -102,6 +103,43 @@ export const GROUP_SECTION_COPY: Record<
   STUDENT_GROUP: { title: "Student Groups", sub: "" },
   PARENT_GROUP: { title: "Parent Groups", sub: "" },
 };
+
+/**
+ * Group-list sort modes.
+ *   "alpha"    — default. Alphabetical by name (A → Z). Includes a stable
+ *                secondary `id asc` so pagination order doesn't shuffle when
+ *                two groups share a name (e.g. "Football" at two schools).
+ *   "trending" — popularity-first (memberCount → postCount → newest).
+ *                Only used when the user explicitly opts in via `?sort=trending`.
+ *
+ * `parseGroupSort` is tolerant: anything that isn't "trending" resolves to
+ * "alpha", so a typo'd or stale URL still serves the safe default instead
+ * of breaking pagination order between requests.
+ */
+export type GroupSort = "alpha" | "trending";
+
+export function parseGroupSort(raw: string | null | undefined): GroupSort {
+  return raw === "trending" ? "trending" : "alpha";
+}
+
+/**
+ * Canonical orderBy clause for every group-list query. Returning an array
+ * of single-key objects keeps the secondary keys explicit and lets Prisma
+ * combine them into one stable ORDER BY at the SQL layer.
+ */
+export function groupListOrderBy(
+  sort: GroupSort
+): Prisma.GroupOrderByWithRelationInput[] {
+  if (sort === "trending") {
+    return [
+      { memberCount: "desc" },
+      { postCount: "desc" },
+      { createdAt: "desc" },
+      { id: "asc" },
+    ];
+  }
+  return [{ name: "asc" }, { id: "asc" }];
+}
 
 export type PostSort = "top" | "new" | "comments" | "controversial" | "hot";
 export const POST_SORTS: { value: PostSort; label: string }[] = [

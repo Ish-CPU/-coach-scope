@@ -7,7 +7,7 @@ import {
   groupTypeForRole,
   whyCannotParticipate,
 } from "@/lib/permissions";
-import { slugify } from "@/lib/groups";
+import { groupListOrderBy, parseGroupSort, slugify } from "@/lib/groups";
 import { isAllowedSport, SPORTS } from "@/lib/sports";
 import { rateLimit } from "@/lib/rate-limit";
 import { safe } from "@/lib/safe-query";
@@ -47,6 +47,10 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const groupType = url.searchParams.get("type") as GroupType | null;
   const q = url.searchParams.get("q")?.trim();
+  // Default = alphabetical (A → Z). Popular-first ordering is opt-in via
+  // ?sort=trending; everything else (no param, typo, "asc", etc.) resolves
+  // to alpha so the browse UX stays scannable and pagination is stable.
+  const sort = parseGroupSort(url.searchParams.get("sort"));
 
   // Search spans name + description + the linked university's name +
   // sport. Hits the public landing page typeahead so users can find
@@ -71,7 +75,7 @@ export async function GET(req: Request) {
           ...(groupType ? { groupType } : {}),
           ...(search ?? {}),
         },
-        orderBy: [{ memberCount: "desc" }, { postCount: "desc" }, { createdAt: "desc" }],
+        orderBy: groupListOrderBy(sort),
         take: 60,
         include: {
           university: { select: { id: true, name: true } },

@@ -7,6 +7,9 @@ import {
   GROUP_SECTION_ORDER,
   GROUP_TYPE_LABELS,
   LEGACY_AUDIENCE_TYPES,
+  groupListOrderBy,
+  parseGroupSort,
+  type GroupSort,
 } from "@/lib/groups";
 import { GroupType, GroupVisibility } from "@prisma/client";
 
@@ -76,6 +79,11 @@ export default async function GroupsPage({ searchParams }: PageProps) {
   const userId = session?.user?.id ?? null;
   const showAll = !activeType && !myOnly;
 
+  // Sort order. Default = alpha (A → Z). Trending is opt-in via ?sort=trending
+  // so the browse experience is scannable and pagination is stable across
+  // pages by default. See src/lib/groups.ts:groupListOrderBy.
+  const sort = parseGroupSort(getQueryParam(searchParams, "sort"));
+
   // Base text-search filter shared by every per-section query.
   const searchClause = q
     ? {
@@ -116,13 +124,13 @@ export default async function GroupsPage({ searchParams }: PageProps) {
     if (showAll) {
       return {
         type,
-        groups: await loadSection(type, searchClause, PREVIEW_LIMIT, 0),
+        groups: await loadSection(type, searchClause, PREVIEW_LIMIT, 0, sort),
       };
     }
     if (activeType === type) {
       return {
         type,
-        groups: await loadSection(type, searchClause, PAGE_SIZE, skip),
+        groups: await loadSection(type, searchClause, PAGE_SIZE, skip, sort),
       };
     }
     return { type, groups: [] as Awaited<ReturnType<typeof loadSection>> };
@@ -163,7 +171,8 @@ export default async function GroupsPage({ searchParams }: PageProps) {
 
   // My Groups — joined or created. We never apply the search filter
   // here; "my groups" should show your full list regardless of search.
-  // Paginated when ?my=1 is the active view.
+  // Paginated when ?my=1 is the active view. Honors ?sort= like everything
+  // else; default A → Z so a user with many groups can find one by name.
   const myGroups = userId
     ? await safe(
         () =>
@@ -174,7 +183,7 @@ export default async function GroupsPage({ searchParams }: PageProps) {
                 { createdById: userId },
               ],
             },
-            orderBy: [{ updatedAt: "desc" }],
+            orderBy: groupListOrderBy(sort),
             take: myOnly ? PAGE_SIZE : PREVIEW_LIMIT,
             skip: myOnly ? skip : 0,
             include: groupCardInclude,
@@ -225,7 +234,7 @@ export default async function GroupsPage({ searchParams }: PageProps) {
               groupType: { in: LEGACY_AUDIENCE_TYPES },
               ...searchClause,
             },
-            orderBy: [{ memberCount: "desc" }, { createdAt: "desc" }],
+            orderBy: groupListOrderBy(sort),
             take: PREVIEW_LIMIT,
             include: groupCardInclude,
           }),
@@ -242,6 +251,22 @@ export default async function GroupsPage({ searchParams }: PageProps) {
     if (opts.type) sp.set("type", opts.type);
     if (opts.my) sp.set("my", "1");
     if (q) sp.set("q", q);
+    // Preserve the user's chosen sort across filter pill clicks. Omit when
+    // alpha — that's the default and the cleaner URL.
+    if (sort === "trending") sp.set("sort", sort);
+    const qs = sp.toString();
+    return qs ? `/groups?${qs}` : "/groups";
+  }
+
+  // URL that flips the sort mode while keeping every other filter intact.
+  function sortHref(target: GroupSort) {
+    const sp = new URLSearchParams();
+    if (activeType) sp.set("type", activeType);
+    if (myOnly) sp.set("my", "1");
+    if (q) sp.set("q", q);
+    if (target === "trending") sp.set("sort", target);
+    // Note: `page` deliberately dropped — order changes invalidate the
+    // current page index.
     const qs = sp.toString();
     return qs ? `/groups?${qs}` : "/groups";
   }
@@ -263,6 +288,8 @@ export default async function GroupsPage({ searchParams }: PageProps) {
     if (activeType) sp.set("type", activeType);
     if (myOnly) sp.set("my", "1");
     if (q) sp.set("q", q);
+    // Sort sticks across pagination so order doesn't shuffle mid-browse.
+    if (sort === "trending") sp.set("sort", sort);
     if (target > 1) sp.set("page", String(target));
     const qs = sp.toString();
     return qs ? `/groups?${qs}` : "/groups";
@@ -325,13 +352,46 @@ export default async function GroupsPage({ searchParams }: PageProps) {
           className="input flex-1 min-w-[280px]"
           aria-label="Search groups"
         />
-        {/* Preserve the active filter when the user re-submits search. */}
+        {/* Preserve the active filter + sort when the user re-submits search. */}
         {activeType && <input type="hidden" name="type" value={activeType} />}
         {myOnly && <input type="hidden" name="my" value="1" />}
+        {sort === "trending" && (
+          <input type="hidden" name="sort" value="trending" />
+        )}
         <button type="submit" className="btn-secondary">
           Search
         </button>
       </form>
+
+      {/* Sort toggle. Alpha (A → Z) is the default + the highlighted option;
+          trending is opt-in. Lives next to the filter pills so the relationship
+          between "what's shown" (pills) and "in what order" (sort) is visible
+          in one row. */}
+      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+        <span className="text-slate-500">Sort:</span>
+        <Link
+          href={sortHref("alpha")}
+          aria-current={sort === "alpha" ? "page" : undefined}
+          className={`rounded-full px-3 py-1 transition ${
+            sort === "alpha"
+              ? "bg-brand-600 text-white"
+              : "border border-slate-200 bg-white text-slate-700 hover:border-brand-300"
+          }`}
+        >
+          A → Z
+        </Link>
+        <Link
+          href={sortHref("trending")}
+          aria-current={sort === "trending" ? "page" : undefined}
+          className={`rounded-full px-3 py-1 transition ${
+            sort === "trending"
+              ? "bg-brand-600 text-white"
+              : "border border-slate-200 bg-white text-slate-700 hover:border-brand-300"
+          }`}
+        >
+          Trending
+        </Link>
+      </div>
 
       <div className="mt-3 flex flex-wrap gap-2 text-xs">
         <FilterPill
@@ -513,13 +573,16 @@ async function loadSection(
   type: GroupType,
   searchClause: Record<string, unknown>,
   take: number,
-  skip: number
+  skip: number,
+  sort: GroupSort
 ) {
   return safe(
     () =>
       prisma.group.findMany({
         where: { groupType: type, ...searchClause },
-        orderBy: [{ memberCount: "desc" }, { postCount: "desc" }, { createdAt: "desc" }],
+        // Default A → Z; trending only when the user explicitly picked it.
+        // Secondary `id asc` tiebreaker keeps pagination order stable.
+        orderBy: groupListOrderBy(sort),
         take,
         skip,
         include: groupCardInclude,
