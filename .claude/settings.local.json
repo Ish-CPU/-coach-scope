@@ -177,7 +177,10 @@
       "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\)['coaches']; print\\(f'count={len\\(d\\)}'\\); [print\\(f'  {c[\\\\\"name\\\\\"]}'\\) for c in d[:5]]\")",
       "Bash(rm -f /tmp/cs-test.cookies)",
       "Bash(curl -s -c /tmp/cs-test.cookies -b /tmp/cs-test.cookies http://localhost:3001/api/auth/csrf)",
-      "Bash(python3 -c \"import sys,json;d=json.load\\(sys.stdin\\)['groups'];print\\(f'count={len\\(d\\)}'\\); [print\\(f'  {g[\\\\\"name\\\\\"]} \\({g[\\\\\"groupType\\\\\"]}\\)'\\) for g in d[:5]]\")"
+      "Bash(python3 -c \"import sys,json;d=json.load\\(sys.stdin\\)['groups'];print\\(f'count={len\\(d\\)}'\\); [print\\(f'  {g[\\\\\"name\\\\\"]} \\({g[\\\\\"groupType\\\\\"]}\\)'\\) for g in d[:5]]\")",
+      "Bash(grep -rln \"69\\\\.99\\\\|69 99\\\\|\\\\$69\" src/ scripts/ prisma/)",
+      "Bash(grep -rn \"69\\\\.99\\\\|69 99\\\\|\\\\\\\\\\\\$69\\\\|7188\\\\|71\\\\.88\" src/ scripts/ prisma/ README.md PRODUCTION.md SETUP.md SECURITY.md .env.example)",
+      "Bash(grep -rn \"69\\\\.99\\\\|69 99\\\\|\\\\\\\\\\\\$69\" src/ scripts/ prisma/ README.md PRODUCTION.md SETUP.md SECURITY.md .env.example)"
     ]
   }
 }

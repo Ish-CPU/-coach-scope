@@ -2,8 +2,33 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { GroupType } from "@prisma/client";
+import { GroupType, LifecycleAudience } from "@prisma/client";
 import { GROUP_TYPE_LABELS } from "@/lib/groups";
+
+const LIFECYCLE_OPTIONS: {
+  value: LifecycleAudience;
+  label: string;
+  hint: string;
+}[] = [
+  {
+    value: LifecycleAudience.CURRENT_AND_ALUMNI,
+    label: "Current + alumni",
+    hint:
+      "Default. Both current members and alumni in the relevant role bucket can view and post.",
+  },
+  {
+    value: LifecycleAudience.CURRENT_ONLY,
+    label: "Current only",
+    hint:
+      "Active-roster room. Alumni cannot view or post. Good for live team chat.",
+  },
+  {
+    value: LifecycleAudience.ALUMNI_ONLY,
+    label: "Alumni only",
+    hint:
+      "Alumni mentorship / transfer portal rooms. Current members cannot view or post.",
+  },
+];
 
 export function CreateGroupForm({ fixedType }: { fixedType?: GroupType }) {
   const router = useRouter();
@@ -11,6 +36,11 @@ export function CreateGroupForm({ fixedType }: { fixedType?: GroupType }) {
   const [description, setDescription] = useState("");
   const [groupType, setGroupType] = useState<GroupType>(
     fixedType ?? GroupType.ATHLETE_GROUP
+  );
+  // Default mirrors the schema default so submitting without changing the
+  // selector matches the legacy behavior (no lifecycle gate).
+  const [lifecycleAudience, setLifecycleAudience] = useState<LifecycleAudience>(
+    LifecycleAudience.CURRENT_AND_ALUMNI
   );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +52,12 @@ export function CreateGroupForm({ fixedType }: { fixedType?: GroupType }) {
     const res = await fetch("/api/groups", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, description, groupType }),
+      body: JSON.stringify({
+        name,
+        description,
+        groupType,
+        lifecycleAudience,
+      }),
     });
     setSubmitting(false);
     const j = await res.json();
@@ -65,6 +100,25 @@ export function CreateGroupForm({ fixedType }: { fixedType?: GroupType }) {
             ))}
           </select>
         )}
+      </div>
+      <div>
+        <label className="label">Lifecycle audience</label>
+        <select
+          className="input"
+          value={lifecycleAudience}
+          onChange={(e) =>
+            setLifecycleAudience(e.target.value as LifecycleAudience)
+          }
+        >
+          {LIFECYCLE_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+        <p className="mt-1 text-xs text-slate-500">
+          {LIFECYCLE_OPTIONS.find((o) => o.value === lifecycleAudience)?.hint}
+        </p>
       </div>
       <div>
         <label className="label">Description (optional)</label>

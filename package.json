@@ -29,7 +29,8 @@
     "coaches:missing": "tsx scripts/export-missing-coaches-by-sport.ts",
     "admin:create-master": "tsx scripts/create-master-admin.ts",
     "seed:test-users": "tsx scripts/seed-test-users.ts",
-    "seed:groups": "tsx scripts/seed-groups.ts"
+    "seed:groups": "tsx scripts/seed-groups.ts",
+    "backfill:alumni": "tsx scripts/backfill-alumni-flags.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.7.4",

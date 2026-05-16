@@ -8,6 +8,11 @@ import {
   UserRole,
   VerificationStatus,
 } from "@prisma/client";
+import {
+  isUserAlumni,
+  isUserCurrent,
+  lifecycleAudienceAllows,
+} from "@/lib/lifecycle";
 
 // ---------------------------------------------------------------------------
 // Session helpers
@@ -97,6 +102,20 @@ export function isVerifiedAthleteOrAlumni(session: Session | null): boolean {
 /** Session-level wrapper for student equivalence. */
 export function isVerifiedStudentOrAlumni(session: Session | null): boolean {
   return isStudentTrustedRole(session?.user?.role);
+}
+
+/**
+ * Lifecycle helpers — re-exported so callers don't have to import from two
+ * places. `isAlumniSession` reads the canonical `isAlumni` boolean (with a
+ * fallback to the legacy *_ALUMNI roles for sessions issued before the
+ * flag landed). `isCurrentSession` is its inverse.
+ */
+export function isAlumniSession(session: Session | null): boolean {
+  return isUserAlumni(session?.user);
+}
+
+export function isCurrentSession(session: Session | null): boolean {
+  return isUserCurrent(session?.user);
 }
 
 export function isRoleVerified(session: Session | null): boolean {
@@ -305,6 +324,13 @@ export interface GroupAccessShape {
     | null;
   /** Pass `true` when the user has a GroupMembership row for this group. */
   isMember?: boolean;
+  /**
+   * Lifecycle audience gate, applied AFTER the accessMode check. When
+   * omitted (or "CURRENT_AND_ALUMNI") this is a no-op. CURRENT_ONLY blocks
+   * users with isAlumni=true; ALUMNI_ONLY blocks users without it. Admins
+   * always bypass. Default exists on every new Group row.
+   */
+  lifecycleAudience?: "CURRENT_ONLY" | "ALUMNI_ONLY" | "CURRENT_AND_ALUMNI" | null;
 }
 
 /**
@@ -319,6 +345,17 @@ export function canViewGroup(
 ): boolean {
   if (isAdmin(session)) return true;
   const mode = group.accessMode ?? legacyVisibilityToMode(group.visibility);
+  // Lifecycle gate runs BEFORE the access mode for non-public groups so
+  // we don't briefly leak a "you're verified but wrong lifecycle" hint.
+  // Public-read modes still honor the gate so an alumni-only forum stays
+  // hidden from a current user even when the access mode is public.
+  if (
+    group.lifecycleAudience &&
+    group.lifecycleAudience !== "CURRENT_AND_ALUMNI" &&
+    !lifecycleAudienceAllows(session?.user, group.lifecycleAudience)
+  ) {
+    return false;
+  }
   if (mode === "PUBLIC_VIEW_PUBLIC_POST" || mode === "PUBLIC_VIEW_VERIFIED_POST")
     return true;
   if (mode === "PRIVATE") return !!group.isMember;
@@ -345,6 +382,16 @@ export function canPostInGroup(
   // identity to attach to the post.
   if (!session?.user) return false;
   const mode = group.accessMode ?? legacyVisibilityToMode(group.visibility);
+  // Lifecycle audience gate. Admin bypass above covers staff; here we
+  // refuse posts from users in the wrong lifecycle bucket so an alumnus
+  // can't post in a current-only roster room and vice versa.
+  if (
+    group.lifecycleAudience &&
+    group.lifecycleAudience !== "CURRENT_AND_ALUMNI" &&
+    !lifecycleAudienceAllows(session.user, group.lifecycleAudience)
+  ) {
+    return false;
+  }
   if (mode === "PRIVATE" && !group.isMember) return false;
   // Verification floor depends on mode:
   //   PUBLIC_VIEW_PUBLIC_POST  — signed-in is enough

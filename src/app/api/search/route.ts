@@ -29,6 +29,12 @@ export async function GET(req: Request) {
     verifiedAthleteOnly: sp.get("verifiedAthleteOnly") === "1",
     parentReviewsOnly: sp.get("parentReviewsOnly") === "1",
     verifiedStudentOnly: sp.get("verifiedStudentOnly") === "1",
+    // Lifecycle filters. `currentOnly` and `alumniOnly` are mutually
+    // exclusive — combining both returns the empty intersection.
+    currentOnly: sp.get("currentOnly") === "1",
+    alumniOnly: sp.get("alumniOnly") === "1",
+    formerUniversityId: sp.get("formerUniversityId") ?? undefined,
+    formerProgramId: sp.get("formerProgramId") ?? undefined,
     limit: sp.get("limit") ? Number(sp.get("limit")) : undefined,
   });
 

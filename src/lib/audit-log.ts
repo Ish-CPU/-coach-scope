@@ -29,6 +29,14 @@ export const AUDIT_ACTIONS = {
   REVIEW_APPROVED: "review.approved",
   REVIEW_NEEDS_MORE_INFO: "review.needs_more_info",
   USER_REVIEW_BANNED: "user.review_banned",
+  // Lifecycle transitions — flipped by an admin from the team / user page.
+  // Captured separately from role changes because the user's role often
+  // stays put (e.g. VERIFIED_ATHLETE stays the same while isAlumni flips
+  // true). Without this distinction the audit log would conflate "promoted
+  // to athlete" with "graduated to alumni".
+  USER_MARKED_ALUMNI: "user.marked_alumni",
+  USER_RESTORED_CURRENT: "user.restored_current",
+  USER_LIFECYCLE_EDITED: "user.lifecycle_edited",
   IMPORT_RUN: "import.run",
   // Email pipeline — every send writes one of these so we can audit
   // notification volume and chase silent failures.

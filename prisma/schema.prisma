@@ -283,6 +283,23 @@ enum GroupVisibility {
   PRIVATE
 }
 
+// Lifecycle-audience gate, orthogonal to GroupAccessMode.
+//   CURRENT_ONLY        — only users whose lifecycle is "current" (not isAlumni)
+//                         can view + post. Use for active-roster team rooms.
+//   ALUMNI_ONLY         — only users with isAlumni=true can view + post.
+//                         Use for alumni mentorship + transfer-portal alumni rooms.
+//   CURRENT_AND_ALUMNI  — default. Both current and alumni in the relevant
+//                         role bucket can view + post. The historical default
+//                         so legacy groups keep working unchanged.
+//
+// Permission gate is enforced in src/lib/permissions.ts (canViewGroup /
+// canPostInGroup). Admin / master admin bypass this gate.
+enum LifecycleAudience {
+  CURRENT_ONLY
+  ALUMNI_ONLY
+  CURRENT_AND_ALUMNI
+}
+
 // Group access + posting mode — supersedes `Group.visibility` for new
 // rows. Splits "who can view" from "who can post" so a public-readable
 // recruiting group can still gate posts to verified accounts. The legacy
@@ -366,6 +383,32 @@ model User {
   bio                  String?
   schoolId             String?
   sport                String?
+
+  // --- Lifecycle (alumni-aware) ---------------------------------------------
+  // Alumni status is orthogonal to `role`. A VERIFIED_ATHLETE with
+  // isAlumni=true is a former athlete who keeps their athlete-grade review
+  // weight and group access; we just render the badge differently and gate
+  // CURRENT_ONLY groups against them. The legacy *_ALUMNI roles still exist
+  // for back-compat (and for rows promoted before this flag landed) — the
+  // backfill script syncs them to isAlumni=true.
+  //
+  // formerUniversityId / formerProgramId hold the school/program a user
+  // transferred OUT of (or graduated from). They do not replace the existing
+  // AthleteProgramConnection / StudentUniversityConnection rows; those remain
+  // the source of truth for "every connection this user has ever had". These
+  // two fields are a cheap denormalized pointer for profile rendering +
+  // search filtering ("Former Players of Coach X") without joining through
+  // the connection tables on every read.
+  //
+  // graduationYear / lastRosterSeason carry the "when" — graduation year for
+  // students, last competitive season for athletes. Both nullable; UI shows
+  // whichever is set.
+  isAlumni             Boolean            @default(false)
+  alumniSince          DateTime?
+  formerUniversityId   String?
+  formerProgramId      String?
+  graduationYear       Int?
+  lastRosterSeason     Int?
 
   // --- Admin / master-admin fields (null for normal users) ---
   // Lifecycle state. Set when the user is promoted/created as an admin.
@@ -462,6 +505,13 @@ model User {
   @@index([verificationStatus])
   @@index([adminStatus])
   @@index([trustScore])
+  // Lifecycle filters: "current athletes only", "alumni only", "former
+  // players of coach X". Composite with role to keep the alumni-leaderboard
+  // and search-filter queries on the index.
+  @@index([isAlumni])
+  @@index([role, isAlumni])
+  @@index([formerUniversityId])
+  @@index([formerProgramId])
 }
 
 // ---------------------------------------------------------------------------
@@ -1158,6 +1208,11 @@ model Group {
   // New rows should set this; legacy rows fall back to a derived value
   // computed from `visibility` in src/lib/groups-permissions.ts.
   accessMode   GroupAccessMode @default(PUBLIC_VIEW_PUBLIC_POST)
+  // Lifecycle gate, orthogonal to accessMode. See LifecycleAudience enum.
+  // Default keeps every legacy group inclusive (current + alumni). Owners
+  // opt into CURRENT_ONLY (active-roster rooms) or ALUMNI_ONLY (mentorship,
+  // transfer portal alumni) via the create / edit UI.
+  lifecycleAudience LifecycleAudience @default(CURRENT_AND_ALUMNI)
   // Free-form group rules surfaced in the sidebar. Markdown-ish text;
   // we render it as plain text plus newlines for safety.
   rules        String?    @db.Text
@@ -1185,6 +1240,7 @@ model Group {
   @@index([coachId])
   @@index([sport])
   @@index([visibility])
+  @@index([lifecycleAudience])
 }
 
 model GroupMembership {

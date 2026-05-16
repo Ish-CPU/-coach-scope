@@ -12,7 +12,7 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "sk_test_place
   typescript: true,
 });
 
-// Two recurring prices: $5.99/mo and $69.99/yr
+// Two recurring prices: $5.99/mo and $55/yr
 // `STRIPE_PRICE_ID` is kept as a fallback for the monthly plan to remain
 // backward-compatible with older deployments.
 export const PRICE_MONTHLY =
@@ -38,8 +38,9 @@ export const PLAN_DISPLAY = {
   },
   YEARLY: {
     label: "Yearly",
-    price: "$69.99",
+    price: "$55",
     cadence: "/year",
-    note: "Save compared to monthly billing.",
+    // $5.99 × 12 = $71.88. $55 saves $16.88 (~23%) over paying monthly.
+    note: "Save ~23% vs paying monthly ($55/year, billed annually).",
   },
 } as const;

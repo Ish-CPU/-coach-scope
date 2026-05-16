@@ -16,6 +16,12 @@ declare module "next-auth" {
       // Admin lifecycle + per-action grant. `null` for non-admins.
       adminStatus: AdminStatus | null;
       adminPermissions: Record<string, boolean> | null;
+      // Lifecycle fields. `isAlumni` is the canonical signal; `alumniSince`
+      // is ISO-string (Dates don't round-trip cleanly through JWT). See
+      // src/lib/lifecycle.ts for the helpers that read these.
+      isAlumni: boolean;
+      alumniSince: string | null;
+      graduationYear: number | null;
     };
   }
 }
@@ -29,5 +35,8 @@ declare module "next-auth/jwt" {
     verificationStatus?: VerificationStatus;
     adminStatus?: AdminStatus | null;
     adminPermissions?: Record<string, boolean> | null;
+    isAlumni?: boolean;
+    alumniSince?: string | null;
+    graduationYear?: number | null;
   }
 }

@@ -11,7 +11,12 @@ import { slugify } from "@/lib/groups";
 import { isAllowedSport, SPORTS } from "@/lib/sports";
 import { rateLimit } from "@/lib/rate-limit";
 import { safe } from "@/lib/safe-query";
-import { GroupType, GroupVisibility, UserRole } from "@prisma/client";
+import {
+  GroupType,
+  GroupVisibility,
+  LifecycleAudience,
+  UserRole,
+} from "@prisma/client";
 
 const schema = z.object({
   name: z.string().min(3).max(80),
@@ -33,6 +38,9 @@ const schema = z.object({
   // `visibility` instead.
   isPrivate: z.boolean().optional().default(false),
   visibility: z.nativeEnum(GroupVisibility).optional(),
+  // Lifecycle audience gate. Optional — defaults to CURRENT_AND_ALUMNI
+  // at the DB level so legacy create calls keep working unchanged.
+  lifecycleAudience: z.nativeEnum(LifecycleAudience).optional(),
 });
 
 export async function GET(req: Request) {
@@ -196,6 +204,10 @@ export async function POST(req: Request) {
       sport: data.sport,
       isPrivate: data.isPrivate,
       visibility: defaultVisibility,
+      // Lifecycle audience — `undefined` here means Prisma uses the DB
+      // default (CURRENT_AND_ALUMNI), so legacy create calls don't have
+      // to know about the new field.
+      lifecycleAudience: data.lifecycleAudience,
       // Creator counts as a member, so seed memberCount at 1.
       memberCount: 1,
       createdById: session!.user.id,

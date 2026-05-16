@@ -176,6 +176,12 @@ export const authOptions: NextAuthOptions = {
             adminStatus: true,
             adminPermissions: true,
             sessionsRevokedAt: true,
+            // Lifecycle flags surfaced into the session so client-side
+            // gates (group lifecycle audience, profile badge, search
+            // filters) don't have to re-query Prisma per render.
+            isAlumni: true,
+            alumniSince: true,
+            graduationYear: true,
           },
         });
 
@@ -228,6 +234,11 @@ export const authOptions: NextAuthOptions = {
         token.subscriptionStatus = fresh.subscriptionStatus;
         token.adminStatus = fresh.adminStatus ?? null;
         token.adminPermissions = (fresh.adminPermissions as any) ?? null;
+        token.isAlumni = Boolean(fresh.isAlumni);
+        token.alumniSince = fresh.alumniSince
+          ? fresh.alumniSince.toISOString()
+          : null;
+        token.graduationYear = fresh.graduationYear ?? null;
       }
 
       return token;
@@ -241,6 +252,9 @@ export const authOptions: NextAuthOptions = {
         session.user.verificationStatus = token.verificationStatus as any;
         session.user.adminStatus = (token.adminStatus as any) ?? null;
         session.user.adminPermissions = (token.adminPermissions as any) ?? null;
+        session.user.isAlumni = Boolean(token.isAlumni);
+        session.user.alumniSince = (token.alumniSince as string | null) ?? null;
+        session.user.graduationYear = (token.graduationYear as number | null) ?? null;
       }
       return session;
     },

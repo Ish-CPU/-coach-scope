@@ -68,6 +68,8 @@ export default async function GroupPage({
   const accessShape = {
     groupType: group.groupType,
     visibility: group.visibility,
+    accessMode: group.accessMode,
+    lifecycleAudience: group.lifecycleAudience,
     isMember,
   };
 

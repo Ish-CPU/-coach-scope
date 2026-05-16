@@ -28,7 +28,7 @@ Both layers (payment + role verification) are required to participate.
 | Plan | Price |
 |---|---|
 | Monthly | **$5.99 / month** — billed every 30 days from your signup date |
-| Yearly | **$69.99 / year** — save compared to monthly billing |
+| Yearly | **$55 / year** — save ~23% vs paying monthly |
 
 Payment methods: card, Apple Pay, Google Pay (PayPal coming soon).
 

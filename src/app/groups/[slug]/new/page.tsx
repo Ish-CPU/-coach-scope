@@ -29,6 +29,8 @@ export default async function NewPostPage({ params }: { params: { slug: string }
   const accessShape = {
     groupType: group.groupType,
     visibility: group.visibility,
+    accessMode: group.accessMode,
+    lifecycleAudience: group.lifecycleAudience,
     isMember: !!membership,
   };
 

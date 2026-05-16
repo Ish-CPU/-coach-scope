@@ -12,6 +12,7 @@ import { UpgradePrompt } from "@/components/UpgradePrompt";
 import { ManageBillingButton } from "@/components/ManageBillingButton";
 import { GROUP_TYPE_LABELS } from "@/lib/groups";
 import { UserRole, VerificationStatus } from "@prisma/client";
+import { isUserAlumni, lifecycleLabel } from "@/lib/lifecycle";
 
 export const dynamic = "force-dynamic";
 
@@ -72,6 +73,23 @@ export default async function DashboardPage() {
   // role when the role isn't in the descriptions map (older roles, etc.).
   const roleLabel = ROLE_DESCRIPTIONS[user.role] ? user.role.replace(/_/g, " ") : null;
 
+  // Lifecycle label + alumni flag. Fed by the lifecycle library so we
+  // never have to branch on enum identity inline. The "former school"
+  // lookup is cheap because we already have the user row.
+  const alumni = isUserAlumni(user);
+  // Look up the former-school name only if we need to render it (alumni
+  // with a populated formerUniversityId). One extra round-trip on the
+  // alumni profile path; skipped otherwise.
+  const formerUniversity = alumni && user.formerUniversityId
+    ? await prisma.university.findUnique({
+        where: { id: user.formerUniversityId },
+        select: { name: true },
+      })
+    : null;
+  const profileLifecycleLabel = lifecycleLabel(user, {
+    formerSchoolName: formerUniversity?.name,
+  });
+
   return (
     <div className="container-page py-10">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -79,6 +97,14 @@ export default async function DashboardPage() {
           <h1 className="text-2xl font-bold">Welcome back, {user.name?.split(" ")[0] ?? "friend"}.</h1>
           <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-slate-600">
             <Badge role={user.role} />
+            {alumni && (
+              <span className="inline-flex items-center rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-800">
+                Alumni
+                {user.graduationYear ? ` · ${user.graduationYear}` : ""}
+              </span>
+            )}
+            <span className="text-slate-400">·</span>
+            <span>{profileLifecycleLabel}</span>
             <span className="text-slate-400">·</span>
             <span>payment {paid ? "verified" : "—"}</span>
             <span className="text-slate-400">·</span>

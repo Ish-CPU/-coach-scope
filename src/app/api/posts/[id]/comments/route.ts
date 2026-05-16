@@ -67,6 +67,8 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     !canPostInGroup(session, {
       groupType: post.group.groupType,
       visibility: post.group.visibility,
+      accessMode: post.group.accessMode,
+      lifecycleAudience: post.group.lifecycleAudience,
       isMember: !!membership,
     })
   ) {

@@ -24,6 +24,23 @@ export interface SearchFilters {
   verifiedAthleteOnly?: boolean;
   parentReviewsOnly?: boolean;
   verifiedStudentOnly?: boolean;
+  /**
+   * Lifecycle filters. Orthogonal to the role flags above — combine to get
+   * e.g. "verified athletes who are NOT alumni" by setting
+   * `verifiedAthleteOnly && currentOnly`. Reads `author.isAlumni` first and
+   * falls back to the legacy *_ALUMNI roles so older review rows still
+   * filter correctly.
+   */
+  currentOnly?: boolean;
+  alumniOnly?: boolean;
+  /**
+   * Narrow to reviews authored by users whose former-school (or former-
+   * program) matches. Cheap because we index `User.formerUniversityId`.
+   * Combines with `currentOnly`/`alumniOnly` for "Former players of Coach X
+   * who are now alumni".
+   */
+  formerUniversityId?: string;
+  formerProgramId?: string;
   limit?: number;
 }
 
@@ -183,7 +200,7 @@ async function searchCoaches(
         include: {
           school: { include: { university: true } },
           reviews: {
-            select: { overall: true, weight: true, reviewType: true, author: { select: { role: true } } },
+            select: { overall: true, weight: true, reviewType: true, author: { select: { role: true, isAlumni: true, formerUniversityId: true, formerProgramId: true } } },
           },
         },
       }),
@@ -271,7 +288,7 @@ async function searchUniversities(
         take: limit,
         include: {
           reviews: {
-            select: { overall: true, weight: true, reviewType: true, author: { select: { role: true } } },
+            select: { overall: true, weight: true, reviewType: true, author: { select: { role: true, isAlumni: true, formerUniversityId: true, formerProgramId: true } } },
           },
         },
       }),
@@ -356,7 +373,7 @@ async function searchDorms(
         include: {
           university: true,
           reviews: {
-            select: { overall: true, weight: true, reviewType: true, author: { select: { role: true } } },
+            select: { overall: true, weight: true, reviewType: true, author: { select: { role: true, isAlumni: true, formerUniversityId: true, formerProgramId: true } } },
           },
         },
       }),
@@ -425,7 +442,7 @@ async function searchSchools(
         include: {
           university: true,
           reviews: {
-            select: { overall: true, weight: true, reviewType: true, author: { select: { role: true } } },
+            select: { overall: true, weight: true, reviewType: true, author: { select: { role: true, isAlumni: true, formerUniversityId: true, formerProgramId: true } } },
           },
         },
       }),
@@ -459,9 +476,23 @@ function filterReviews<
     reviewType: ReviewType;
     weight: number;
     overall: number;
-    author?: { role: string } | null;
+    author?: {
+      role: string;
+      isAlumni?: boolean | null;
+      formerUniversityId?: string | null;
+      formerProgramId?: string | null;
+    } | null;
   }
 >(reviews: R[], f: SearchFilters): R[] {
+  // Pure helpers — inlined to avoid importing the lifecycle lib from this
+  // performance-sensitive path. The role check covers reviews authored
+  // before the `isAlumni` column existed.
+  const isAlumniRow = (a: NonNullable<R["author"]> | undefined): boolean => {
+    if (!a) return false;
+    if (a.isAlumni === true) return true;
+    return a.role === "VERIFIED_ATHLETE_ALUMNI" || a.role === "VERIFIED_STUDENT_ALUMNI";
+  };
+
   return reviews.filter((r) => {
     if (f.reviewType && r.reviewType !== f.reviewType) return false;
     if (
@@ -477,6 +508,21 @@ function filterReviews<
       r.author?.role !== "VERIFIED_STUDENT" &&
       // Student alumni are student-trusted per the verification spec.
       r.author?.role !== "VERIFIED_STUDENT_ALUMNI"
+    )
+      return false;
+    // Lifecycle filters. Mutually exclusive but both can be off, in which
+    // case the filter is a no-op.
+    if (f.currentOnly && isAlumniRow(r.author ?? undefined)) return false;
+    if (f.alumniOnly && !isAlumniRow(r.author ?? undefined)) return false;
+    // "Former players of X" — match the author's former-school pointer.
+    if (
+      f.formerUniversityId &&
+      r.author?.formerUniversityId !== f.formerUniversityId
+    )
+      return false;
+    if (
+      f.formerProgramId &&
+      r.author?.formerProgramId !== f.formerProgramId
     )
       return false;
     return true;

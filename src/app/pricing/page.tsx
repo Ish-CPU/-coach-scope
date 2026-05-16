@@ -20,9 +20,10 @@ const PLANS: Record<Interval, { label: string; price: string; cadence: string; n
   },
   YEARLY: {
     label: "Yearly",
-    price: "$69.99",
+    price: "$55",
     cadence: "/year",
-    note: "Save compared to monthly billing.",
+    // $5.99 × 12 = $71.88. $55 saves $16.88 (~23%) over paying monthly.
+    note: "Save ~23% vs paying monthly ($55 annually, billed once a year).",
   },
 };
 
@@ -63,6 +64,11 @@ const INCLUDES = [
   "Access Verified Groups (audience-segmented)",
   "Anonymous public posts, identity-protected by verification",
   "Save favorites and helpful votes",
+  // Lifecycle promise — your subscription follows you. We deliberately do
+  // NOT list "alumni" as a separate tier because alumni access is included
+  // automatically in the underlying role (see src/lib/lifecycle.ts).
+  "Your membership and profile evolve with your academic and athletic journey",
+  "Alumni access included — review former coaches, programs, and campus life",
 ];
 
 export default function PricingPage() {
@@ -114,6 +120,11 @@ export default function PricingPage() {
         </p>
         <p className="mt-2 text-sm text-slate-500">
           Participation requires a verified subscription to ensure real, accountable experiences.
+        </p>
+        <p className="mt-3 mx-auto max-w-xl text-sm text-slate-600">
+          One subscription covers every stage — recruit, current athlete or student,
+          and alumni. Your profile and group access update automatically as your
+          lifecycle changes; no new account required.
         </p>
       </div>
 
@@ -192,8 +203,11 @@ export default function PricingPage() {
               >
                 {PLANS[i].label}
                 {i === "YEARLY" && (
-                  <span className="ml-1 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800">
-                    save
+                  <span
+                    className="ml-1 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800"
+                    title="$5.99 × 12 = $71.88. $55/year saves $16.88."
+                  >
+                    save ~23%
                   </span>
                 )}
               </button>
