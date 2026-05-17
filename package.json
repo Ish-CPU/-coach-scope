@@ -27,6 +27,7 @@
     "seed:conference": "tsx scripts/seed-conference.ts",
     "stripe:listen": "stripe listen --forward-to localhost:3000/api/stripe/webhook",
     "coaches:missing": "tsx scripts/export-missing-coaches-by-sport.ts",
+    "dorms:missing": "tsx scripts/export-missing-dorms.ts",
     "admin:create-master": "tsx scripts/create-master-admin.ts",
     "seed:test-users": "tsx scripts/seed-test-users.ts",
     "seed:groups": "tsx scripts/seed-groups.ts",

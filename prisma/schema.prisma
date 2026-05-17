@@ -732,11 +732,17 @@ model University {
   // levels still live on School and override these for sport-specific UI.
   level            Division?
   conference       String?
-  // Two distinct URLs:
+  // Three distinct URLs (all optional, all official-source-only):
   //   websiteUrl       = main university homepage (.edu)
   //   athleticsWebsite = official athletics site (e.g. gostanford.com)
+  //   housingUrl       = official Housing / Residence Life landing page.
+  //                      Populated by the dorm-coverage workflow
+  //                      (scripts/export-missing-dorms.ts) so researchers
+  //                      have a known starting point per university.
+  //                      Per-dorm pages still live on Dorm.officialPageUrl.
   websiteUrl       String?
   athleticsWebsite String?
+  housingUrl       String?
 
   // Public-data source tracking
   sourceUrl      String?
