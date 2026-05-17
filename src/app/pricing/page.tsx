@@ -133,8 +133,8 @@ export default function PricingPage() {
           Read free. Participate verified.
         </h1>
         <p className="mt-2 text-lg text-slate-600">
-          Anyone can browse RateMyU. Posting reviews, voting, and joining Verified Groups
-          requires a verified subscription.
+          Anyone can browse University Verified. Posting reviews, voting, and
+          joining Verified Groups requires a verified subscription.
         </p>
         <p className="mt-2 text-sm text-slate-500">
           Participation requires a verified subscription to ensure real, accountable experiences.
@@ -543,7 +543,7 @@ export default function PricingPage() {
             id="membership-for-heading"
             className="text-lg font-semibold"
           >
-            Who is RateMyU membership for?
+            Who is University Verified membership for?
           </h2>
           <p className="mt-1 text-sm text-slate-600">
             One subscription, six audiences. Pick the role that matches your

@@ -24,11 +24,12 @@ export default async function HomePage() {
             Built for transparency
           </span>
           <h1 className="mt-4 text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
-            Honest reviews of college coaches, programs & dorms.
+            University Verified — honest reviews of universities, programs &amp; campus life.
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-slate-600">
-            Athletes, parents and students share what college decisions <em>actually</em> look like —
-            so the next family doesn't have to guess.
+            Students, athletes, alumni, and parents share what university
+            decisions <em>actually</em> look like — so the next person doesn't have
+            to guess.
           </p>
           <div className="mx-auto mt-8 max-w-2xl">
             <SearchBar size="lg" />
@@ -62,7 +63,7 @@ export default async function HomePage() {
 
       <section className="container-page py-8">
         <div className="mb-4 flex items-end justify-between">
-          <h2 className="text-xl font-bold text-slate-900">Trending on RateMyU</h2>
+          <h2 className="text-xl font-bold text-slate-900">Trending on University Verified</h2>
           <Link href="/search" className="text-sm text-brand-700 hover:underline">
             See all results →
           </Link>

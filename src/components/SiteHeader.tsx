@@ -12,11 +12,21 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-30 w-full border-b border-slate-200 bg-white/80 backdrop-blur">
       <div className="container-page flex h-14 items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 font-bold text-slate-900">
-          <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-brand-600 text-white text-sm">
-            RU
+        <Link
+          href="/"
+          className="flex items-center gap-2 font-bold text-slate-900"
+          aria-label="University Verified — home"
+        >
+          <span
+            className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-brand-600 text-white text-sm"
+            aria-hidden
+          >
+            UV
           </span>
-          <span className="text-lg">RateMyU</span>
+          {/* Full brand on tablet+, short form on the narrowest mobile chrome
+              so the header doesn't wrap. Update both together. */}
+          <span className="text-lg hidden sm:inline">University Verified</span>
+          <span className="text-lg sm:hidden">UniVerified</span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-1">

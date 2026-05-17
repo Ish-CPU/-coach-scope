@@ -1,17 +1,19 @@
 /**
- * Canonical RateMyU sports list.
+ * Canonical University Verified sports list.
  *
  * This is the SINGLE source of truth for every dropdown, filter, form,
  * validator, and seed. If you add or remove a sport, do it here.
  *
- * Per spec — only NCAA-level athletics that RateMyU supports today:
+ * The platform supports university athletics globally; the current launch
+ * set is the US NCAA-level catalog. International leagues + non-NCAA
+ * divisions can extend this list without schema changes.
  *
  *   Men's:   Football · Basketball · Soccer · Baseball
  *   Women's: Basketball · Softball · Soccer
  *
  * Where both men's and women's variants exist (Basketball, Soccer) the
- * label is gendered. Football, Baseball, and Softball don't have an
- * NCAA cross-gender counterpart at the relevant scale, so they stay bare.
+ * label is gendered. Football, Baseball, and Softball don't have a
+ * cross-gender counterpart at the relevant US scale, so they stay bare.
  */
 
 export const SPORTS = [

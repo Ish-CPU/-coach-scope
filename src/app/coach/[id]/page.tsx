@@ -182,8 +182,9 @@ export default async function CoachProfilePage({ params, searchParams }: PagePro
         )}
 
         <div className="rounded-xl bg-slate-50 p-4 text-xs text-slate-500">
-          {ANONYMITY_DISCLAIMER} Reviews are user opinions based on personal experience. RateMyU does
-          not endorse any individual review. Report any harassment, threats, or false claims.
+          {ANONYMITY_DISCLAIMER} Reviews are user opinions based on personal
+          experience. University Verified does not endorse any individual
+          review. Report any harassment, threats, or false claims.
         </div>
       </section>
     </div>

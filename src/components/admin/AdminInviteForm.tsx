@@ -137,7 +137,7 @@ export function AdminInviteForm({ defaultPermissions }: Props) {
             className="input mt-1 w-full"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="alex@coachscope.com"
+            placeholder="alex@myuniversityverified.com"
           />
         </div>
         <div>

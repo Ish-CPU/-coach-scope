@@ -8,7 +8,7 @@
  *
  * Required env vars:
  *   RESEND_API_KEY  — bearer token from resend.com/api-keys
- *   EMAIL_FROM      — verified sender, e.g. "Coach Scope <alerts@coachscope.com>"
+ *   EMAIL_FROM      — verified sender, e.g. "University Verified <alerts@myuniversityverified.com>"
  *
  * Optional env vars:
  *   EMAIL_PROVIDER  — "resend" (default) | "noop". `noop` short-circuits

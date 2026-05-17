@@ -99,7 +99,7 @@ export const ROLE_DESCRIPTIONS: Record<UserRole, string> = {
     "Parent of a current or prospective athlete. Submit structured parent insights.",
   VERIFIED_RECRUIT:
     "Prospective athlete being recruited. Submit Recruiting Experience Reviews only — no coach, program, or campus reviews until you actually attend.",
-  ADMIN: "RateMyU team — moderation and verification.",
-  MASTER_ADMIN: "RateMyU owner — full admin + team management access.",
+  ADMIN: "University Verified team — moderation and verification.",
+  MASTER_ADMIN: "University Verified owner — full admin + team management access.",
   VIEWER: "Free, read-only access.",
 };

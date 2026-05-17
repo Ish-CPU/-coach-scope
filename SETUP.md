@@ -1,6 +1,6 @@
 # Local development setup
 
-Step-by-step guide to running RateMyU on your machine. From a clean clone to a running app in ~10 minutes.
+Step-by-step guide to running University Verified on your machine. From a clean clone to a running app in ~10 minutes.
 
 ---
 
@@ -55,24 +55,24 @@ Pick **one** of the following.
 
 ```bash
 docker run -d \
-  --name ratemyu-pg \
+  --name univerified-pg \
   -e POSTGRES_USER=postgres \
   -e POSTGRES_PASSWORD=postgres \
-  -e POSTGRES_DB=ratemyu \
+  -e POSTGRES_DB=univerified \
   -p 5432:5432 \
   postgres:16
 ```
 
-Connection string: `postgresql://postgres:postgres@localhost:5432/ratemyu?schema=public`
+Connection string: `postgresql://postgres:postgres@localhost:5432/univerified?schema=public`
 
 ### Option B — Homebrew Postgres (macOS)
 
 ```bash
 brew services start postgresql@16
-createdb ratemyu
+createdb univerified
 ```
 
-Connection string: `postgresql://$(whoami)@localhost:5432/ratemyu?schema=public`
+Connection string: `postgresql://$(whoami)@localhost:5432/univerified?schema=public`
 
 ### Option C — Hosted (Neon / Supabase / Railway / Vercel Postgres)
 
@@ -97,7 +97,7 @@ Open `.env` and set each variable as described below.
 Paste the connection string from step 2.
 
 ```env
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/ratemyu?schema=public"
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/univerified?schema=public"
 ```
 
 ### 3b. `NEXTAUTH_URL`
@@ -108,7 +108,7 @@ The base URL the app runs on. For local dev:
 NEXTAUTH_URL="http://localhost:3000"
 ```
 
-(In production this becomes your real domain, e.g. `https://ratemyu.app`.)
+(In production this becomes your real domain, e.g. `https://myuniversityverified.com`.)
 
 ### 3c. `NEXTAUTH_SECRET`
 
@@ -189,7 +189,7 @@ npm run db:seed
 You should see:
 
 ```
-🌱 Seeding RateMyU...
+🌱 Seeding University Verified test users...
 ✅ Seeded users + empty groups.
    No reviews / ratings / posts were created — those are user-generated.
    To load public factual data:  npm run db:import:samples
@@ -205,7 +205,7 @@ Test logins (password: password123):
 
 ### 5a. (Optional) Load public factual data
 
-The seed leaves universities, coaches, dorms, dining, and athletic facilities empty on purpose — RateMyU's policy is to import only **public, factual** directory data from official sources. Two ways to populate it:
+The seed leaves universities, coaches, dorms, dining, and athletic facilities empty on purpose — University Verified's policy is to import only **public, factual** directory data from official sources. Two ways to populate it:
 
 **A. Load the sample CSVs** (clearly marked `DEMO — verify before publishing`):
 
@@ -323,7 +323,7 @@ npm run stripe:listen  # forward Stripe webhooks to localhost
 
 ## Troubleshooting
 
-**`Error: P1001 Can't reach database server`** — Postgres isn't running, or `DATABASE_URL` is wrong. For Docker: `docker start ratemyu-pg`.
+**`Error: P1001 Can't reach database server`** — Postgres isn't running, or `DATABASE_URL` is wrong. For Docker: `docker start univerified-pg`.
 
 **`PrismaClientInitializationError: Environment variable not found: DATABASE_URL`** — `.env` doesn't exist or isn't being read. Make sure you `cp .env.example .env` (not `env.example` etc.), and that you didn't put the file in a subdirectory.
 
@@ -353,6 +353,6 @@ npm run db:seed                    # re-seed
 Or, with Docker, nuke the whole instance:
 
 ```bash
-docker rm -f ratemyu-pg
+docker rm -f univerified-pg
 # then re-run the docker run command from step 2
 ```

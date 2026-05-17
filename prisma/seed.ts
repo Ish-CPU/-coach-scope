@@ -11,7 +11,7 @@ import { PASSWORD_BCRYPT_ROUNDS } from "../src/lib/security";
 const prisma = new PrismaClient();
 
 /**
- * RateMyU seed.
+ * University Verified seed.
  *
  * This seed ONLY creates:
  *   - Test user accounts you can sign in with locally.
@@ -23,9 +23,14 @@ const prisma = new PrismaClient();
  * comes from CSV imports — see seed/README.md and run:
  *
  *   npm run db:import:samples
+ *
+ * The `@ratemyu.app` test-user emails below are kept as-is for back-compat
+ * with existing dev databases (changing them would create duplicate seed
+ * rows and require manual cleanup). These addresses are NEVER user-visible;
+ * they're local-dev identifiers only.
  */
 async function main() {
-  console.log("🌱 Seeding RateMyU...");
+  console.log("🌱 Seeding University Verified test users...");
 
   const passwordHash = await bcrypt.hash("password123", PASSWORD_BCRYPT_ROUNDS);
 
@@ -34,7 +39,7 @@ async function main() {
     update: { paymentVerified: true, role: UserRole.ADMIN },
     create: {
       email: "admin@ratemyu.app",
-      name: "RateMyU Admin",
+      name: "University Verified Admin",
       passwordHash,
       role: UserRole.ADMIN,
       paymentVerified: true,

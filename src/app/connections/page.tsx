@@ -110,9 +110,10 @@ export default async function ConnectionsPage() {
       <div className="mx-auto max-w-3xl">
         <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">My connections</h1>
         <p className="mt-2 text-sm text-slate-600">
-          Connections are how RateMyU enforces "you can only review schools you're actually
-          connected to." Add a connection here, an admin reviews it, and once approved it
-          unlocks the right reviews for that school.
+          Connections are how University Verified enforces "you can only
+          review schools you're actually connected to." Add a connection here,
+          an admin reviews it, and once approved it unlocks the right reviews
+          for that school.
         </p>
 
         <div className="mt-3 flex flex-wrap gap-2 text-xs">

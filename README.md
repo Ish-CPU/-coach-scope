@@ -1,6 +1,8 @@
-# RateMyU
+# University Verified
 
-A transparency platform for college decision-making. Verified athletes, students, and parents share honest experiences. Anyone can read; participation requires a verified subscription.
+A verified review and transparency platform for universities, students, athletes, alumni, and campus life. Verified students, athletes, alumni, and parents share honest experiences. Anyone can read; participation requires a verified subscription.
+
+Public domain: **https://myuniversityverified.com** · Short form: **UniVerified**
 
 > **Read free. Participate verified.**
 > Participation requires a verified subscription to ensure real, accountable experiences.
@@ -49,7 +51,7 @@ Levels: NCAA Division I, II, III; NAIA; JUCO / Community College (NJCAA).
 
 ## Public-data import (2025–2026)
 
-RateMyU only stores **factual public directory data** for universities, programs, coaches, dorms, dining, and athletic facilities. **Never** copy reviews from third-party platforms (Rate My Professors, Niche, ESPN, On3, Rivals, etc.).
+University Verified only stores **factual public directory data** for universities, programs, coaches, dorms, dining, and athletic facilities. **Never** copy reviews from third-party platforms (Rate My Professors, Niche, ESPN, On3, Rivals, etc.).
 
 ### What you can import
 

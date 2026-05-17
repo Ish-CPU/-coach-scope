@@ -11,10 +11,37 @@ import { assertProductionEnv } from "@/lib/env";
 // one by one (Stripe in checkout, NextAuth in sign-in, etc.).
 assertProductionEnv();
 
+// Brand metadata. Public name is "University Verified"; short shorthand
+// "UniVerified" reserved for tight UI (e.g. mobile chrome, favicon alt).
+// Production domain: https://myuniversityverified.com
 export const metadata: Metadata = {
-  title: "RateMyU — Honest reviews of college coaches, programs & dorms",
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL ?? "https://myuniversityverified.com"
+  ),
+  title: {
+    default:
+      "University Verified — Verified reviews of universities, programs & campus life",
+    template: "%s · University Verified",
+  },
   description:
-    "A transparency platform for athletes, parents, and students to rate coaches, athletic programs, universities, and dorm life.",
+    "A verified review and transparency platform for universities, students, athletes, alumni, and campus life.",
+  applicationName: "University Verified",
+  openGraph: {
+    type: "website",
+    siteName: "University Verified",
+    title:
+      "University Verified — Verified reviews of universities, programs & campus life",
+    description:
+      "A verified review and transparency platform for universities, students, athletes, alumni, and campus life.",
+    url: "https://myuniversityverified.com",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title:
+      "University Verified — Verified reviews of universities, programs & campus life",
+    description:
+      "A verified review and transparency platform for universities, students, athletes, alumni, and campus life.",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

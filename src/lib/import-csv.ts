@@ -4,7 +4,7 @@ import { isAllowedSport, resolveSport, SPORTS } from "@/lib/sports";
 import { fieldEqual, normalizeName, normalizeSlug } from "@/lib/normalize";
 
 /**
- * RateMyU public-data importer.
+ * University Verified public-data importer.
  *
  * - Parses CSV input (string OR Buffer).
  * - Validates each row against per-type rules: required fields, allowed sports

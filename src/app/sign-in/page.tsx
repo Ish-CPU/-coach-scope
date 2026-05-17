@@ -35,7 +35,7 @@ function SignInInner() {
     <div className="container-page flex flex-col items-center justify-center py-16">
       <div className="card w-full max-w-md p-6">
         <h1 className="text-xl font-bold">Sign in</h1>
-        <p className="mt-1 text-sm text-slate-600">Welcome back to RateMyU.</p>
+        <p className="mt-1 text-sm text-slate-600">Welcome back to University Verified.</p>
         <form onSubmit={submit} className="mt-4 space-y-3">
           <div>
             <label className="label">Email</label>

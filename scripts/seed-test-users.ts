@@ -13,6 +13,12 @@
  *     from real accounts to seeded accounts.
  *   - Nothing is ever deleted.
  *
+ * Note on the `@coachscope.local` email domain: kept from the pre-rebrand
+ * era because these addresses act as primary keys for the upsert calls
+ * below. Changing the domain would create duplicate seed rows on every
+ * dev machine that has the old fixtures. The addresses are NEVER
+ * user-visible; they exist only as local-dev identifiers.
+ *
  * What gets created:
  *
  *   ┌────────────────────────────────────┬───────────────────────────┬───────────────────────────────┐

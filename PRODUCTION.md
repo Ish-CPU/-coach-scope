@@ -1,7 +1,8 @@
-# Coach Scope — Production Deployment Checklist
+# University Verified — Production Deployment Checklist
 
-Single source of truth for shipping this codebase to a real domain. Pair
-this with `SECURITY.md` (threat model) and `SETUP.md` (local dev).
+Single source of truth for shipping this codebase to a real domain
+(`myuniversityverified.com` by default). Pair this with `SECURITY.md`
+(threat model) and `SETUP.md` (local dev).
 
 ---
 
@@ -23,7 +24,7 @@ each to **Production** (and Preview if you use preview deploys).
 | `STRIPE_PRICE_YEARLY_ID`              | Live price ID                                                           | ✓        |
 | `NEXT_PUBLIC_APP_URL`                 | Same as `NEXTAUTH_URL` — used in emails + canonical URLs                | ✓        |
 | `RESEND_API_KEY`                      | Outbound email; silently no-ops if unset                                | strongly recommended |
-| `EMAIL_FROM`                          | e.g. `Coach Scope <noreply@coachscope.com>`                             | with RESEND_API_KEY |
+| `EMAIL_FROM`                          | e.g. `University Verified <noreply@myuniversityverified.com>`           | with RESEND_API_KEY |
 | `MASTER_ADMIN_EMAIL` / `MASTER_ADMIN_PASSWORD` | Only consulted by `npm run admin:create-master`. Unset on Vercel. | seed-only |
 | `NEXT_PUBLIC_ADSENSE_CLIENT_ID`       | Placeholder (no current consumer)                                       | optional |
 
@@ -112,8 +113,8 @@ Manual Vercel steps:
    `@types/node ^20`).
 4. **Environment Variables:** add the table above. Scope to Production
    (and Preview if you use it).
-5. **Domains:** add `coachscope.com` (or your domain) and set it as the
-   primary. Vercel issues the TLS cert automatically.
+5. **Domains:** add `myuniversityverified.com` (or your domain) and set it as
+   the primary. Vercel issues the TLS cert automatically.
 6. **Deployment Protection:** if you want preview deploys gated, enable
    Vercel Authentication on Preview.
 

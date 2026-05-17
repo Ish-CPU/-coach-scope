@@ -1,4 +1,4 @@
-// RateMyU — database schema
+// University Verified — database schema
 // PostgreSQL + Prisma
 
 generator client {
