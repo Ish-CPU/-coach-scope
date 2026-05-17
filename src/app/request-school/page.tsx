@@ -7,7 +7,7 @@ export const dynamic = "force-static";
 export const metadata = {
   title: "Request your school",
   description:
-    "Don't see your school or program on University Verified? Tell us about it and we'll add it.",
+    "Don't see your school or program on MyUniversityVerified? Tell us about it and we'll add it.",
 };
 
 interface PageProps {
@@ -27,7 +27,7 @@ export default function RequestSchoolPage({ searchParams }: PageProps) {
           Don&rsquo;t see your school?
         </h1>
         <p className="mt-2 text-slate-600">
-          University Verified is built by students, athletes, alumni, and
+          MyUniversityVerified is built by students, athletes, alumni, and
           parents. If your school or program isn&rsquo;t in the database yet,
           request it below — we&rsquo;ll import it from official sources and
           let you know when it&rsquo;s live.

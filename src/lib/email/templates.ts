@@ -10,7 +10,7 @@
  * (header + footer + button styling) is one source of truth.
  */
 
-const BRAND_NAME = "University Verified";
+const BRAND_NAME = "MyUniversityVerified";
 // Brand green — matches the existing Tailwind brand-600 hex.
 const BRAND_PRIMARY = "#0f766e";
 const BRAND_FG = "#ffffff";

@@ -15,18 +15,19 @@ export function SiteHeader() {
         <Link
           href="/"
           className="flex items-center gap-2 font-bold text-slate-900"
-          aria-label="University Verified — home"
+          aria-label="MyUniversityVerified — home"
         >
+          {/* "UV" is the only acceptable short form — used solely as the
+              logo mark, per brand spec. On the narrowest screens we render
+              the mark alone and drop the wordmark so the header doesn't
+              wrap; tablet+ shows the full brand. */}
           <span
             className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-brand-600 text-white text-sm"
             aria-hidden
           >
             UV
           </span>
-          {/* Full brand on tablet+, short form on the narrowest mobile chrome
-              so the header doesn't wrap. Update both together. */}
-          <span className="text-lg hidden sm:inline">University Verified</span>
-          <span className="text-lg sm:hidden">UniVerified</span>
+          <span className="text-lg hidden sm:inline">MyUniversityVerified</span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-1">

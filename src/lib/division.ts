@@ -1,7 +1,7 @@
 import { Division } from "@prisma/client";
 
 /**
- * University Verified's user-facing division (level) taxonomy.
+ * MyUniversityVerified's user-facing division (level) taxonomy.
  *
  * The Prisma `Division` enum stores stable short codes (`D1`, `D2`, `D3`,
  * `NJCAA`, `NAIA`, `OTHER`) — those go in the URL and the database.

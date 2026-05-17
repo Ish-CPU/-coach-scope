@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 /**
- * CLI wrapper for the University Verified public-data importer.
+ * CLI wrapper for the MyUniversityVerified public-data importer.
  *
  * Usage:
  *   npm run db:import -- universities seed/samples/universities.csv

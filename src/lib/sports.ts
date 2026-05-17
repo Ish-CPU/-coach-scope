@@ -1,5 +1,5 @@
 /**
- * Canonical University Verified sports list.
+ * Canonical MyUniversityVerified sports list.
  *
  * This is the SINGLE source of truth for every dropdown, filter, form,
  * validator, and seed. If you add or remove a sport, do it here.

@@ -1,6 +1,6 @@
 # Local development setup
 
-Step-by-step guide to running University Verified on your machine. From a clean clone to a running app in ~10 minutes.
+Step-by-step guide to running MyUniversityVerified on your machine. From a clean clone to a running app in ~10 minutes.
 
 ---
 
@@ -189,7 +189,7 @@ npm run db:seed
 You should see:
 
 ```
-🌱 Seeding University Verified test users...
+🌱 Seeding MyUniversityVerified test users...
 ✅ Seeded users + empty groups.
    No reviews / ratings / posts were created — those are user-generated.
    To load public factual data:  npm run db:import:samples
@@ -205,7 +205,7 @@ Test logins (password: password123):
 
 ### 5a. (Optional) Load public factual data
 
-The seed leaves universities, coaches, dorms, dining, and athletic facilities empty on purpose — University Verified's policy is to import only **public, factual** directory data from official sources. Two ways to populate it:
+The seed leaves universities, coaches, dorms, dining, and athletic facilities empty on purpose — MyUniversityVerified's policy is to import only **public, factual** directory data from official sources. Two ways to populate it:
 
 **A. Load the sample CSVs** (clearly marked `DEMO — verify before publishing`):
 

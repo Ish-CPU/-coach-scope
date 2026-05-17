@@ -1,4 +1,4 @@
-# University Verified — Security model
+# MyUniversityVerified — Security model
 
 This document describes the security posture of the app, what's implemented in code, and what still depends on **operator** discipline (env vars, hosting, monitoring).
 
@@ -94,7 +94,7 @@ How it's protected:
 
 ## 6. Stripe + payments
 
-- **Card data never touches University Verified.** All payment collection happens inside Stripe Checkout (hosted) and the Billing Portal (hosted). We only store `stripeCustomerId` and `stripeSubscriptionId`.
+- **Card data never touches MyUniversityVerified.** All payment collection happens inside Stripe Checkout (hosted) and the Billing Portal (hosted). We only store `stripeCustomerId` and `stripeSubscriptionId`.
 - Checkout API requires both an authenticated user **and** a server-side `requireEnv("STRIPE_SECRET_KEY")` check. In a misconfigured deploy the route returns `500` with a clear message instead of silently succeeding with a placeholder key.
 - The webhook strictly verifies the Stripe signature ([`src/app/api/stripe/webhook/route.ts`](src/app/api/stripe/webhook/route.ts)). On failure it returns a generic `400` without echoing details that would help an attacker probe.
 - `success_url` and `cancel_url` are constructed server-side from `appUrl()` ([`src/lib/env.ts`](src/lib/env.ts)) — the client cannot influence them.
@@ -121,7 +121,7 @@ Set in [`next.config.js`](next.config.js) `headers()`:
 - `Referrer-Policy: strict-origin-when-cross-origin` — never sends full URL paths to third parties.
 - `Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()` — disables features we never use; also opts out of FLoC.
 
-NextAuth issues HttpOnly + SameSite=Lax cookies, which is University Verified's primary CSRF defense. Custom write endpoints accept JSON only — no form-encoded POSTs that browsers would auto-submit cross-origin.
+NextAuth issues HttpOnly + SameSite=Lax cookies, which is MyUniversityVerified's primary CSRF defense. Custom write endpoints accept JSON only — no form-encoded POSTs that browsers would auto-submit cross-origin.
 
 ---
 
@@ -137,7 +137,7 @@ Pure code can't cover these — they're checklist items for the deploy:
 6. Wire `sendVerificationEmail()` in [`src/lib/verification.ts`](src/lib/verification.ts) to a real email provider (Resend / SendGrid / Postmark) for production.
 7. Set up a retention job for `VerificationRequest` rows older than your policy window.
 8. Review `npm audit` regularly. The repo currently shows transitive vulnerabilities through `next` / `bcryptjs`; upgrade with `npm i next@latest @prisma/client@latest` when you bump.
-9. Database backups + point-in-time recovery — University Verified's data lives in your Postgres, not in the app.
+9. Database backups + point-in-time recovery — MyUniversityVerified's data lives in your Postgres, not in the app.
 
 ---
 

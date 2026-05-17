@@ -133,7 +133,7 @@ export default function PricingPage() {
           Read free. Participate verified.
         </h1>
         <p className="mt-2 text-lg text-slate-600">
-          Anyone can browse University Verified. Posting reviews, voting, and
+          Anyone can browse MyUniversityVerified. Posting reviews, voting, and
           joining Verified Groups requires a verified subscription.
         </p>
         <p className="mt-2 text-sm text-slate-500">
@@ -543,7 +543,7 @@ export default function PricingPage() {
             id="membership-for-heading"
             className="text-lg font-semibold"
           >
-            Who is University Verified membership for?
+            Who is MyUniversityVerified membership for?
           </h2>
           <p className="mt-1 text-sm text-slate-600">
             One subscription, six audiences. Pick the role that matches your

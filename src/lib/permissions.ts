@@ -437,7 +437,7 @@ export function canFullyAccessGroup(
 // ---------------------------------------------------------------------------
 
 export const PARTICIPATION_REQUIRED_MESSAGE =
-  "Participation requires a verified role so University Verified stays honest and accountable.";
+  "Participation requires a verified role so MyUniversityVerified stays honest and accountable.";
 
 export function describeGate(
   gate: ParticipationGate,

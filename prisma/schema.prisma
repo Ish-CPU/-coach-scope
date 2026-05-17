@@ -1,4 +1,4 @@
-// University Verified — database schema
+// MyUniversityVerified — database schema
 // PostgreSQL + Prisma
 
 generator client {

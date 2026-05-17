@@ -11,26 +11,27 @@ import { assertProductionEnv } from "@/lib/env";
 // one by one (Stripe in checkout, NextAuth in sign-in, etc.).
 assertProductionEnv();
 
-// Brand metadata. Public name is "University Verified"; short shorthand
-// "UniVerified" reserved for tight UI (e.g. mobile chrome, favicon alt).
-// Production domain: https://myuniversityverified.com
+// Brand metadata. Public name is "MyUniversityVerified" in all visible
+// copy. "UV" is the only acceptable short form and is reserved for the
+// logo mark — never used in prose. Production domain:
+// https://myuniversityverified.com
 export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_APP_URL ?? "https://myuniversityverified.com"
   ),
   title: {
     default:
-      "University Verified — Verified reviews of universities, programs & campus life",
-    template: "%s · University Verified",
+      "MyUniversityVerified — Verified reviews of universities, programs & campus life",
+    template: "%s · MyUniversityVerified",
   },
   description:
     "A verified review and transparency platform for universities, students, athletes, alumni, and campus life.",
-  applicationName: "University Verified",
+  applicationName: "MyUniversityVerified",
   openGraph: {
     type: "website",
-    siteName: "University Verified",
+    siteName: "MyUniversityVerified",
     title:
-      "University Verified — Verified reviews of universities, programs & campus life",
+      "MyUniversityVerified — Verified reviews of universities, programs & campus life",
     description:
       "A verified review and transparency platform for universities, students, athletes, alumni, and campus life.",
     url: "https://myuniversityverified.com",
@@ -38,7 +39,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title:
-      "University Verified — Verified reviews of universities, programs & campus life",
+      "MyUniversityVerified — Verified reviews of universities, programs & campus life",
     description:
       "A verified review and transparency platform for universities, students, athletes, alumni, and campus life.",
   },

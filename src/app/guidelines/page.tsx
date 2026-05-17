@@ -4,7 +4,7 @@ export default function GuidelinesPage() {
       <div className="mx-auto max-w-2xl">
         <h1 className="text-3xl font-bold">Community Guidelines</h1>
         <p className="mt-2 text-sm text-slate-600">
-          University Verified reviews are user-generated opinions based on
+          MyUniversityVerified reviews are user-generated opinions based on
           personal experience. They are not statements of fact. University
           Verified does not independently verify the accuracy of every claim.
         </p>
@@ -32,7 +32,7 @@ export default function GuidelinesPage() {
 
         <h2 className="mt-8 text-xl font-semibold">Disclaimer</h2>
         <p className="mt-2 text-sm text-slate-700">
-          All ratings are subjective opinions. University Verified provides a
+          All ratings are subjective opinions. MyUniversityVerified provides a
           platform for honest commentary and is not responsible for individual
           user submissions.
         </p>

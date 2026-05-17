@@ -1,8 +1,8 @@
-# University Verified
+# MyUniversityVerified
 
 A verified review and transparency platform for universities, students, athletes, alumni, and campus life. Verified students, athletes, alumni, and parents share honest experiences. Anyone can read; participation requires a verified subscription.
 
-Public domain: **https://myuniversityverified.com** · Short form: **UniVerified**
+Public domain: **https://myuniversityverified.com** · Logo mark: **UV**
 
 > **Read free. Participate verified.**
 > Participation requires a verified subscription to ensure real, accountable experiences.
@@ -51,7 +51,7 @@ Levels: NCAA Division I, II, III; NAIA; JUCO / Community College (NJCAA).
 
 ## Public-data import (2025–2026)
 
-University Verified only stores **factual public directory data** for universities, programs, coaches, dorms, dining, and athletic facilities. **Never** copy reviews from third-party platforms (Rate My Professors, Niche, ESPN, On3, Rivals, etc.).
+MyUniversityVerified only stores **factual public directory data** for universities, programs, coaches, dorms, dining, and athletic facilities. **Never** copy reviews from third-party platforms (Rate My Professors, Niche, ESPN, On3, Rivals, etc.).
 
 ### What you can import
 

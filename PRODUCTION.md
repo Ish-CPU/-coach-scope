@@ -1,4 +1,4 @@
-# University Verified — Production Deployment Checklist
+# MyUniversityVerified — Production Deployment Checklist
 
 Single source of truth for shipping this codebase to a real domain
 (`myuniversityverified.com` by default). Pair this with `SECURITY.md`
@@ -24,7 +24,7 @@ each to **Production** (and Preview if you use preview deploys).
 | `STRIPE_PRICE_YEARLY_ID`              | Live price ID                                                           | ✓        |
 | `NEXT_PUBLIC_APP_URL`                 | Same as `NEXTAUTH_URL` — used in emails + canonical URLs                | ✓        |
 | `RESEND_API_KEY`                      | Outbound email; silently no-ops if unset                                | strongly recommended |
-| `EMAIL_FROM`                          | e.g. `University Verified <noreply@myuniversityverified.com>`           | with RESEND_API_KEY |
+| `EMAIL_FROM`                          | e.g. `MyUniversityVerified <noreply@myuniversityverified.com>`           | with RESEND_API_KEY |
 | `MASTER_ADMIN_EMAIL` / `MASTER_ADMIN_PASSWORD` | Only consulted by `npm run admin:create-master`. Unset on Vercel. | seed-only |
 | `NEXT_PUBLIC_ADSENSE_CLIENT_ID`       | Placeholder (no current consumer)                                       | optional |
 

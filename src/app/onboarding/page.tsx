@@ -158,7 +158,7 @@ export default function OnboardingPage() {
     <div className="container-page py-10">
       <div className="mx-auto max-w-3xl">
         <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">
-          Welcome{session?.user?.name ? `, ${session.user.name.split(" ")[0]}` : ""} — how will you use University Verified?
+          Welcome{session?.user?.name ? `, ${session.user.name.split(" ")[0]}` : ""} — how will you use MyUniversityVerified?
         </h1>
         <p className="mt-2 text-sm text-slate-600">
           Pick the role that matches you best. Each role unlocks a different set of reviews

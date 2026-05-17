@@ -24,7 +24,7 @@ export default async function HomePage() {
             Built for transparency
           </span>
           <h1 className="mt-4 text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
-            University Verified — honest reviews of universities, programs &amp; campus life.
+            MyUniversityVerified — honest reviews of universities, programs &amp; campus life.
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-slate-600">
             Students, athletes, alumni, and parents share what university
@@ -63,7 +63,7 @@ export default async function HomePage() {
 
       <section className="container-page py-8">
         <div className="mb-4 flex items-end justify-between">
-          <h2 className="text-xl font-bold text-slate-900">Trending on University Verified</h2>
+          <h2 className="text-xl font-bold text-slate-900">Trending on MyUniversityVerified</h2>
           <Link href="/search" className="text-sm text-brand-700 hover:underline">
             See all results →
           </Link>

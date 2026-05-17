@@ -12,7 +12,7 @@ export function SiteFooter() {
             >
               UV
             </span>
-            <span>University Verified</span>
+            <span>MyUniversityVerified</span>
           </div>
           <p className="mt-2 max-w-md text-sm text-slate-600">
             A verified review and transparency platform for universities,
@@ -41,8 +41,8 @@ export function SiteFooter() {
       </div>
       <div className="border-t border-slate-200">
         <div className="container-page py-4 text-xs text-slate-500">
-          © {new Date().getFullYear()} University Verified. All reviews are
-          user-generated opinions. University Verified does not vouch for the
+          © {new Date().getFullYear()} MyUniversityVerified. All reviews are
+          user-generated opinions. MyUniversityVerified does not vouch for the
           accuracy of every claim.
         </div>
       </div>

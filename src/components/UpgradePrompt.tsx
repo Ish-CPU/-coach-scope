@@ -23,7 +23,7 @@ export function UpgradePrompt({
       <h3 className="text-lg font-semibold text-brand-900">Verification required</h3>
       <p className="mt-1 text-sm text-brand-800">
         {message ??
-          "Posting reviews and voting requires a verified role so University Verified stays accountable."}
+          "Posting reviews and voting requires a verified role so MyUniversityVerified stays accountable."}
       </p>
       <p className="mt-1 text-xs text-brand-700">
         Athlete · Athlete Alumni · Student · Parent. Pick the role that matches you.

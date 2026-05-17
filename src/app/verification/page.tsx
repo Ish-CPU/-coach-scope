@@ -30,7 +30,7 @@ export default async function VerificationPage() {
         <div className="mx-auto max-w-xl card p-6 text-center">
           <h1 className="text-xl font-bold">Pick a role first</h1>
           <p className="mt-2 text-sm text-slate-600">
-            Choose how you'll use University Verified so we can give you the right verification flow.
+            Choose how you'll use MyUniversityVerified so we can give you the right verification flow.
           </p>
           <Link href="/onboarding" className="btn-primary mt-4 inline-flex">Choose your role</Link>
         </div>

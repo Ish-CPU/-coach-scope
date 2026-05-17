@@ -20,7 +20,7 @@ export function anonymousDisplayName(role: UserRole): string {
     case UserRole.VERIFIED_PARENT:
       return "Anonymous Verified Parent";
     case UserRole.ADMIN:
-      return "University Verified Team";
+      return "MyUniversityVerified Team";
     case UserRole.VIEWER:
     default:
       return "Anonymous";
