@@ -46,8 +46,10 @@ export interface UniversityTheme {
   primaryForeground: string;
   /**
    * Source of the resolved theme. Useful for the admin UI ("this school
-   * has no explicit theme; it's inheriting the curated palette") and for
-   * analytics on how many schools still need a deliberate theme assignment.
+   * has no explicit theme; it's inheriting from the curated palette") and
+   * for analytics on how many schools still need a deliberate theme
+   * assignment. "inspired" is a legacy label kept for the type contract —
+   * it now means "looked up from the curated school-color table".
    */
   source: "explicit" | "inspired" | "default";
 }

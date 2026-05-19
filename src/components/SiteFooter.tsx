@@ -41,19 +41,17 @@ export function SiteFooter() {
       </div>
       {/* Independence disclaimer — required everywhere the platform's
           university theming is visible. Pinned to the footer so it ships
-          on every page automatically. Wording is from the product brief;
-          do not paraphrase. The accompanying line about color adjustments
-          documents why per-school visuals are deliberately "inspired by"
-          rather than verbatim copies of any brand guide. */}
+          on every page automatically. Wording emphasizes that colors are
+          factual/functional (not trademarked) while official logos,
+          mascots, and wordmarks are never used. */}
       <div className="border-t border-slate-200">
         <div className="container-page space-y-2 py-4 text-xs text-slate-500">
           <p>
             MyUniversityVerified is an independent platform and is not
             affiliated with or endorsed by any university or athletic
-            organization. School-inspired colors, when shown, are
-            platform-curated adjustments of recognizable identities and
-            are not the schools&apos; official brand assets. No official
-            logos, mascots, or trademarked design systems are used.
+            organization. School colors, when shown, are used purely as
+            a recognition cue. No official logos, mascots, wordmarks,
+            or trademarked design systems are used.
           </p>
           <p>
             © {new Date().getFullYear()} MyUniversityVerified. All reviews

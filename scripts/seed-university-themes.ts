@@ -20,9 +20,13 @@
  *   npx tsx scripts/seed-university-themes.ts            # dry-run, prints summary
  *   npx tsx scripts/seed-university-themes.ts --apply    # actually writes
  *
- * Legal note: see src/lib/theme/school-inspired-colors.ts. The values
- * persisted here are platform-curated adjustments, not the schools'
- * published brand hexes.
+ * Legal note: see src/lib/theme/school-inspired-colors.ts. The table
+ * contains each school's actual brand colors — colors alone aren't
+ * trademarked. Official logos, mascots, and wordmarks are never used.
+ *
+ * Note: this script only fills NULLs. If the curated table changes and
+ * you want existing rows updated to match, use
+ * scripts/refresh-university-theme.ts instead — it force-overwrites.
  */
 import { PrismaClient } from "@prisma/client";
 import { INSPIRED_COLORS } from "../src/lib/theme/school-inspired-colors";

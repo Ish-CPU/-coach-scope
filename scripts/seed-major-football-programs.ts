@@ -262,6 +262,10 @@ const FOOTBALL_PROGRAMS: FootballSeed[] = [
   { universityName: "Valdosta State University", state: "GA", level: Division.D2, conference: "Gulf South Conference", tierLabel: "D2" },
   { universityName: "Bemidji State University", state: "MN", level: Division.D2, conference: "NSIC", tierLabel: "D2" },
   { universityName: "University of Sioux Falls", state: "SD", level: Division.D2, conference: "NSIC", tierLabel: "D2" },
+  // University of Jamestown moved up from NAIA (formerly NSAA / GPAC) to
+  // NCAA Division II in the NSIC for football. Keep it under D2 here, not
+  // under the NAIA block below.
+  { universityName: "University of Jamestown", state: "ND", level: Division.D2, conference: "NSIC", tierLabel: "D2" },
   { universityName: "Concord University", state: "WV", level: Division.D2, conference: "Mountain East Conference", tierLabel: "D2" },
   { universityName: "West Virginia State University", state: "WV", level: Division.D2, conference: "Mountain East Conference", tierLabel: "D2" },
   { universityName: "North Greenville University", state: "SC", level: Division.D2, conference: "Conference Carolinas", tierLabel: "D2" },
@@ -299,7 +303,10 @@ const FOOTBALL_PROGRAMS: FootballSeed[] = [
 
   // --- NAIA -----------------------------------------------------------------
   { universityName: "Northwestern College", state: "IA", level: Division.NAIA, conference: "Great Plains Athletic Conference", tierLabel: "NAIA" },
-  { universityName: "The College of Idaho", state: "ID", level: Division.NAIA, conference: "Cascade Collegiate Conference", tierLabel: "NAIA" },
+  // The College of Idaho competes in the Cascade Collegiate Conference for
+  // most sports, but CCC does not sponsor football — football lives in the
+  // Frontier Conference, which is the relevant label for this seed.
+  { universityName: "The College of Idaho", state: "ID", level: Division.NAIA, conference: "Frontier Conference", tierLabel: "NAIA" },
   { universityName: "Lindsey Wilson College", state: "KY", level: Division.NAIA, conference: "Mid-South Conference", tierLabel: "NAIA" },
   { universityName: "University of the Cumberlands", state: "KY", level: Division.NAIA, conference: "Mid-South Conference", tierLabel: "NAIA" },
   { universityName: "Grand View University", state: "IA", level: Division.NAIA, conference: "Heart of America Athletic Conference", tierLabel: "NAIA" },
@@ -317,6 +324,28 @@ const FOOTBALL_PROGRAMS: FootballSeed[] = [
   { universityName: "McPherson College", state: "KS", level: Division.NAIA, conference: "KCAC", tierLabel: "NAIA" },
   { universityName: "Doane University", state: "NE", level: Division.NAIA, conference: "Great Plains Athletic Conference", tierLabel: "NAIA" },
   { universityName: "Briar Cliff University", state: "IA", level: Division.NAIA, conference: "Great Plains Athletic Conference", tierLabel: "NAIA" },
+
+  // --- NAIA Frontier Conference (football) ---------------------------------
+  // The Frontier Conference is the NAIA's marquee western football
+  // league. Historic core is Montana + Oregon + Idaho; Arizona Christian
+  // joined for football in the late 2020s. The four former NSAA schools
+  // (Valley City State, Dickinson State, Dakota State, Mayville State)
+  // moved their football programs to the Frontier when the NSAA wound
+  // down football sponsorship — they're listed here under their current
+  // affiliation. The College of Idaho is also a Frontier football
+  // member but is intentionally listed in the main NAIA block above to
+  // avoid a duplicate row.
+  { universityName: "Carroll College", state: "MT", level: Division.NAIA, conference: "Frontier Conference", tierLabel: "NAIA" },
+  { universityName: "Montana Technological University", state: "MT", level: Division.NAIA, conference: "Frontier Conference", tierLabel: "NAIA" },
+  { universityName: "University of Montana Western", state: "MT", level: Division.NAIA, conference: "Frontier Conference", tierLabel: "NAIA" },
+  { universityName: "Rocky Mountain College", state: "MT", level: Division.NAIA, conference: "Frontier Conference", tierLabel: "NAIA" },
+  { universityName: "Eastern Oregon University", state: "OR", level: Division.NAIA, conference: "Frontier Conference", tierLabel: "NAIA" },
+  { universityName: "Southern Oregon University", state: "OR", level: Division.NAIA, conference: "Frontier Conference", tierLabel: "NAIA" },
+  { universityName: "Arizona Christian University", state: "AZ", level: Division.NAIA, conference: "Frontier Conference", tierLabel: "NAIA" },
+  { universityName: "Valley City State University", state: "ND", level: Division.NAIA, conference: "Frontier Conference", tierLabel: "NAIA" },
+  { universityName: "Dickinson State University", state: "ND", level: Division.NAIA, conference: "Frontier Conference", tierLabel: "NAIA" },
+  { universityName: "Dakota State University", state: "SD", level: Division.NAIA, conference: "Frontier Conference", tierLabel: "NAIA" },
+  { universityName: "Mayville State University", state: "ND", level: Division.NAIA, conference: "Frontier Conference", tierLabel: "NAIA" },
 
   // --- NJCAA / JUCO ---------------------------------------------------------
   { universityName: "Hinds Community College", state: "MS", level: Division.NJCAA, conference: "MACCC", tierLabel: "NJCAA" },
