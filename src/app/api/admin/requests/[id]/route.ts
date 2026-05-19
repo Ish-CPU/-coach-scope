@@ -15,10 +15,8 @@ const patchSchema = z.object({
   priorityScore: z.number().int().min(0).max(100).optional(),
 });
 
-export async function PATCH(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await getSession();
   if (!isAdmin(session)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

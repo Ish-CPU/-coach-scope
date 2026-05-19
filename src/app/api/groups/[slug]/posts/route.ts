@@ -22,7 +22,8 @@ const schema = z.object({
   mediaUrls: z.array(z.string().url()).max(8).optional(),
 });
 
-export async function POST(req: Request, { params }: { params: { slug: string } }) {
+export async function POST(req: Request, props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   const session = await getSession();
 
   const group = await prisma.group.findUnique({ where: { slug: params.slug } });
@@ -103,7 +104,8 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
   return NextResponse.json({ id: post.id }, { status: 201 });
 }
 
-export async function GET(req: Request, { params }: { params: { slug: string } }) {
+export async function GET(req: Request, props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   const url = new URL(req.url);
   const sort = (url.searchParams.get("sort") as PostSort) ?? "top";
 

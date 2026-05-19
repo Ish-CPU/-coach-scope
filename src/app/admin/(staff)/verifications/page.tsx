@@ -6,7 +6,7 @@ import { VerificationRequestStatus } from "@prisma/client";
 export const dynamic = "force-dynamic";
 
 interface PageProps {
-  searchParams: { status?: string };
+  searchParams: Promise<{ status?: string }>;
 }
 
 const STATUS_TABS: { label: string; value: VerificationRequestStatus | "OPEN" | "ALL" }[] = [
@@ -58,7 +58,8 @@ const SORT_RANK: Record<VerificationRequestStatus, number> = {
   REJECTED: 6,
 };
 
-export default async function AdminVerificationsPage({ searchParams }: PageProps) {
+export default async function AdminVerificationsPage(props: PageProps) {
+  const searchParams = await props.searchParams;
   const explicitStatus = parseStatus(searchParams.status);
   const showOpen = !explicitStatus && searchParams.status !== "ALL";
   const where =

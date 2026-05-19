@@ -9,7 +9,7 @@ import { ReviewModerationStatus } from "@prisma/client";
 export const dynamic = "force-dynamic";
 
 interface PageProps {
-  searchParams: Record<string, string | string[] | undefined>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 const STATUS_TABS: { key: "all" | "pending" | "flagged"; label: string }[] = [
@@ -24,7 +24,8 @@ const STATUS_TABS: { key: "all" | "pending" | "flagged"; label: string }[] = [
  * score (highest first). Admin actions hit
  * /api/admin/reviews/[id] — see ReviewModerationRow.
  */
-export default async function AdminReviewsPage({ searchParams }: PageProps) {
+export default async function AdminReviewsPage(props: PageProps) {
+  const searchParams = await props.searchParams;
   const session = await getSession();
   if (!canModerateReviews(session)) redirect("/admin");
 

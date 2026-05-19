@@ -16,7 +16,8 @@ const schema = z.object({
   value: z.union([z.literal(1), z.literal(-1), z.literal(0)]),
 });
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await getSession();
   const gate = whyCannotParticipate(session);
   if (gate) {

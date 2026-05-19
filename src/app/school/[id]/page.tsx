@@ -24,11 +24,13 @@ import { divisionLabel } from "@/lib/division";
 export const dynamic = "force-dynamic";
 
 interface PageProps {
-  params: { id: string };
-  searchParams: Record<string, string | string[] | undefined>;
+  params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-export default async function SchoolProgramPage({ params, searchParams }: PageProps) {
+export default async function SchoolProgramPage(props: PageProps) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const school = await safe(
     () =>
       prisma.school.findUnique({

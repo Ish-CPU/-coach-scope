@@ -60,7 +60,8 @@ function statusAuditAction(next: AdminStatus): AuditAction | null {
   }
 }
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await getSession();
   if (!canManageAdmins(session)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

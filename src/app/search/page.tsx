@@ -12,10 +12,10 @@ import { DIVISION_OPTIONS, parseDivision } from "@/lib/division";
 export const dynamic = "force-dynamic";
 
 interface PageProps {
-  searchParams: Record<string, string | string[] | undefined>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-function get(sp: PageProps["searchParams"], k: string): string | undefined {
+function get(sp: Awaited<PageProps["searchParams"]>, k: string): string | undefined {
   const v = sp[k];
   return Array.isArray(v) ? v[0] : v;
 }
@@ -33,7 +33,8 @@ function parseLimit(raw: string | undefined): number {
   return Math.min(Math.max(1, Math.floor(n)), MAX_PAGE);
 }
 
-export default async function SearchPage({ searchParams }: PageProps) {
+export default async function SearchPage(props: PageProps) {
+  const searchParams = await props.searchParams;
   const limit = parseLimit(get(searchParams, "limit"));
 
   const filters = {
@@ -282,7 +283,7 @@ function ToggleLink({ active, href, label }: { active: boolean; href: string; la
   );
 }
 
-function withParam(sp: PageProps["searchParams"], key: string, value: string | undefined) {
+function withParam(sp: Awaited<PageProps["searchParams"]>, key: string, value: string | undefined) {
   const usp = new URLSearchParams();
   for (const [k, v] of Object.entries(sp)) {
     if (k === key) continue;

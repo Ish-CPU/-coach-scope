@@ -26,10 +26,8 @@ const schema = z.object({
 
 const REPORT_THRESHOLD = 3;
 
-export async function POST(
-  req: Request,
-  { params }: { params: { slug: string; postId: string } }
-) {
+export async function POST(req: Request, props: { params: Promise<{ slug: string; postId: string }> }) {
+  const params = await props.params;
   const session = await getSession();
   if (!session?.user) {
     return NextResponse.json({ error: "Sign in to report." }, { status: 401 });

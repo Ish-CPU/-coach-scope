@@ -9,7 +9,7 @@ import {
 export const dynamic = "force-dynamic";
 
 interface PageProps {
-  searchParams: { kind?: string; status?: string };
+  searchParams: Promise<{ kind?: string; status?: string }>;
 }
 
 const KIND_TABS = [
@@ -35,7 +35,8 @@ function parseStatus(raw: string | undefined): "PENDING" | "APPROVED" | "REJECTE
   return "PENDING";
 }
 
-export default async function AdminConnectionsPage({ searchParams }: PageProps) {
+export default async function AdminConnectionsPage(props: PageProps) {
+  const searchParams = await props.searchParams;
   const kind = parseKind(searchParams.kind);
   const status = parseStatus(searchParams.status);
 

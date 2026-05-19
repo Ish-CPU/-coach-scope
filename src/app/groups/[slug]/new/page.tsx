@@ -12,7 +12,8 @@ import { GROUP_TYPE_LABELS } from "@/lib/groups";
 
 export const dynamic = "force-dynamic";
 
-export default async function NewPostPage({ params }: { params: { slug: string } }) {
+export default async function NewPostPage(props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   const session = await getSession();
   if (!session?.user) redirect(`/sign-in?callbackUrl=/groups/${params.slug}/new`);
 

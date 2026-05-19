@@ -18,7 +18,8 @@ import { UserRole } from "@prisma/client";
  * Refuses to force-logout MASTER_ADMIN rows; the master must do that
  * themselves from the settings page.
  */
-export async function POST(_req: Request, { params }: { params: { id: string } }) {
+export async function POST(_req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await getSession();
   if (!canManageAdmins(session)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

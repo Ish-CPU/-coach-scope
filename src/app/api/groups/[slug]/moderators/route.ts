@@ -23,10 +23,8 @@ const postSchema = z.object({
   role: z.nativeEnum(GroupMembershipRole),
 });
 
-export async function GET(
-  _req: Request,
-  { params }: { params: { slug: string } }
-) {
+export async function GET(_req: Request, props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   const group = await prisma.group.findUnique({
     where: { slug: params.slug },
     select: { id: true },
@@ -52,10 +50,8 @@ export async function GET(
   return NextResponse.json({ moderators });
 }
 
-export async function POST(
-  req: Request,
-  { params }: { params: { slug: string } }
-) {
+export async function POST(req: Request, props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   const session = await getSession();
   if (!session?.user) {
     return NextResponse.json({ error: "Sign in required" }, { status: 401 });

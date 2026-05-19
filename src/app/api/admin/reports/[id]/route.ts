@@ -8,7 +8,8 @@ import { ReportStatus, ReviewStatus } from "@prisma/client";
 
 const schema = z.object({ action: z.enum(["hide", "remove", "dismiss"]) });
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await getSession();
   if (!isAdmin(session)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   if (!canModerateReviews(session)) {
@@ -39,12 +40,12 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   }
 
   const newReviewStatus = parsed.data.action === "remove" ? ReviewStatus.REMOVED : ReviewStatus.HIDDEN;
-if (!report.reviewId) {
-  return NextResponse.json(
-    { error: "This report is not attached to a review." },
-    { status: 400 }
-  )
-}
+  if (!report.reviewId) {
+    return NextResponse.json(
+      { error: "This report is not attached to a review." },
+      { status: 400 }
+    )
+  }
   await prisma.$transaction([
     prisma.review.update({ where: { id: report.reviewId }, data: { status: newReviewStatus } }),
     prisma.report.update({

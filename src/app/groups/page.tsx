@@ -16,10 +16,10 @@ import { GroupType, GroupVisibility } from "@prisma/client";
 export const dynamic = "force-dynamic";
 
 interface PageProps {
-  searchParams: Record<string, string | string[] | undefined>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-function getQueryParam(sp: PageProps["searchParams"], key: string): string {
+function getQueryParam(sp: Awaited<PageProps["searchParams"]>, key: string): string {
   const v = sp[key];
   return (Array.isArray(v) ? v[0] : v) ?? "";
 }
@@ -69,7 +69,8 @@ function parseTypeParam(raw: string): GroupType | null {
  * Unknown / typo'd `type` values are silently ignored (treated as "All")
  * rather than crashing — see `parseTypeParam`.
  */
-export default async function GroupsPage({ searchParams }: PageProps) {
+export default async function GroupsPage(props: PageProps) {
+  const searchParams = await props.searchParams;
   const session = await getSession();
   const q = getQueryParam(searchParams, "q").trim();
   const typeParam = getQueryParam(searchParams, "type").toUpperCase();

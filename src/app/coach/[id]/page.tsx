@@ -22,11 +22,13 @@ import { UniversityHero } from "@/components/theme/UniversityHero";
 export const dynamic = "force-dynamic";
 
 interface PageProps {
-  params: { id: string };
-  searchParams: Record<string, string | string[] | undefined>;
+  params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-export default async function CoachProfilePage({ params, searchParams }: PageProps) {
+export default async function CoachProfilePage(props: PageProps) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const coach = await safe(
     () =>
       prisma.coach.findUnique({

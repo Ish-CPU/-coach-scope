@@ -3,7 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { canParticipate, describeGate, getSession, whyCannotParticipate } from "@/lib/permissions";
 import { rateLimit } from "@/lib/rate-limit";
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await getSession();
   const gate = whyCannotParticipate(session);
   if (gate) {

@@ -19,10 +19,8 @@ import { prisma } from "@/lib/prisma";
  */
 export const dynamic = "force-dynamic";
 
-export async function GET(
-  _req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const schoolId = params.id;
   if (!schoolId) {
     return NextResponse.json({ error: "Missing school id." }, { status: 400 });

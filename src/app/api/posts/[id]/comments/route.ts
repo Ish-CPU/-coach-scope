@@ -16,7 +16,8 @@ const schema = z.object({
   parentId: z.string().cuid().optional(),
 });
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await getSession();
   const gate = whyCannotParticipate(session);
   if (gate) {

@@ -13,10 +13,10 @@ import { ReviewType } from "@prisma/client";
 export const dynamic = "force-dynamic";
 
 interface PageProps {
-  searchParams: Record<string, string | string[] | undefined>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-function get(sp: PageProps["searchParams"], k: string) {
+function get(sp: Awaited<PageProps["searchParams"]>, k: string) {
   const v = sp[k];
   return Array.isArray(v) ? v[0] : v;
 }
@@ -42,7 +42,8 @@ function get(sp: PageProps["searchParams"], k: string) {
  * connection to returns a 403 with a clear rejection message that
  * <ReviewForm> surfaces verbatim.
  */
-export default async function NewReviewPage({ searchParams }: PageProps) {
+export default async function NewReviewPage(props: PageProps) {
+  const searchParams = await props.searchParams;
   const session = await getSession();
   if (!session?.user) redirect("/sign-in?callbackUrl=/review/new");
 

@@ -21,7 +21,8 @@ const REPORT_THRESHOLD = 3;
  * comment id is globally unique so we don't need the slug or post id
  * in the route.
  */
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await getSession();
   if (!session?.user) {
     return NextResponse.json({ error: "Sign in to report." }, { status: 401 });

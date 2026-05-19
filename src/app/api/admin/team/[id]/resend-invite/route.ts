@@ -16,7 +16,8 @@ const INVITE_TTL_DAYS = 14;
  * out-of-band. Also clears the password and acceptance timestamp so the
  * user is forced fully through onboarding.
  */
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await getSession();
   if (!canManageAdmins(session)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

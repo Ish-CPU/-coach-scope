@@ -13,10 +13,11 @@ export const metadata = {
 interface PageProps {
   // Accept either `?q=…` (from the search empty-state CTA) or the older
   // `?prefill=…` form so existing links keep working.
-  searchParams: { q?: string; prefill?: string };
+  searchParams: Promise<{ q?: string; prefill?: string }>;
 }
 
-export default function RequestSchoolPage({ searchParams }: PageProps) {
+export default async function RequestSchoolPage(props: PageProps) {
+  const searchParams = await props.searchParams;
   const raw = searchParams.q ?? searchParams.prefill;
   const prefill = typeof raw === "string" ? raw.slice(0, 200) : undefined;
 

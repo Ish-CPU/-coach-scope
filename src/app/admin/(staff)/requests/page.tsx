@@ -8,7 +8,7 @@ import { RequestActionButtons } from "./RequestActionButtons";
 export const dynamic = "force-dynamic";
 
 interface PageProps {
-  searchParams: { status?: string };
+  searchParams: Promise<{ status?: string }>;
 }
 
 const STATUS_TABS: { label: string; value: RequestStatus | "ALL" }[] = [
@@ -31,7 +31,8 @@ function parseStatus(raw: string | undefined): RequestStatus | null {
   }
 }
 
-export default async function AdminRequestsPage({ searchParams }: PageProps) {
+export default async function AdminRequestsPage(props: PageProps) {
+  const searchParams = await props.searchParams;
   const session = await getSession();
   if (!isAdmin(session)) redirect("/");
 

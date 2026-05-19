@@ -15,7 +15,8 @@ import { AdminStatus, UserRole } from "@prisma/client";
  * + share it. Also clears acceptedAdminRulesAt so the user is forced through
  * onboarding again on next login.
  */
-export async function POST(_req: Request, { params }: { params: { id: string } }) {
+export async function POST(_req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await getSession();
   if (!canManageAdmins(session)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

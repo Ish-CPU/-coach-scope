@@ -12,7 +12,8 @@ const schema = z.object({
 });
 
 /** Mirror of the athlete-connection admin endpoint, scoped to students. */
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await getSession();
   if (!isAdmin(session)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   if (!canApproveConnections(session)) {

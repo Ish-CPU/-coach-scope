@@ -8,10 +8,13 @@ import { AdminOnboardingForm } from "@/components/admin/AdminOnboardingForm";
 export const dynamic = "force-dynamic";
 
 interface PageProps {
-  searchParams: Record<string, string | string[] | undefined>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-function getQuery(sp: PageProps["searchParams"], k: string): string | undefined {
+// Next 15: PageProps["searchParams"] is a Promise. The caller awaits it
+// once and passes the resolved value here, so the helper takes the
+// unwrapped (Awaited) shape.
+function getQuery(sp: Awaited<PageProps["searchParams"]>, k: string): string | undefined {
   const v = sp[k];
   return Array.isArray(v) ? v[0] : v;
 }
@@ -30,7 +33,8 @@ function getQuery(sp: PageProps["searchParams"], k: string): string | undefined 
  * On success the API logs them in (NextAuth credentials flow) and they
  * land on /admin.
  */
-export default async function AdminOnboardingPage({ searchParams }: PageProps) {
+export default async function AdminOnboardingPage(props: PageProps) {
+  const searchParams = await props.searchParams;
   const token = getQuery(searchParams, "token");
   const session = await getSession();
 

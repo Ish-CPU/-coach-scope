@@ -16,11 +16,12 @@ import { anonymousDisplayName, ANONYMITY_DISCLAIMER } from "@/lib/anonymous";
 
 export const dynamic = "force-dynamic";
 
-export default async function PostPage({
-  params,
-}: {
-  params: { slug: string; postId: string };
-}) {
+export default async function PostPage(
+  props: {
+    params: Promise<{ slug: string; postId: string }>;
+  }
+) {
+  const params = await props.params;
   const post = await safe(
     () =>
       prisma.groupPost.findUnique({

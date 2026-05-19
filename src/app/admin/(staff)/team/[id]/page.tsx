@@ -15,7 +15,8 @@ export const dynamic = "force-dynamic";
  * Master rows are read-only here — managing the master account itself
  * happens at /admin/settings.
  */
-export default async function AdminDetailPage({ params }: { params: { id: string } }) {
+export default async function AdminDetailPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await getSession();
   if (!canManageAdmins(session)) redirect("/admin");
 

@@ -20,7 +20,8 @@ const schema = z.object({
  * flow's job). All review permissions for this program unlock automatically
  * the next time the per-target check runs.
  */
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await getSession();
   if (!isAdmin(session)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   if (!canApproveConnections(session)) {
