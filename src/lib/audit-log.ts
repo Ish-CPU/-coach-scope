@@ -45,6 +45,41 @@ export const AUDIT_ACTIONS = {
   // Fired when a single email address crosses the failed-sign-in threshold
   // (see src/lib/auth.ts). Targeted so the master admin can act.
   ADMIN_LOGIN_FAILURE_THRESHOLD: "admin.login_failure_threshold",
+  // Subscription lifecycle — written by the user-facing cancel /
+  // reactivate endpoints and by the Stripe webhook. The same string keys
+  // are stored on SubscriptionEvent.eventType, so a single audit/billing
+  // history can be reconstructed by union-ing both tables.
+  SUBSCRIPTION_CREATED:        "subscription.created",
+  SUBSCRIPTION_RENEWED:        "subscription.renewed",
+  SUBSCRIPTION_CANCELED:       "subscription.canceled",
+  SUBSCRIPTION_REACTIVATED:    "subscription.reactivated",
+  SUBSCRIPTION_EXPIRED:        "subscription.expired",
+  SUBSCRIPTION_PAST_DUE:       "subscription.past_due",
+  SUBSCRIPTION_PAYMENT_FAILED: "subscription.payment_failed",
+  // ----- AI / fraud screen of uploaded verification or connection images -----
+  // Emitted by src/lib/verification-fraud.ts and the admin approve route.
+  //   _PASSED          — score in CLEAR bucket; submission proceeds normally
+  //   _REVIEW_REQUIRED — middle bucket; row enters the human-review queue
+  //   _AUTO_DENIED     — high-confidence fraud; submission was rejected
+  //                      BEFORE the parent row was persisted
+  //   _ADMIN_OVERRIDE  — admin approved or rejected a row whose fraud
+  //                      screen disagreed with that decision. We keep
+  //                      this distinct from the generic verification
+  //                      approve/reject so the team can audit how often
+  //                      humans overrule the model in either direction.
+  AI_FRAUD_CHECK_PASSED:    "fraud.passed",
+  AI_FRAUD_REVIEW_REQUIRED: "fraud.review_required",
+  AI_FRAUD_AUTO_DENIED:     "fraud.auto_denied",
+  AI_FRAUD_ADMIN_OVERRIDE:  "fraud.admin_override",
+  // Multi-proof verification auto-approval. Emitted by the
+  // /api/verification submit handler when 3+ proofs reach PASSED on the
+  // same request — the user's role/status flip happens in the same
+  // transaction with no admin in the loop. Captured as its own audit key
+  // (separate from VERIFICATION_APPROVED) so we can:
+  //   - measure the auto-approval funnel rate
+  //   - investigate after the fact when a fraudulent account slips through
+  //     this path specifically vs. through manual approval
+  VERIFICATION_AUTO_APPROVED_THREE_PROOFS: "verification.auto_approved_three_proofs",
 } as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];

@@ -75,7 +75,14 @@ export default async function AdminVerificationsPage({ searchParams }: PageProps
     where,
     orderBy: { createdAt: "desc" },
     take: 300,
-    include: { user: { select: { id: true, name: true, email: true, role: true, sport: true } } },
+    include: {
+      user: { select: { id: true, name: true, email: true, role: true, sport: true } },
+      // Proof rows drive the "N/total proofs" badge in VerificationRow.
+      // Only the type + status fields are needed for the badge; the
+      // full proof detail (adminNotes, fraudScore) is fetched on the
+      // detail surface if/when we add one.
+      proofs: { select: { proofType: true, status: true } },
+    },
   });
 
   const requests = raw

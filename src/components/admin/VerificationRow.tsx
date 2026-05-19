@@ -32,6 +32,19 @@ interface VRequest {
   rejectionReason?: string | null;
   createdAt: string;
   reviewedAt?: string | null;
+  // AI/fraud screen result, denormalized from the request row. Optional
+  // because rows from before the fraud system landed have NULL columns;
+  // we render those as "not screened" instead of "passed" so admins don't
+  // mistake a legacy row for a CLEAR result.
+  fraudStatus?: "CLEAR" | "REVIEW_REQUIRED" | "DENIED" | null;
+  fraudScore?: number | null;
+  // Multi-proof scoring rows. One per piece of evidence — drives the
+  // green "N proofs passed" pill. Optional so admin pages that don't
+  // bother to include them just render the existing UI.
+  proofs?: Array<{
+    proofType: string;
+    status: "PENDING" | "PASSED" | "REVIEW_REQUIRED" | "FAILED";
+  }>;
   user: { id: string; name: string | null; email: string; role: string; sport: string | null };
 }
 
@@ -166,6 +179,55 @@ export function VerificationRow({ request }: { request: VRequest }) {
           {typeof request.confidenceScore === "number" && (
             <span className="rounded-md bg-white px-1.5 py-0.5 text-[10px] font-semibold text-slate-700 ring-1 ring-slate-200">
               score {request.confidenceScore}
+            </span>
+          )}
+          {/* Multi-proof scoring badge — only shown when the request
+              actually carries proof rows. Highlights when the row
+              cleared the 3-proof auto-approval threshold (the request's
+              own `status` should already read APPROVED in that case, but
+              displaying the proof count separately makes the basis of
+              the decision visible at a glance). */}
+          {request.proofs && request.proofs.length > 0 && (() => {
+            const passed = request.proofs.filter((p) => p.status === "PASSED").length;
+            const total = request.proofs.length;
+            const review = request.proofs.some((p) => p.status === "REVIEW_REQUIRED");
+            return (
+              <span
+                className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold ring-1 ${
+                  passed >= 3 && !review
+                    ? "bg-emerald-50 text-emerald-800 ring-emerald-200"
+                    : review
+                      ? "bg-amber-50 text-amber-800 ring-amber-200"
+                      : "bg-slate-50 text-slate-700 ring-slate-200"
+                }`}
+                title={`${passed} proofs passed · ${total} submitted`}
+              >
+                {passed}/{total} proofs
+              </span>
+            );
+          })()}
+          {/* AI/fraud screen badge. Surfaced for every row that has a
+              result so admins can prioritize REVIEW_REQUIRED rows and
+              double-check anything DENIED that somehow slipped past the
+              auto-block (e.g. legacy data). The score is intentionally
+              admin-visible only — never sent to the user. */}
+          {request.fraudStatus && (
+            <span
+              title={
+                typeof request.fraudScore === "number"
+                  ? `fraud score ${request.fraudScore} / 100`
+                  : undefined
+              }
+              className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold ring-1 ${
+                request.fraudStatus === "DENIED"
+                  ? "bg-red-50 text-red-800 ring-red-200"
+                  : request.fraudStatus === "REVIEW_REQUIRED"
+                    ? "bg-amber-50 text-amber-800 ring-amber-200"
+                    : "bg-emerald-50 text-emerald-800 ring-emerald-200"
+              }`}
+            >
+              fraud {request.fraudStatus.toLowerCase().replace("_", " ")}
+              {typeof request.fraudScore === "number" && ` · ${request.fraudScore}`}
             </span>
           )}
           <span>{new Date(request.createdAt).toLocaleString()}</span>

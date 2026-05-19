@@ -10,6 +10,7 @@ import { prisma } from "@/lib/prisma";
 import { Badge, ROLE_DESCRIPTIONS } from "@/components/Badge";
 import { UpgradePrompt } from "@/components/UpgradePrompt";
 import { ManageBillingButton } from "@/components/ManageBillingButton";
+import { MyConnectionsCard } from "@/components/dashboard/MyConnectionsCard";
 import { GROUP_TYPE_LABELS } from "@/lib/groups";
 import { UserRole, VerificationStatus } from "@prisma/client";
 import { isUserAlumni, lifecycleLabel } from "@/lib/lifecycle";
@@ -139,6 +140,15 @@ export default async function DashboardPage() {
             </Link>
           )}
           {paid && <ManageBillingButton />}
+          {/* New self-serve subscription management lives at /account/settings.
+              Surface it on the dashboard so the user can find it without
+              digging through the header nav. */}
+          <Link
+            href="/account/settings"
+            className="btn-ghost text-sm"
+          >
+            Account settings
+          </Link>
         </div>
       </div>
 
@@ -303,6 +313,17 @@ export default async function DashboardPage() {
             </Link>
           </div>
         )}
+
+      {/* My Connections — a compact summary of approved athlete/student
+          program affiliations. Component decides internally whether to
+          render based on role (returns null for VIEWER/ADMIN/parents
+          who have no connection rows), so we don't need a wrapper guard
+          here. Sits above the reviews/favorites grid as its own full-
+          width section so it's prominent without crowding the 2-up
+          layout below. */}
+      <section className="mt-10">
+        <MyConnectionsCard userId={user.id} role={user.role} />
+      </section>
 
       <section className="mt-10 grid gap-6 lg:grid-cols-2">
         <div>

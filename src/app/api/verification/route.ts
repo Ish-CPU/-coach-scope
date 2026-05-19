@@ -3,6 +3,9 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSession, isPaymentVerified } from "@/lib/permissions";
 import {
+  AthleteConnectionStatus,
+  FraudStatus,
+  StudentConnectionStatus,
   UserRole,
   VerificationMethod,
   VerificationRequestStatus,
@@ -18,6 +21,18 @@ import { scoreVerification } from "@/lib/verification-confidence";
 import { rateLimit } from "@/lib/rate-limit";
 import { isSafeHttpUrl } from "@/lib/safe-url";
 import { sendVerificationRequestEmail } from "@/lib/email/notifications";
+import {
+  screenAllByUrl,
+  FRAUD_USER_FACING_MESSAGE,
+} from "@/lib/verification-fraud";
+import {
+  AUTO_APPROVE_THRESHOLD,
+  buildProofsForRequest,
+  countPassed,
+  shouldAutoApprove,
+} from "@/lib/verification-proofs";
+import { applyVerificationApproval } from "@/lib/verification-approval";
+import { AUDIT_ACTIONS, logAdminAction } from "@/lib/audit-log";
 
 const schema = z.object({
   method: z.nativeEnum(VerificationMethod),
@@ -295,8 +310,98 @@ export async function POST(req: Request) {
     schoolEmailVerified,
   });
 
-  const [created] = await prisma.$transaction([
-    prisma.verificationRequest.create({
+  // -----------------------------------------------------------------
+  // AI/fraud screen on every uploaded image BEFORE we persist the row.
+  // - DENIED → reject the submission entirely (no DB write, user sees
+  //   the generic fraud message; full details stay server-side).
+  // - REVIEW_REQUIRED → persist with denormalized fraud fields so the
+  //   admin queue can prioritize and surface the warning.
+  // - CLEAR → persist with denormalized fraud fields = CLEAR, score 0-49.
+  // Implementation note: the screen runs against URLs the user has
+  // already uploaded to their own host (we never store the bytes here),
+  // and degrades to REVIEW_REQUIRED on any network/provider failure so
+  // a flaky provider can never silently lock users out.
+  // Returns BOTH the worst fraud result (for the existing DENIED short-
+  // circuit + denormalized summary fields) AND a per-URL map (consumed
+  // by the proof builder so each piece of evidence gets its own status).
+  const { worst: fraud, byUrl: fraudByUrl } = await screenAllByUrl({
+    userId: session.user.id,
+    urls: [
+      data.rosterUrl || null,
+      data.proofUrl || null,
+      data.studentIdUrl || null,
+      data.rosterScreenshotUrl || null,
+    ],
+    targetType: "verification",
+    targetId: null,
+  });
+  if (fraud?.status === FraudStatus.DENIED) {
+    // Never echo provider score / reason / model labels — they're
+    // server-side only. The audit log already captured the full result.
+    return NextResponse.json({ error: FRAUD_USER_FACING_MESSAGE }, { status: 422 });
+  }
+
+  // ------------------------------------------------------------------
+  // Multi-proof scoring
+  //
+  // Build the list of proof rows from the form data + fraud results,
+  // then decide whether this submission qualifies for the 3-proof auto-
+  // approval path. The decision happens BEFORE the transaction so the
+  // request can be written with the correct terminal status from the
+  // start (no second update).
+  //
+  // PAYMENT_VERIFICATION + PRIOR_APPROVED_CONNECTION are derived from
+  // user state, not the form — fetched here in parallel.
+  // ------------------------------------------------------------------
+  const [userForProofs, anyAthleteApproved, anyStudentApproved] = await Promise.all([
+    prisma.user.findUniqueOrThrow({
+      where: { id: session.user.id },
+      select: { paymentVerified: true, role: true },
+    }),
+    prisma.athleteProgramConnection.findFirst({
+      where: { userId: session.user.id, status: AthleteConnectionStatus.APPROVED },
+      select: { id: true },
+    }),
+    prisma.studentUniversityConnection.findFirst({
+      where: { userId: session.user.id, status: StudentConnectionStatus.APPROVED },
+      select: { id: true },
+    }),
+  ]);
+  const hasPriorApprovedConnection = !!anyAthleteApproved || !!anyStudentApproved;
+
+  const proofs = buildProofsForRequest({
+    eduEmail: data.eduEmail || null,
+    schoolEmailVerified,
+    rosterUrl: data.rosterUrl || null,
+    rosterScreenshotUrl: data.rosterScreenshotUrl || null,
+    studentIdUrl: data.studentIdUrl || null,
+    proofUrl: data.proofUrl || null,
+    recruitingProfileUrl: data.recruitingProfileUrl || null,
+    schoolDirectoryUrl: data.schoolDirectoryUrl || null,
+    linkedinUrl: data.linkedinUrl || null,
+    hudlUrl: data.hudlUrl || null,
+    isParentRequest,
+    paymentVerified: userForProofs.paymentVerified,
+    hasPriorApprovedConnection,
+    fraudByUrl,
+  });
+  const autoApprove = shouldAutoApprove(proofs);
+  const passedCount = countPassed(proofs);
+
+  // When auto-approving, the request is stamped APPROVED in the same
+  // create. Otherwise we use the scorer's queue bucket as before.
+  const finalRequestStatus = autoApprove
+    ? VerificationRequestStatus.APPROVED
+    : scored.status;
+  const finalUserStatus = autoApprove
+    ? VerificationStatus.VERIFIED
+    : VerificationStatus.PENDING;
+
+  // Transaction: parent request + proof rows + user-side updates all
+  // commit together. Using the interactive variant so we can call the
+  // shared approval helper inside.
+  const created = await prisma.$transaction(async (tx) => {
+    const req = await tx.verificationRequest.create({
       data: {
         userId: session.user.id,
         // For non-upgrade flows targetRole === role (existing behavior).
@@ -326,16 +431,112 @@ export async function POST(req: Request) {
         schoolEmailVerified,
         confidenceScore: scored.score,
         notes: data.notes || null,
-        status: scored.status,
+        status: finalRequestStatus,
         attemptNumber: attempts + 1,
+        // Stamp reviewedAt on the auto-approved path so the admin queue
+        // can distinguish "auto-approved seconds after submit" from a
+        // request that's been waiting for human review. reviewedBy stays
+        // null — the same marker the approval helper uses to render
+        // "(auto-approval)" downstream.
+        reviewedAt: autoApprove ? new Date() : null,
+        reviewedBy: null,
+        // Denormalized fraud-screen summary. NULL when no images were
+        // attached (e.g. .edu-only flow); admin UI treats NULL as
+        // "not screened" rather than "passed".
+        fraudStatus: fraud?.status ?? null,
+        fraudScore: fraud?.score ?? null,
+        fraudCheckedAt: fraud ? new Date() : null,
       },
       select: { id: true },
-    }),
-    prisma.user.update({
-      where: { id: session.user.id },
-      data: { verificationStatus: VerificationStatus.PENDING },
-    }),
-  ]);
+    });
+
+    // Persist proof rows in one shot. createMany skips returning rows
+    // (which we don't need) and is the cheapest write for N <= ~10.
+    if (proofs.length > 0) {
+      await tx.verificationProof.createMany({
+        data: proofs.map((p) => ({
+          requestId: req.id,
+          proofType: p.proofType,
+          status: p.status,
+          fraudStatus: p.fraudStatus,
+          fraudScore: p.fraudScore,
+          checkedAt: p.checkedAt,
+        })),
+      });
+    }
+
+    if (autoApprove) {
+      // Apply the same downstream side-effects the admin approve handler
+      // would have applied — role flip, review-weight refresh, recruit
+      // upgrade auto-connect. Shared helper keeps the two paths in lock-
+      // step so a future change to "what happens on approval" doesn't
+      // diverge between manual and auto.
+      await applyVerificationApproval(
+        tx,
+        {
+          id: req.id,
+          userId: session.user.id,
+          targetRole,
+          sport: data.sport ?? null,
+          universityId: data.universityId || null,
+          universityName: data.universityName ?? null,
+          schoolId: data.schoolId || null,
+          rosterUrl: data.rosterUrl || null,
+          user: { role: userForProofs.role },
+        },
+        { actorUserId: null }
+      );
+    } else {
+      // Non-auto path: same behavior as before — user enters PENDING.
+      await tx.user.update({
+        where: { id: session.user.id },
+        data: { verificationStatus: finalUserStatus },
+      });
+    }
+
+    return req;
+  });
+
+  // Backfill the ImageFraudCheck.targetId for this request's checks.
+  // The screen wrote them with targetId=null because the row didn't
+  // exist yet; updating in bulk by hash is cheap and keeps the audit
+  // chain intact for admins drilling in from the queue.
+  if (fraud) {
+    await prisma.imageFraudCheck.updateMany({
+      where: {
+        userId: session.user.id,
+        targetType: "verification",
+        targetId: null,
+        // Tightened by createdAt so we don't backfill checks from an
+        // older, unrelated submission that also had a null targetId.
+        createdAt: { gte: new Date(Date.now() - 5 * 60_000) },
+      },
+      data: { targetId: created.id },
+    });
+  }
+
+  // Audit log for the auto-approval path. The manual-approval path is
+  // logged in /api/admin/verifications/[id] under VERIFICATION_APPROVED,
+  // so emitting our own key here keeps the two distinguishable in
+  // analytics + post-incident review.
+  if (autoApprove) {
+    await logAdminAction({
+      actorUserId: session.user.id,
+      action: AUDIT_ACTIONS.VERIFICATION_AUTO_APPROVED_THREE_PROOFS,
+      targetType: "VerificationRequest",
+      targetId: created.id,
+      metadata: {
+        targetRole,
+        passedCount,
+        threshold: AUTO_APPROVE_THRESHOLD,
+        proofTypes: proofs
+          .filter((p) => p.status === "PASSED")
+          .map((p) => p.proofType),
+        fraudStatus: fraud?.status ?? null,
+        fraudScore: fraud?.score ?? null,
+      },
+    });
+  }
 
   // eslint-disable-next-line no-console
   console.info("[api/verification] created", {

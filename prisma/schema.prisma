@@ -93,9 +93,22 @@ enum AdminRemovalReason {
 }
 
 enum SubscriptionStatus {
+  // No paid subscription on file. Default for fresh users and for accounts
+  // that have never run checkout.
   FREE
+  // Paid, current, and NOT scheduled to cancel — full premium access.
   ACTIVE
+  // Paid, current, but user has scheduled cancellation. Access still granted
+  // until `currentPeriodEnd`; the UI surfaces a "Reactivate" button while
+  // this state is live. Mapped from Stripe when status=active AND
+  // cancel_at_period_end=true.
   CANCELED
+  // Subscription fully terminated — no access. Mapped from Stripe when
+  // status=canceled / incomplete_expired (period_end has elapsed, or admin
+  // canceled immediately).
+  EXPIRED
+  // Last payment failed. Stripe is retrying; we keep paymentVerified=false
+  // so premium actions are gated until the user fixes their card.
   PAST_DUE
 }
 
@@ -109,6 +122,64 @@ enum VerificationStatus {
   PENDING
   VERIFIED
   REJECTED
+}
+
+// Output of the AI/fraud screen on an uploaded verification image. Distinct
+// from VerificationRequestStatus because a single submission can have
+// multiple images, each of which gets its own row in ImageFraudCheck.
+//
+// Bucket boundaries (see src/lib/verification-fraud.ts):
+//    0-49  → CLEAR             (proceeds to normal admin queue)
+//   50-79  → REVIEW_REQUIRED   (flagged for human review)
+//   80-100 → DENIED            (auto-rejected before persisting the request)
+//
+// A CLEAR score never auto-approves anything — it just doesn't add friction.
+// The platform's existing human-review step still gates role promotion.
+enum FraudStatus {
+  CLEAR
+  REVIEW_REQUIRED
+  DENIED
+}
+
+// Type-of-proof enumeration for multi-proof verification scoring.
+//
+// One VerificationProof row per (request, proofType). The unique index
+// on (requestId, proofType) prevents a user from stacking three copies
+// of the same proof type to game the auto-approve threshold — they have
+// to bring three DIFFERENT pieces of evidence.
+//
+// Open-ended only as needed: stay narrow so the scoring logic stays
+// deterministic. New entries are cheap to add (one enum value + a
+// derivation branch in src/lib/verification-proofs.ts) but every entry
+// must have a clear "what does PASSED mean for this proof" rule.
+enum ProofType {
+  SCHOOL_EMAIL          // .edu email, code-verified
+  STUDENT_ID            // student/alumni ID photo
+  ROSTER_PAGE           // roster URL or roster screenshot
+  ATHLETICS_PROFILE     // 247 / On3 / NCSA / MaxPreps / official athletics
+  ENROLLMENT_PORTAL     // school directory / catalog screenshot or link
+  PARENT_GUARDIAN_DOC   // proof linking the parent to a verified athlete/student
+  PAYMENT_VERIFICATION  // active paid subscription on the account
+  PRIOR_APPROVED_CONNECTION  // at least one APPROVED athlete/student connection
+  LINKEDIN              // public LinkedIn profile cross-check
+  HUDL                  // public Hudl profile cross-check
+  GENERAL_PROOF         // catch-all proofUrl (recruit visit, offer letter, etc.)
+}
+
+// Per-proof lifecycle. Distinct from VerificationRequestStatus (which
+// describes the parent submission's overall position in the admin queue).
+//
+//   PENDING         : freshly created, no evaluation yet
+//   PASSED          : meets the proof's "what counts" rule + no fraud risk
+//   REVIEW_REQUIRED : present but fraud screen flagged the upload
+//   FAILED          : present but disqualified (e.g. wrong format, denied
+//                     hash, broken link); kept as a distinct value so
+//                     admins can spot a failed proof vs an un-submitted one
+enum ProofStatus {
+  PENDING
+  PASSED
+  REVIEW_REQUIRED
+  FAILED
 }
 
 // Per-request lifecycle for VerificationRequest. Distinct from User.verificationStatus
@@ -474,7 +545,9 @@ model User {
   favorites            Favorite[]
   verificationRequests VerificationRequest[]
   emailCodes           EmailVerificationCode[]
+  imageFraudChecks     ImageFraudCheck[]
   subscription         Subscription?
+  subscriptionEvents   SubscriptionEvent[]
   athleteConnections   AthleteProgramConnection[]
   studentConnections   StudentUniversityConnection[]
 
@@ -621,6 +694,9 @@ model VerificationToken {
 
 model Subscription {
   id                   String             @id @default(cuid())
+  // `@unique` here is the schema-level guarantee that a user can never
+  // hold two concurrent rows — i.e. "no duplicate active subscriptions"
+  // is enforced by Postgres, not just by application logic.
   userId               String             @unique
   stripeCustomerId     String
   stripeSubscriptionId String             @unique
@@ -636,7 +712,45 @@ model Subscription {
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  events SubscriptionEvent[]
+}
+
+// Append-only audit log of every meaningful subscription state change.
+// Distinct from AdminActionLog because the actors here are usually the
+// END USER or Stripe itself (webhook events), not an admin. Used to:
+//   - render a billing history on the account settings page
+//   - debug "why was this user charged / lost access" tickets
+//   - compute retention metrics
+//
+// One row per emitted event. Never updated — corrections go in as a new
+// row with metadata pointing at the prior one.
+model SubscriptionEvent {
+  id             String             @id @default(cuid())
+  userId         String
+  // Soft FK by id rather than required relation so we can keep history
+  // even if the underlying Subscription row is later replaced (e.g. user
+  // re-subscribes and the row gets a new stripeSubscriptionId).
+  subscriptionId String?
+  // Free-form key so we can extend without a migration. Canonical values
+  // live in src/lib/audit-log.ts under SUBSCRIPTION_*.
+  eventType      String
+  status         SubscriptionStatus
+  cancelAtPeriodEnd Boolean?
+  periodEnd      DateTime?
+  // Who/what triggered the row. "user" for explicit cancel/reactivate
+  // clicks, "stripe_webhook" for Stripe-driven transitions, "admin" for
+  // admin-portal overrides.
+  source         String
+  metadata       Json?
+  createdAt      DateTime           @default(now())
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([subscriptionId, createdAt])
+  @@index([eventType, createdAt])
 }
 
 // ---------------------------------------------------------------------------
@@ -743,6 +857,27 @@ model University {
   websiteUrl       String?
   athleticsWebsite String?
   housingUrl       String?
+
+  // ---- Visual theme (slightly adjusted, "inspired by" school identity) ----
+  // All optional. Resolution order in src/lib/theme/university-theme.ts:
+  //   1. The explicit hex on this row (admin-editable, ground truth)
+  //   2. A platform-curated "inspired by" entry keyed by `name`
+  //   3. The neutral platform default
+  //
+  // Hex strings, "#RRGGBB" form. We don't persist a palette object because
+  // a CSS-variable theme only needs scalars at render time; computed
+  // derivatives (alpha, contrast text) live in the resolver.
+  //
+  // Legal note: any seeded "inspired by" values are intentionally OFFSET
+  // from a school's official brand hexes — close enough for recognition,
+  // distinct enough that we're not redistributing the published brand
+  // guide. See scripts/seed-university-themes.ts and the disclaimer in
+  // src/components/SiteFooter.tsx.
+  primaryColor   String?
+  secondaryColor String?
+  accentColor    String?
+  gradientFrom   String?
+  gradientTo     String?
 
   // Public-data source tracking
   sourceUrl      String?
@@ -1063,13 +1198,120 @@ model VerificationRequest {
   // Anti-fake counter — bumped on each retry by this same user.
   attemptNumber  Int @default(1)
 
+  // AI/fraud screen result (denormalized for fast admin-queue filtering).
+  // - fraudStatus / fraudScore: worst-case across this request's uploads;
+  //   the per-image rows live in ImageFraudCheck (one per URL).
+  // - fraudCheckedAt: timestamp of the most recent screen. NULL means a
+  //   pre-fraud-system row (legacy) or that no images were attached.
+  //
+  // A non-CLEAR score never auto-grants the role — admins still review.
+  // The score is only used to (a) auto-block obvious DENIED uploads
+  // before they enter the queue and (b) prioritize/highlight rows for
+  // human review. Full provider details + reason strings stay on the
+  // ImageFraudCheck rows (admins drill in from the queue).
+  fraudStatus      FraudStatus?
+  fraudScore       Int?
+  fraudCheckedAt   DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  proofs VerificationProof[]
 
   @@index([status, createdAt])
   @@index([userId])
+  @@index([fraudStatus])
+}
+
+// Per-proof scoring row for a VerificationRequest. Lets the multi-proof
+// auto-approval logic count individual evidence items independently
+// instead of trying to derive everything from the parent request's URL
+// fields on every read.
+//
+// AUTO-APPROVE RULE (src/lib/verification-proofs.ts):
+//   - If 3 or more proofs reach PASSED on submit, the request bypasses
+//     the manual queue and the user's role + verificationStatus flip
+//     immediately. Admins can still review the row in the audit log /
+//     queue history; the auto-approval just doesn't make them act.
+//   - REVIEW_REQUIRED proofs do NOT count toward the threshold — they
+//     hold the request in the manual queue. This is the "any high-risk
+//     fraud blocks auto-approve" rule from the spec.
+//   - The unique(requestId, proofType) constraint stops a user from
+//     submitting 3 of the same proof type to game the count.
+model VerificationProof {
+  id          String       @id @default(cuid())
+  requestId   String
+  proofType   ProofType
+  status      ProofStatus  @default(PENDING)
+  // Per-proof fraud screen mirror (populated when this proof maps to an
+  // uploaded image). Independent from the parent request's denormalized
+  // fraudStatus so the admin UI can highlight which SPECIFIC proof
+  // tripped the screen.
+  fraudStatus FraudStatus?
+  fraudScore  Int?
+  // Free-form admin note attached to this individual proof — e.g.
+  // "roster URL points to a personal blog, not the official site."
+  adminNotes  String?      @db.Text
+  checkedAt   DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  request VerificationRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@unique([requestId, proofType])
+  @@index([requestId, status])
+  @@index([proofType, status])
+}
+
+// Append-only per-image fraud screen result. One row per uploaded URL on
+// a verification request OR a connection request. Polymorphic via
+// (targetType, targetId) — mirrors the AdminActionLog pattern — so we
+// don't have to add a new FK for every consumer.
+//
+// Key fields:
+//   - imageHash: SHA-256 of the fetched image bytes. Unique-indexed so a
+//     previously-DENIED image is instantly rejected on re-upload without
+//     calling the provider again.
+//   - status / score / reasons: provider output, bucketed at write time
+//     so admin filters don't need to recompute.
+//   - provider: which backend produced the result. "noop" when no API key
+//     is configured — that path always returns REVIEW_REQUIRED so the
+//     dev app stays functional, but admins know to treat the score as
+//     un-screened (NOT as a clean pass).
+//
+// Never deleted; the dedup lookup depends on history. Bytes themselves
+// are not stored — only the hash + the original upload URL the user
+// already provided. Keeps the schema privacy-conscious.
+model ImageFraudCheck {
+  id          String      @id @default(cuid())
+  userId      String
+  imageUrl    String
+  imageHash   String      @unique
+  // String free-form so a future producer (e.g. group-post screening)
+  // can add a new target type without a migration. Canonical values:
+  //   "verification" | "athlete_connection" | "student_connection"
+  targetType  String
+  // Cuid pointing at the target row. Nullable because pre-creation
+  // screening can run before the parent row exists (we backfill once
+  // the parent is inserted, in the same transaction).
+  targetId    String?
+  status      FraudStatus
+  // 0-100. Provider-normalized. Bucket boundaries in
+  // src/lib/verification-fraud.ts.
+  score       Int
+  // Provider-emitted labels (e.g. "ai_generated", "blurry",
+  // "manipulated_screenshot", "ocr_text_mismatch"). Kept as a string
+  // array — no enum — so we never have to migrate to add a new label.
+  reasons     String[]
+  provider    String
+  createdAt   DateTime    @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([targetType, targetId])
+  @@index([status, createdAt])
 }
 
 // One-time email codes used by the student/parent verification flows.

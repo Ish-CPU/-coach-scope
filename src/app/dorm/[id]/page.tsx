@@ -15,6 +15,8 @@ import { AdSlot } from "@/components/AdSlot";
 import { UpgradePrompt } from "@/components/UpgradePrompt";
 import { ReviewType } from "@prisma/client";
 import { ANONYMITY_DISCLAIMER } from "@/lib/anonymous";
+import { UniversityThemeScope } from "@/components/theme/UniversityThemeScope";
+import { UniversityHero } from "@/components/theme/UniversityHero";
 
 export const dynamic = "force-dynamic";
 
@@ -58,8 +60,13 @@ export default async function DormProfilePage({ params, searchParams }: PageProp
   const sorted = defaultReviewSort(visible);
   const buildHref = buildHrefBuilder(`/dorm/${dorm.id}`, searchParams);
 
+  // Dorm pages inherit the *parent university's* theme so a Stanford dorm
+  // and the Stanford university page feel like one product surface.
+  // `variant="soft"` keeps the dorm hero quieter than the parent's full-
+  // gradient hero — they shouldn't compete visually when a user clicks
+  // through from one to the other.
   return (
-    <div className="container-page py-8">
+    <UniversityThemeScope university={dorm.university} className="container-page py-8">
       <nav className="mb-3 text-xs text-slate-500">
         <Link href="/search?kind=dorm" className="hover:underline">Dorms</Link>
         <span className="mx-1">/</span>
@@ -70,19 +77,21 @@ export default async function DormProfilePage({ params, searchParams }: PageProp
         <span className="text-slate-700">{dorm.name}</span>
       </nav>
 
-      <header className="card flex flex-wrap items-start justify-between gap-4 p-6">
-        <div className="min-w-0">
-          <h1 className="text-2xl font-bold text-slate-900">{dorm.name}</h1>
-          <div className="mt-1 text-sm text-slate-600">{dorm.university.name}</div>
-          {dorm.description && <p className="mt-3 max-w-2xl text-sm text-slate-700">{dorm.description}</p>}
-        </div>
-        <div className="flex flex-col items-end gap-3">
-          <GradeBadge rating={overall} reviewCount={dorm.reviews.length} size="lg" />
-          <Link href={`/review/new?type=DORM&dormId=${dorm.id}`} className="btn-primary">
+      <UniversityHero
+        variant="soft"
+        title={dorm.name}
+        eyebrow={`Dorm · ${dorm.university.name}`}
+        subtitle={dorm.description ?? undefined}
+        actions={<GradeBadge rating={overall} reviewCount={dorm.reviews.length} size="lg" />}
+        footer={
+          <Link
+            href={`/review/new?type=DORM&dormId=${dorm.id}`}
+            className="btn-primary text-sm"
+          >
             Review this dorm
           </Link>
-        </div>
-      </header>
+        }
+      />
 
       <div className="mt-6">
         <RatingSummary overall={overall} reviewCount={dorm.reviews.length} categories={categories} />
@@ -132,6 +141,6 @@ export default async function DormProfilePage({ params, searchParams }: PageProp
         )}
         <div className="rounded-xl bg-slate-50 p-4 text-xs text-slate-500">{ANONYMITY_DISCLAIMER}</div>
       </section>
-    </div>
+    </UniversityThemeScope>
   );
 }

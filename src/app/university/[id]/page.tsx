@@ -16,6 +16,8 @@ import { UpgradePrompt } from "@/components/UpgradePrompt";
 import { ReviewType } from "@prisma/client";
 import { ANONYMITY_DISCLAIMER } from "@/lib/anonymous";
 import { divisionLabel } from "@/lib/division";
+import { UniversityThemeScope } from "@/components/theme/UniversityThemeScope";
+import { UniversityHero } from "@/components/theme/UniversityHero";
 
 export const dynamic = "force-dynamic";
 
@@ -84,29 +86,48 @@ export default async function UniversityProfilePage({ params, searchParams }: Pa
   const sorted = defaultReviewSort(visible);
   const buildHref = buildHrefBuilder(`/university/${uni.id}`, searchParams);
 
+  // Theme scope wraps the whole page so the gradient hero AND any themed
+  // accents lower in the page (sport-filter pills, program cards, etc.)
+  // share the same `--theme-*` variables. Falls back to the platform
+  // default if the row has neither explicit hex fields nor an
+  // inspired-by table entry.
   return (
-    <div className="container-page py-8">
+    <UniversityThemeScope university={uni} className="container-page py-8">
       <nav className="mb-3 text-xs text-slate-500">
         <Link href="/search?kind=university" className="hover:underline">Universities</Link>
         <span className="mx-1">/</span>
         <span className="text-slate-700">{uni.name}</span>
       </nav>
 
-      <header className="card flex flex-wrap items-start justify-between gap-4 p-6">
-        <div className="min-w-0">
-          <h1 className="text-2xl font-bold text-slate-900">{uni.name}</h1>
-          <div className="mt-1 text-sm text-slate-600">
+      <UniversityHero
+        title={uni.name}
+        eyebrow={
+          [
+            "University",
+            uni.level ? divisionLabel(uni.level) : null,
+            uni.conference,
+          ]
+            .filter(Boolean)
+            .join(" · ") || undefined
+        }
+        subtitle={
+          <>
             {[uni.city, uni.state].filter(Boolean).join(", ")}
-          </div>
-          {uni.description && <p className="mt-3 max-w-2xl text-sm text-slate-700">{uni.description}</p>}
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Link href={`/review/new?type=UNIVERSITY&universityId=${uni.id}`} className="btn-primary">
-              Review this university
-            </Link>
-          </div>
-        </div>
-        <GradeBadge rating={overall} reviewCount={uni.reviews.length} size="lg" />
-      </header>
+            {uni.description && (
+              <span className="mt-2 block max-w-2xl opacity-90">{uni.description}</span>
+            )}
+          </>
+        }
+        actions={<GradeBadge rating={overall} reviewCount={uni.reviews.length} size="lg" />}
+        footer={
+          <Link
+            href={`/review/new?type=UNIVERSITY&universityId=${uni.id}`}
+            className="inline-flex items-center rounded-lg bg-white/15 px-4 py-2 text-sm font-semibold backdrop-blur transition hover:bg-white/25"
+          >
+            Review this university
+          </Link>
+        }
+      />
 
       <div className="mt-6">
         <RatingSummary overall={overall} reviewCount={uni.reviews.length} categories={categories} />
@@ -303,7 +324,7 @@ export default async function UniversityProfilePage({ params, searchParams }: Pa
           </div>
         </aside>
       </section>
-    </div>
+    </UniversityThemeScope>
   );
 }
 

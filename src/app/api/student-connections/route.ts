@@ -6,6 +6,11 @@ import { rateLimit } from "@/lib/rate-limit";
 import { isSafeHttpUrl } from "@/lib/safe-url";
 import { sendConnectionRequestEmail } from "@/lib/email/notifications";
 import {
+  screenMultiple,
+  FRAUD_USER_FACING_MESSAGE,
+} from "@/lib/verification-fraud";
+import { FraudStatus } from "@prisma/client";
+import {
   StudentConnectionStatus,
   StudentConnectionType,
   UserRole,
@@ -94,6 +99,22 @@ export async function POST(req: Request) {
   });
   if (!university) {
     return NextResponse.json({ error: "Unknown university." }, { status: 400 });
+  }
+
+  // AI/fraud screen on the proof uploads BEFORE any DB writes. See
+  // /api/verification + /api/connections for the rationale — same
+  // pattern: DENIED short-circuits with a generic user-facing message,
+  // CLEAR / REVIEW_REQUIRED proceed and the admin still has the final
+  // say. `schoolEmail` is not screened (no image bytes to hash); admin
+  // approval continues to gate access for student-trusted roles.
+  const fraud = await screenMultiple({
+    userId: session.user.id,
+    urls: [data.studentIdUrl || null, data.proofUrl || null],
+    targetType: "student_connection",
+    targetId: null,
+  });
+  if (fraud?.status === FraudStatus.DENIED) {
+    return NextResponse.json({ error: FRAUD_USER_FACING_MESSAGE }, { status: 422 });
   }
 
   // Same upsert-on-unique-key pattern as athlete connections.

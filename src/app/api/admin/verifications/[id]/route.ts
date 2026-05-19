@@ -5,13 +5,11 @@ import { getSession, isAdmin } from "@/lib/permissions";
 import { canApproveVerifications } from "@/lib/admin-permissions";
 import { AUDIT_ACTIONS, logAdminAction } from "@/lib/audit-log";
 import {
-  AthleteConnectionStatus,
-  AthleteConnectionType,
   UserRole,
   VerificationRequestStatus,
   VerificationStatus,
 } from "@prisma/client";
-import { weightForRole } from "@/lib/review-weighting";
+import { applyVerificationApproval } from "@/lib/verification-approval";
 
 const schema = z.object({
   // "needs_more_info" pings the user to add more evidence without
@@ -70,44 +68,16 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       break;
   }
 
-  // Resolve the post-approval role. We only ever promote — never demote —
-  // and the promotion paths are explicit:
-  //   1. Free VIEWER → whatever role they verified for (initial signup
-  //      after checkout, existing behavior).
-  //   2. VERIFIED_RECRUIT → VERIFIED_ATHLETE / VERIFIED_ATHLETE_ALUMNI
-  //      when the request's targetRole reflects an upgrade. This is the
-  //      bridge that lets a recruit become a current athlete on the same
-  //      account without re-signing up — prior reviews, RECRUITED_BY
-  //      connections, and subscription all stay attached.
-  // Anything else keeps the current role.
-  let newRole = request.user.role;
+  // Pre-compute `isUpgrade` only for the audit-log metadata below.
+  // All the role-flip + auto-connect logic now lives in the shared
+  // helper, which the auto-approval path also calls — keeps both
+  // entry points in lockstep so a future change to "what happens on
+  // approval" can't diverge between manual and auto.
   const isUpgrade =
     approving &&
     request.user.role === UserRole.VERIFIED_RECRUIT &&
     (request.targetRole === UserRole.VERIFIED_ATHLETE ||
       request.targetRole === UserRole.VERIFIED_ATHLETE_ALUMNI);
-
-  if (
-    approving &&
-    request.user.role === UserRole.VIEWER &&
-    request.targetRole !== UserRole.VIEWER &&
-    request.targetRole !== UserRole.ADMIN
-  ) {
-    newRole = request.targetRole;
-  } else if (isUpgrade) {
-    newRole = request.targetRole;
-  }
-
-  // For recruit-to-athlete upgrades we additionally auto-create an
-  // APPROVED insider connection from the request's sport + university
-  // fields so the upgraded user doesn't have to repeat the connection
-  // dance. CURRENT_ATHLETE for promotions to VERIFIED_ATHLETE,
-  // ATHLETE_ALUMNI for transfer recruits landing in the alumni surface.
-  // Only fires when we can resolve the university to a real row.
-  const connectionType =
-    request.targetRole === UserRole.VERIFIED_ATHLETE_ALUMNI
-      ? AthleteConnectionType.ATHLETE_ALUMNI
-      : AthleteConnectionType.CURRENT_ATHLETE;
 
   await prisma.$transaction(async (tx) => {
     await tx.verificationRequest.update({
@@ -122,86 +92,34 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         rejectionReason: approving ? null : parsed.data.rejectionReason ?? null,
       },
     });
-    await tx.user.update({
-      where: { id: request.userId },
-      data: { verificationStatus: nextUserStatus, role: newRole },
-    });
 
-    if (approving && newRole !== request.user.role) {
-      await tx.review.updateMany({
-        where: { authorId: request.userId },
-        data: { weight: weightForRole(newRole) },
+    if (approving) {
+      // Role flip + review weight refresh + recruit upgrade auto-connect
+      // all happen inside the helper. Pass the admin id as the actor so
+      // the auto-connect's reviewedBy / note attributes the action to a
+      // human rather than the multi-proof auto-approval path.
+      await applyVerificationApproval(
+        tx,
+        {
+          id: request.id,
+          userId: request.userId,
+          targetRole: request.targetRole,
+          sport: request.sport,
+          universityId: request.universityId,
+          universityName: request.universityName,
+          schoolId: request.schoolId,
+          rosterUrl: request.rosterUrl,
+          user: { role: request.user.role },
+        },
+        { actorUserId: session!.user.id }
+      );
+    } else {
+      // Reject + needs_more_info paths only touch the user's
+      // verificationStatus — role + connections are unchanged.
+      await tx.user.update({
+        where: { id: request.userId },
+        data: { verificationStatus: nextUserStatus },
       });
-    }
-
-    // Upgrade auto-connect — best-effort. If the request named a real
-    // university we'll seed an APPROVED insider AthleteProgramConnection
-    // so the user immediately unlocks coach + program reviews for that
-    // school. We never overwrite a pre-existing row (unique key on
-    // userId+universityId+sport+connectionType ensures that).
-    if (isUpgrade && request.sport) {
-      // Resolve the university two ways, in priority order:
-      //   1. `request.universityId` — set by the shared combobox at
-      //      submit time. Cheapest + most reliable.
-      //   2. `request.universityName` — fuzzy case-insensitive match
-      //      against the University.name column. Covers legacy rows
-      //      that pre-date the combobox + any free-form text entry.
-      let uni: {
-        id: string;
-        schools: { id: string; sport: string }[];
-      } | null = null;
-      if (request.universityId) {
-        uni = await tx.university.findUnique({
-          where: { id: request.universityId },
-          select: { id: true, schools: { select: { id: true, sport: true } } },
-        });
-      }
-      if (!uni && request.universityName) {
-        uni = await tx.university.findFirst({
-          where: { name: { equals: request.universityName, mode: "insensitive" } },
-          select: { id: true, schools: { select: { id: true, sport: true } } },
-        });
-      }
-      if (uni) {
-        const matchingSchool =
-          // Prefer the explicit schoolId from the submission, then fall
-          // back to a (uni, sport) lookup on the just-fetched program list.
-          (request.schoolId &&
-            uni.schools.find((s) => s.id === request.schoolId)) ||
-          uni.schools.find(
-            (s) => s.sport.toLowerCase() === request.sport!.toLowerCase()
-          );
-        await tx.athleteProgramConnection.upsert({
-          where: {
-            userId_universityId_sport_connectionType: {
-              userId: request.userId,
-              universityId: uni.id,
-              sport: request.sport,
-              connectionType,
-            },
-          },
-          create: {
-            userId: request.userId,
-            universityId: uni.id,
-            schoolId: matchingSchool?.id ?? null,
-            sport: request.sport,
-            connectionType,
-            status: AthleteConnectionStatus.APPROVED,
-            reviewedAt: new Date(),
-            reviewedBy: session!.user.id,
-            notes: `Auto-created on recruit→athlete upgrade (verification request ${request.id}).`,
-            rosterUrl: request.rosterUrl,
-          },
-          update: {
-            // If a PENDING row already exists for the same target,
-            // promote it to APPROVED rather than create a duplicate.
-            status: AthleteConnectionStatus.APPROVED,
-            reviewedAt: new Date(),
-            reviewedBy: session!.user.id,
-            schoolId: matchingSchool?.id ?? undefined,
-          },
-        });
-      }
     }
   });
 
@@ -221,8 +139,41 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       priorRole: request.user.role,
       isUpgrade,
       rejectionReason: parsed.data.rejectionReason ?? null,
+      fraudStatus: request.fraudStatus ?? null,
+      fraudScore: request.fraudScore ?? null,
     },
   });
+
+  // Separately log an admin override entry when the admin's decision
+  // diverged from the fraud model's recommendation. Helps us audit how
+  // often humans approve REVIEW_REQUIRED rows (false-positive rate) and
+  // how often they reject CLEAR rows (false-negative rate) — both feed
+  // back into provider tuning. CLEAR + approve / DENIED + reject are
+  // "agreement" cases and don't log.
+  const fraud = request.fraudStatus;
+  const overrideKind =
+    fraud === "REVIEW_REQUIRED" && approving
+      ? "approved_review_required"
+      : fraud === "REVIEW_REQUIRED" && action === "reject"
+        ? "rejected_review_required"
+        : fraud === "CLEAR" && action === "reject"
+          ? "rejected_clear"
+          : null;
+  if (overrideKind) {
+    await logAdminAction({
+      actorUserId: session!.user.id,
+      action: AUDIT_ACTIONS.AI_FRAUD_ADMIN_OVERRIDE,
+      targetType: "VerificationRequest",
+      targetId: request.id,
+      metadata: {
+        userId: request.userId,
+        overrideKind,
+        fraudStatus: fraud,
+        fraudScore: request.fraudScore ?? null,
+        adminAction: action,
+      },
+    });
+  }
 
   return NextResponse.json({ ok: true, status: nextRequestStatus, upgraded: isUpgrade });
 }

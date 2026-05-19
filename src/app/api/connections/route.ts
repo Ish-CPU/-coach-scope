@@ -7,6 +7,11 @@ import { rateLimit } from "@/lib/rate-limit";
 import { isSafeHttpUrl } from "@/lib/safe-url";
 import { sendConnectionRequestEmail } from "@/lib/email/notifications";
 import {
+  screenMultiple,
+  FRAUD_USER_FACING_MESSAGE,
+} from "@/lib/verification-fraud";
+import { FraudStatus } from "@prisma/client";
+import {
   AthleteConnectionStatus,
   AthleteConnectionType,
   UserRole,
@@ -148,6 +153,21 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+  }
+
+  // AI/fraud screen on the proof uploads BEFORE we touch the DB.
+  // Mirrors the verification submit flow — DENIED short-circuits with the
+  // generic user-facing message, REVIEW_REQUIRED and CLEAR both proceed
+  // (the admin still has to approve the connection regardless of fraud
+  // score; CLEAR just removes one fraud-driven warning from the admin UI).
+  const fraud = await screenMultiple({
+    userId: session.user.id,
+    urls: [data.rosterUrl || null, data.recruitingProofUrl || null],
+    targetType: "athlete_connection",
+    targetId: null,
+  });
+  if (fraud?.status === FraudStatus.DENIED) {
+    return NextResponse.json({ error: FRAUD_USER_FACING_MESSAGE }, { status: 422 });
   }
 
   // Block duplicates by upserting on the unique key

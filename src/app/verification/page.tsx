@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/Badge";
+import { MULTI_PROOF_USER_MESSAGE } from "@/lib/verification-proofs";
 import { AthleteVerificationForm } from "@/components/verification/AthleteVerificationForm";
 import { EmailCodeVerificationForm } from "@/components/verification/EmailCodeVerificationForm";
 import { StudentIdUploadForm } from "@/components/verification/StudentIdUploadForm";
@@ -49,6 +50,16 @@ export default async function VerificationPage() {
           What we ask for depends on your role. Verification keeps reviews honest by ensuring
           every contributor is who they claim to be.
         </p>
+
+        {/* Multi-proof auto-approval hint. Surfaced verbatim from
+            src/lib/verification-proofs.ts so the threshold copy lives in
+            one place — change MULTI_PROOF_USER_MESSAGE there and every
+            surface updates together. Intentionally generic: we never
+            tell the user which proofs count or what their fraud scores
+            are, to avoid handing fraudsters a playbook. */}
+        <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+          {MULTI_PROOF_USER_MESSAGE}
+        </div>
 
         <div className="mt-4 flex items-center gap-2 text-sm">
           <span>Current status:</span>

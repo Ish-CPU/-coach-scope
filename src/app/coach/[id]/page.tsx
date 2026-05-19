@@ -16,6 +16,8 @@ import { UpgradePrompt } from "@/components/UpgradePrompt";
 import { ReviewType } from "@prisma/client";
 import { ANONYMITY_DISCLAIMER } from "@/lib/anonymous";
 import { divisionLabel } from "@/lib/division";
+import { UniversityThemeScope } from "@/components/theme/UniversityThemeScope";
+import { UniversityHero } from "@/components/theme/UniversityHero";
 
 export const dynamic = "force-dynamic";
 
@@ -62,8 +64,15 @@ export default async function CoachProfilePage({ params, searchParams }: PagePro
   const sorted = defaultReviewSort(visible);
   const buildHref = buildHrefBuilder(`/coach/${coach.id}`, searchParams);
 
+  // Coach pages adopt the parent university's theme — they belong to that
+  // school's program, so the visual identity matches the university page.
+  // `variant="full"` reads as the most athletic / cinematic of the three
+  // hero treatments, which suits the coach-profile context.
   return (
-    <div className="container-page py-8">
+    <UniversityThemeScope
+      university={coach.school.university}
+      className="container-page py-8"
+    >
       <nav className="mb-3 text-xs text-slate-500">
         <Link href="/search?kind=coach" className="hover:underline">Coaches</Link>
         <span className="mx-1">/</span>
@@ -74,44 +83,41 @@ export default async function CoachProfilePage({ params, searchParams }: PagePro
         <span className="text-slate-700">{coach.name}</span>
       </nav>
 
-      <header className="card flex flex-col gap-5 p-6 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0 flex-1">
-          <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">{coach.name}</h1>
-          <div className="mt-1 text-sm text-slate-600">
-            {coach.title ?? "Coach"} ·{" "}
+      <UniversityHero
+        title={coach.name}
+        eyebrow={
+          [
+            coach.title ?? "Coach",
+            coach.school.sport,
+            divisionLabel(coach.school.division),
+            coach.school.conference ?? coach.school.university.conference,
+          ]
+            .filter(Boolean)
+            .join(" · ")
+        }
+        subtitle={
+          <>
             <Link
               href={`/university/${coach.school.universityId}`}
-              className="font-medium text-slate-700 hover:text-slate-900 hover:underline"
+              className="underline-offset-2 hover:underline"
             >
               {coach.school.university.name}
             </Link>
-          </div>
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            <ProgramChip>{coach.school.sport}</ProgramChip>
-            <ProgramChip>{divisionLabel(coach.school.division)}</ProgramChip>
-            {(coach.school.conference ?? coach.school.university.conference) && (
-              <ProgramChip>
-                {coach.school.conference ?? coach.school.university.conference}
-              </ProgramChip>
+            {coach.bio && (
+              <span className="mt-2 block max-w-2xl opacity-90">{coach.bio}</span>
             )}
-            {coach.school.university.state && (
-              <ProgramChip>{coach.school.university.state}</ProgramChip>
-            )}
-          </div>
-          {coach.bio && (
-            <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-700">{coach.bio}</p>
-          )}
-        </div>
-        <div className="flex flex-row items-center gap-4 sm:flex-col sm:items-end sm:gap-3">
-          <GradeBadge rating={overall} reviewCount={coach.reviews.length} size="lg" />
+          </>
+        }
+        actions={<GradeBadge rating={overall} reviewCount={coach.reviews.length} size="lg" />}
+        footer={
           <Link
             href={`/review/new?type=COACH&coachId=${coach.id}`}
-            className="btn-primary whitespace-nowrap"
+            className="inline-flex items-center rounded-lg bg-white/15 px-4 py-2 text-sm font-semibold backdrop-blur transition hover:bg-white/25"
           >
             Write a review
           </Link>
-        </div>
-      </header>
+        }
+      />
 
       <div className="mt-6">
         <RatingSummary overall={overall} reviewCount={coach.reviews.length} categories={categories} />
@@ -187,7 +193,7 @@ export default async function CoachProfilePage({ params, searchParams }: PagePro
           review. Report any harassment, threats, or false claims.
         </div>
       </section>
-    </div>
+    </UniversityThemeScope>
   );
 }
 
