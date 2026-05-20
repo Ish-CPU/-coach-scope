@@ -3,6 +3,7 @@ import "./globals.css";
 import { Providers } from "@/components/Providers";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
+import { LegalReacceptanceGate } from "@/components/legal/LegalReacceptanceGate";
 import { assertProductionEnv } from "@/lib/env";
 
 // Boot-time env validation. Runs once per server process. In production this
@@ -53,6 +54,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <SiteHeader />
           <main className="flex-1">{children}</main>
           <SiteFooter />
+          {/* Blocking modal that fires when a signed-in user's stored
+              TOS / Privacy version is stale (we bumped the constants
+              after they last accepted). Renders nothing otherwise.
+              See src/lib/legal-versions.ts. */}
+          <LegalReacceptanceGate />
         </Providers>
       </body>
     </html>

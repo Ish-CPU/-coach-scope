@@ -36,6 +36,8 @@ export function SiteFooter() {
             <li><Link href="/dashboard">Dashboard</Link></li>
             <li><Link href="/verification">Get verified</Link></li>
             <li><Link href="/guidelines">Community guidelines</Link></li>
+            <li><Link href="/legal/terms">Terms of Service</Link></li>
+            <li><Link href="/legal/privacy">Privacy Policy</Link></li>
           </ul>
         </div>
       </div>

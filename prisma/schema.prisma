@@ -489,6 +489,19 @@ model User {
   graduationYear       Int?
   lastRosterSeason     Int?
 
+  // --- Legal consent tracking (TOS + Privacy Policy acceptance) ---
+  // Stored at sign-up and refreshed via the re-acceptance flow whenever
+  // the versioned documents change. See src/lib/legal-versions.ts for
+  // CURRENT_TERMS_VERSION and CURRENT_PRIVACY_VERSION constants.
+  //   - `<doc>AcceptedAt` — UTC timestamp of acceptance
+  //   - `<doc>AcceptedVersion` — exact version string they agreed to
+  // Both are null for accounts created before this column landed; those
+  // users see the re-acceptance modal on next sign-in.
+  termsAcceptedAt        DateTime?
+  termsAcceptedVersion   String?
+  privacyAcceptedAt      DateTime?
+  privacyAcceptedVersion String?
+
   // --- Admin / master-admin fields (null for normal users) ---
   // Lifecycle state. Set when the user is promoted/created as an admin.
   adminStatus          AdminStatus?

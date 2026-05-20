@@ -486,36 +486,160 @@ class NoopProvider implements FraudProvider {
 }
 
 /**
- * Stub for Hive Moderation's AI-generated-image detector. Wire the real
- * API call inside `screen()` when HIVE_API_KEY is provisioned. Until
- * then, behaves like the noop provider but tags rows with provider
- * name "hive_stub" so we can tell the staging-flag-only rollout from a
- * fully-unconfigured environment.
+ * Real Hive Moderation provider — AI-generated image detection.
  *
- * Reference shape (subject to current Hive docs at integration time):
+ * Uses Hive's sync visual moderation endpoint:
  *   POST https://api.thehive.ai/api/v2/task/sync
  *   Authorization: token <HIVE_API_KEY>
- *   form-data: media=<bytes>
- *   response.status_code → bucketize based on the AI-classifier output
+ *   body: multipart/form-data with `media`=<bytes>
+ *
+ * Response (per Hive's documented shape — see
+ * https://docs.thehive.ai/reference/post_api-v2-task-sync):
+ *   {
+ *     "status": [{
+ *       "response": {
+ *         "output": [{
+ *           "classes": [
+ *             { "class": "ai_generated", "score": 0.99 },
+ *             { "class": "not_ai_generated", "score": 0.01 }
+ *           ]
+ *         }]
+ *       }
+ *     }]
+ *   }
+ *
+ * Mapping (matches the project brief — DENIED never auto-rejects user;
+ * REVIEW just adds friction to admin queue):
+ *   ai_generated ≥ 0.85  → DENIED        (high-confidence synthetic)
+ *   ai_generated ≥ 0.40  → REVIEW_REQUIRED
+ *   ai_generated <  0.40 → CLEAR
+ *
+ * Defensive rules from the FraudProvider contract:
+ *   - NEVER throws on network/parse errors — returns REVIEW_REQUIRED
+ *     with a structured `provider_error` reason instead so the
+ *     orchestrator can persist + audit it.
+ *   - PDFs and unknown MIME types skip Hive (it accepts images only)
+ *     and force REVIEW_REQUIRED — admin reviews all docs by hand.
  */
-class HiveProviderStub implements FraudProvider {
-  readonly name = "hive_stub";
+class HiveProvider implements FraudProvider {
+  readonly name = "hive";
   constructor(private readonly apiKey: string) {}
-  async screen(): Promise<Omit<FraudResult, "provider">> {
-    // Intentionally returns REVIEW until real integration is wired.
-    // Implementer: replace this body with the actual HTTP call and
-    // map response.classes[].score (0-1) to a 0-100 suspicion.
-    return {
-      status: FraudStatus.REVIEW_REQUIRED,
-      score: 55,
-      reasons: ["hive_stub_pending_integration"],
-    };
+
+  async screen(input: {
+    url: string;
+    bytes: Buffer;
+    mimeType: string | null;
+  }): Promise<Omit<FraudResult, "provider">> {
+    // Hive's visual moderation accepts images, not PDFs. Force PDFs to
+    // human review rather than attempting a doomed API call.
+    const mime = (input.mimeType ?? "").toLowerCase();
+    if (!mime.startsWith("image/")) {
+      return {
+        status: FraudStatus.REVIEW_REQUIRED,
+        score: 50,
+        reasons: ["non_image_skip_hive"],
+      };
+    }
+
+    // 10s timeout matches the existing fetch timeout for image bytes —
+    // every prior step in the screen has a budget; Hive shouldn't blow
+    // past it. We swallow timeouts into REVIEW_REQUIRED below.
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), 10_000);
+
+    try {
+      // Wrap the Buffer into a Blob so Node's fetch FormData accepts it.
+      const blob = new Blob([new Uint8Array(input.bytes)], { type: mime });
+      const fd = new FormData();
+      fd.append("media", blob, "upload");
+
+      const res = await fetch("https://api.thehive.ai/api/v2/task/sync", {
+        method: "POST",
+        headers: { Authorization: `token ${this.apiKey}` },
+        body: fd,
+        signal: ctl.signal,
+      });
+
+      if (!res.ok) {
+        return {
+          status: FraudStatus.REVIEW_REQUIRED,
+          score: 50,
+          reasons: [`provider_error:hive_${res.status}`],
+        };
+      }
+
+      const json = (await res.json()) as unknown;
+      const aiScore = extractHiveAiScore(json);
+      if (aiScore == null) {
+        return {
+          status: FraudStatus.REVIEW_REQUIRED,
+          score: 50,
+          reasons: ["provider_error:hive_unparseable"],
+        };
+      }
+
+      const score = Math.round(aiScore * 100);
+      let status: FraudStatus;
+      const reasons: string[] = [`ai_generated:${aiScore.toFixed(2)}`];
+      if (aiScore >= 0.85) {
+        status = FraudStatus.DENIED;
+        reasons.push("high_confidence_synthetic");
+      } else if (aiScore >= 0.4) {
+        status = FraudStatus.REVIEW_REQUIRED;
+        reasons.push("borderline_synthetic");
+      } else {
+        status = FraudStatus.CLEAR;
+      }
+      return { status, score, reasons };
+    } catch (err) {
+      const reason =
+        err instanceof Error && err.name === "AbortError"
+          ? "provider_error:hive_timeout"
+          : "provider_error:hive_network";
+      return {
+        status: FraudStatus.REVIEW_REQUIRED,
+        score: 50,
+        reasons: [reason],
+      };
+    } finally {
+      clearTimeout(timer);
+    }
   }
+
   /** Surface that the API key is configured so `resolveProvider` can pick us. */
-  static fromEnv(): HiveProviderStub | null {
+  static fromEnv(): HiveProvider | null {
     const k = process.env.HIVE_API_KEY;
-    return k ? new HiveProviderStub(k) : null;
+    return k ? new HiveProvider(k) : null;
   }
+}
+
+/**
+ * Pluck the `ai_generated` class score from Hive's nested response
+ * envelope. Defensive — every step in the path can be missing or be
+ * the wrong type. Returns null when the score can't be found; callers
+ * treat that as a parse failure.
+ */
+function extractHiveAiScore(payload: unknown): number | null {
+  if (!payload || typeof payload !== "object") return null;
+  const status = (payload as { status?: unknown }).status;
+  if (!Array.isArray(status) || status.length === 0) return null;
+  const first = status[0];
+  if (!first || typeof first !== "object") return null;
+  const output = (first as { response?: { output?: unknown } }).response?.output;
+  if (!Array.isArray(output) || output.length === 0) return null;
+  const classes = (output[0] as { classes?: unknown }).classes;
+  if (!Array.isArray(classes)) return null;
+  for (const c of classes) {
+    if (
+      c &&
+      typeof c === "object" &&
+      (c as { class?: string }).class === "ai_generated" &&
+      typeof (c as { score?: unknown }).score === "number"
+    ) {
+      return (c as { score: number }).score;
+    }
+  }
+  return null;
 }
 
 /**
@@ -527,9 +651,9 @@ class HiveProviderStub implements FraudProvider {
  */
 function resolveProvider(): FraudProvider {
   return (
-    HiveProviderStub.fromEnv() ??
-    // Add SensityProviderStub.fromEnv(), RealityDefenderProviderStub.fromEnv(),
-    // GoogleVisionOcrProviderStub.fromEnv(), AwsRekognitionProviderStub.fromEnv()
+    HiveProvider.fromEnv() ??
+    // Add SensityProvider.fromEnv(), RealityDefenderProvider.fromEnv(),
+    // GoogleVisionOcrProvider.fromEnv(), AwsRekognitionProvider.fromEnv()
     // here as they're integrated.
     new NoopProvider()
   );

@@ -80,6 +80,11 @@ export const AUDIT_ACTIONS = {
   //   - investigate after the fact when a fraudulent account slips through
   //     this path specifically vs. through manual approval
   VERIFICATION_AUTO_APPROVED_THREE_PROOFS: "verification.auto_approved_three_proofs",
+  // Legal acceptance — fired at sign-up and again whenever a user
+  // re-accepts after a version bump. Metadata carries the exact
+  // version strings + source (signup / re-acceptance) for compliance
+  // history. Actor is the user themselves, not an admin.
+  LEGAL_TERMS_ACCEPTED: "legal.terms_accepted",
 } as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];

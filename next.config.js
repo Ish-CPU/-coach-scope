@@ -34,7 +34,9 @@ const CSP = [
   "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://*.vercel-scripts.com",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
-  "connect-src 'self' https://api.stripe.com https://*.stripe.com https://api.resend.com",
+  // Sentry's ingest hostname is `<orgId>.ingest.sentry.io` — wildcarded
+  // below so any sub-org works without per-deploy CSP edits.
+  "connect-src 'self' https://api.stripe.com https://*.stripe.com https://api.resend.com https://*.ingest.sentry.io https://*.ingest.us.sentry.io",
   "frame-src https://js.stripe.com https://hooks.stripe.com",
   "worker-src 'self' blob:",
   "manifest-src 'self'",
@@ -82,4 +84,37 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+// ---------------------------------------------------------------------------
+// Sentry wrapper
+// ---------------------------------------------------------------------------
+// withSentryConfig instruments the Next build to upload source maps to
+// Sentry on deploy (so stack traces in the dashboard show readable
+// TypeScript instead of minified output) and injects the SDK at build
+// time. If SENTRY_DSN isn't set we still export the plain config —
+// the wrapper is a no-op without auth tokens.
+const { withSentryConfig } = require("@sentry/nextjs");
+
+const sentryWebpackPluginOptions = {
+  // Sentry organization + project slugs from the Sentry dashboard.
+  // Set as env vars on Vercel + locally so source-map upload works on
+  // every deploy. Without these the build still succeeds; source maps
+  // just aren't uploaded.
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  // Don't dump verbose upload logs to the build output.
+  silent: true,
+  // Skip source-map upload when no auth token is configured (local dev,
+  // first-time setup) so the build doesn't fail trying to authenticate.
+  dryRun: !process.env.SENTRY_AUTH_TOKEN,
+  // Hide source maps from the public bundle. They're uploaded to Sentry
+  // for symbolication but not served to end users.
+  hideSourceMaps: true,
+  // Don't break the build if Sentry's upload fails (network, rate limit).
+  // Bug visibility is nice-to-have; shipping is non-negotiable.
+  errorHandler: (err) => {
+    // eslint-disable-next-line no-console
+    console.warn("[sentry] source-map upload failed (non-fatal):", err.message);
+  },
+};
+
+module.exports = withSentryConfig(nextConfig, sentryWebpackPluginOptions);
