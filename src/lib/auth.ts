@@ -43,8 +43,8 @@ export const authOptions: NextAuthOptions = {
           if (typeof v === "string") headers.set(k, v);
         }
         const ip = clientIpFrom(headers);
-        const ipOk = rateLimitCheck(ip, "auth:signin:ip", { max: 10, windowMs: 5 * 60_000 });
-        const emailOk = rateLimitCheck(email.toLowerCase(), "auth:signin:email", {
+        const ipOk = await rateLimitCheck(ip, "auth:signin:ip", { max: 10, windowMs: 5 * 60_000 });
+        const emailOk = await rateLimitCheck(email.toLowerCase(), "auth:signin:email", {
           max: 5,
           windowMs: 5 * 60_000,
         });

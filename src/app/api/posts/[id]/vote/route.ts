@@ -25,7 +25,7 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
   }
 
   // High burst budget — votes are tiny but spammable; 120/min still feels instant.
-  const limited = rateLimit(req, "post:vote", {
+  const limited = await rateLimit(req, "post:vote", {
     max: 120,
     windowMs: 60_000,
     identifier: session!.user.id,

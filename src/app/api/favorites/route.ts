@@ -23,7 +23,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: describeGate(gate) }, { status: 403 });
   }
 
-  const limited = rateLimit(req, "favorite:toggle", {
+  const limited = await rateLimit(req, "favorite:toggle", {
     max: 60,
     windowMs: 60_000,
     identifier: session!.user.id,

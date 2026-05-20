@@ -6,6 +6,7 @@ import {
   UniversityCombobox,
   type UniversityOption,
 } from "@/components/shared/UniversityCombobox";
+import { FileUploadField } from "@/components/shared/FileUploadField";
 
 const CURRENT_YEAR = new Date().getFullYear();
 
@@ -67,10 +68,12 @@ export function StudentIdUploadForm({ alumni = false }: { alumni?: boolean }) {
     return <div className="card p-4 text-sm text-emerald-800">{done}</div>;
   }
 
-  const idLabel = alumni ? "Student ID / alumni documentation URL" : "Student ID URL";
+  const idLabel = alumni
+    ? "Student ID / alumni documentation"
+    : "Student ID";
   const idHelp = alumni
-    ? "Link to a hosted image of your former student ID, alumni card, diploma, or transcript."
-    : "File upload coming soon — for now paste a public link to a hosted image of your ID.";
+    ? "Upload your former student ID, alumni card, diploma, or transcript. JPG / PNG / PDF, 5MB max."
+    : "Upload a clear image of your student ID. JPG / PNG / PDF, 5MB max.";
 
   return (
     <form onSubmit={submit} className="card space-y-3 p-4">
@@ -92,18 +95,16 @@ export function StudentIdUploadForm({ alumni = false }: { alumni?: boolean }) {
         }}
         required
       />
-      <div>
-        <label className="label">{idLabel}</label>
-        <input
-          className="input"
-          type="url"
-          required
-          value={studentIdUrl}
-          onChange={(e) => setStudentIdUrl(e.target.value)}
-          placeholder="https://…"
-        />
-        <p className="mt-1 text-xs text-slate-500">{idHelp}</p>
-      </div>
+      <FileUploadField
+        kind="verification"
+        label={idLabel}
+        help={idHelp}
+        value={studentIdUrl}
+        onChange={setStudentIdUrl}
+        required
+        disabled={busy}
+      />
+
       {alumni && (
         <div>
           <label className="label">Graduation year <span className="text-slate-400">(optional)</span></label>

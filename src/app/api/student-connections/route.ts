@@ -4,6 +4,17 @@ import { prisma } from "@/lib/prisma";
 import { getSession, isStudentTrustedRole } from "@/lib/permissions";
 import { rateLimit } from "@/lib/rate-limit";
 import { isSafeHttpUrl } from "@/lib/safe-url";
+import { isAcceptableUploadOrUrl } from "@/lib/blob-token";
+
+// See src/app/api/verification/route.ts for the helper's rationale.
+const uploadUrlField = z
+  .string()
+  .optional()
+  .or(z.literal(""))
+  .refine(
+    (v) => !v || isAcceptableUploadOrUrl(v),
+    "Must be a hosted URL or an uploaded file."
+  );
 import { sendConnectionRequestEmail } from "@/lib/email/notifications";
 import {
   screenMultiple,
@@ -30,8 +41,9 @@ const submissionSchema = z.object({
   universityId: z.string().cuid(),
   connectionType: z.nativeEnum(StudentConnectionType),
   schoolEmail: z.string().email().optional().or(z.literal("")),
-  studentIdUrl: z.string().url().optional().or(z.literal("")),
-  proofUrl: z.string().url().optional().or(z.literal("")),
+  // Upload fields — proxy URL from FileUploadField or legacy absolute.
+  studentIdUrl: uploadUrlField,
+  proofUrl: uploadUrlField,
   startYear: z
     .number()
     .int()
@@ -60,7 +72,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const limited = rateLimit(req, "student-connection:create", {
+  const limited = await rateLimit(req, "student-connection:create", {
     max: 20,
     windowMs: 10 * 60_000,
     identifier: session.user.id,

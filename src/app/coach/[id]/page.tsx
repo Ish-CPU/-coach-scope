@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
-import { safe } from "@/lib/safe-query";
+import { getCachedCoachProfile } from "@/lib/cache";
 import { canParticipate, getSession } from "@/lib/permissions";
 import { defaultReviewSort, weightedCategoryAverage, weightedOverall } from "@/lib/review-weighting";
 import { RATING_FIELDS } from "@/lib/review-schemas";
@@ -29,23 +28,9 @@ interface PageProps {
 export default async function CoachProfilePage(props: PageProps) {
   const searchParams = await props.searchParams;
   const params = await props.params;
-  const coach = await safe(
-    () =>
-      prisma.coach.findUnique({
-        where: { id: params.id },
-        include: {
-          school: { include: { university: true } },
-          reviews: {
-            where: { status: "PUBLISHED", moderationStatus: "PUBLISHED" },
-            include: {
-              author: { select: { id: true, name: true, role: true, verificationStatus: true } },
-            },
-          },
-        },
-      }),
-    null,
-    "coach:findUnique"
-  );
+  // Cached at the lib level — see src/lib/cache.ts. Busted on review
+  // mutations via revalidateTag("reviews").
+  const coach = await getCachedCoachProfile(params.id);
   if (!coach) notFound();
 
   const session = await getSession();

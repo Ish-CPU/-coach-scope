@@ -33,7 +33,7 @@ export async function POST(req: Request, props: { params: Promise<{ slug: string
     return NextResponse.json({ error: "Sign in to report." }, { status: 401 });
   }
 
-  const limited = rateLimit(req, "group-post:report", {
+  const limited = await rateLimit(req, "group-post:report", {
     max: 20,
     windowMs: 10 * 60_000,
     identifier: session.user.id,

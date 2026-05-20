@@ -31,13 +31,13 @@ export async function POST(req: Request) {
   }
 
   // Hard ceiling on code-confirm tries — slows brute-forcing the 6-digit code.
-  const userLimited = rateLimit(req, "verification:code:confirm:user", {
+  const userLimited = await rateLimit(req, "verification:code:confirm:user", {
     max: 10,
     windowMs: 15 * 60_000,
     identifier: session.user.id,
   });
   if (userLimited) return userLimited;
-  const ipLimited = rateLimit(req, "verification:code:confirm:ip", {
+  const ipLimited = await rateLimit(req, "verification:code:confirm:ip", {
     max: 30,
     windowMs: 15 * 60_000,
   });

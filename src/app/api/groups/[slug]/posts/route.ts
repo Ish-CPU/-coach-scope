@@ -55,7 +55,7 @@ export async function POST(req: Request, props: { params: Promise<{ slug: string
     );
   }
 
-  const limited = rateLimit(req, "group:post:create", {
+  const limited = await rateLimit(req, "group:post:create", {
     max: 10,
     windowMs: 10 * 60_000,
     identifier: session!.user.id,

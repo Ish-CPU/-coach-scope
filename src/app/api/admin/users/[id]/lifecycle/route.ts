@@ -62,7 +62,7 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
   }
 
   // Slow runaway scripts; the real gate is the admin perm above.
-  const limited = rateLimit(req, "admin:user:lifecycle", {
+  const limited = await rateLimit(req, "admin:user:lifecycle", {
     max: 30,
     windowMs: 60_000,
     identifier: session!.user.id,

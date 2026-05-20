@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
-import { safe } from "@/lib/safe-query";
+import { getCachedUniversityProfile } from "@/lib/cache";
 import { canParticipate, getSession } from "@/lib/permissions";
 import { defaultReviewSort, weightedCategoryAverage, weightedOverall } from "@/lib/review-weighting";
 import { RATING_FIELDS } from "@/lib/review-schemas";
@@ -29,37 +28,9 @@ interface PageProps {
 export default async function UniversityProfilePage(props: PageProps) {
   const searchParams = await props.searchParams;
   const params = await props.params;
-  const uni = await safe(
-    () =>
-      prisma.university.findUnique({
-        where: { id: params.id },
-        include: {
-          schools: {
-            orderBy: { sport: "asc" },
-            include: {
-              coaches: {
-                orderBy: { name: "asc" },
-                include: {
-                  reviews: {
-                    where: { status: "PUBLISHED", moderationStatus: "PUBLISHED" },
-                    select: { overall: true, weight: true },
-                  },
-                },
-              },
-            },
-          },
-          dorms: { orderBy: { name: "asc" } },
-          diningHalls: { orderBy: { name: "asc" } },
-          facilities: { orderBy: { name: "asc" } },
-          reviews: {
-            where: { status: "PUBLISHED", moderationStatus: "PUBLISHED" },
-            include: { author: { select: { id: true, name: true, role: true, verificationStatus: true } } },
-          },
-        },
-      }),
-    null,
-    "university:findUnique"
-  );
+  // Cached at the lib level — see src/lib/cache.ts. Busted on review
+  // mutations via revalidateTag("reviews").
+  const uni = await getCachedUniversityProfile(params.id);
   if (!uni) notFound();
 
   // Optional sport filter from `?sport=Football`. Trimmed + case-insensitive.

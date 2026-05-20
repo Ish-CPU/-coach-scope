@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import {
   canParticipate,
@@ -30,7 +31,7 @@ export async function POST(req: Request) {
   }
 
   // 10 reviews / 10 min per user — well above any honest cadence.
-  const limited = rateLimit(req, "review:create", {
+  const limited = await rateLimit(req, "review:create", {
     max: 10,
     windowMs: 10 * 60_000,
     identifier: session!.user.id,
@@ -250,6 +251,11 @@ export async function POST(req: Request) {
       : risk.moderationStatus === ReviewModerationStatus.PENDING_REVIEW
       ? "Your review was submitted and is pending moderation."
       : "Your review was submitted but flagged for review by an admin before it can be published.";
+
+  // Bust the read cache for every page that aggregates reviews — the new
+  // review affects scores on the related uni / coach / dorm / school
+  // profile, plus may surface in search. See src/lib/cache.ts.
+  revalidateTag("reviews");
 
   return NextResponse.json(
     {

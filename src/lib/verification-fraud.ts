@@ -26,9 +26,11 @@
 //   scaffolded below; they only activate when their env var is set.
 
 import { createHash } from "crypto";
+import { get as blobGet } from "@vercel/blob";
 import { prisma } from "@/lib/prisma";
 import { FraudStatus } from "@prisma/client";
 import { AUDIT_ACTIONS, logAdminAction } from "@/lib/audit-log";
+import { isProxyBlobUrl, resolveProxyBlobUrl } from "@/lib/blob-token";
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -259,11 +261,67 @@ export async function screenAllByUrl(input: {
 // Internal: fetch + hash + dedup
 // ---------------------------------------------------------------------------
 
+/**
+ * Read the bytes of a private blob via the @vercel/blob SDK. Used when
+ * the screened URL is one of our /api/blob/<token> proxy URLs (the only
+ * way to reach a private-store blob server-side).
+ */
+async function fetchPrivateBlob(pathname: string): Promise<FetchResult> {
+  try {
+    const result = await blobGet(pathname, { access: "private" });
+    if (!result || !result.stream) {
+      return { ok: false, reason: "blob_not_found" };
+    }
+    // Enforce the same size cap as the external-fetch path. We read the
+    // stream incrementally so a malicious upload can't OOM the server.
+    const reader = result.stream.getReader();
+    const chunks: Uint8Array[] = [];
+    let total = 0;
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > MAX_FETCH_BYTES) {
+        try {
+          await reader.cancel();
+        } catch {
+          /* ignore */
+        }
+        return { ok: false, reason: "image_too_large" };
+      }
+      chunks.push(value);
+    }
+    return {
+      ok: true,
+      bytes: Buffer.concat(chunks.map((c) => Buffer.from(c))),
+      mimeType:
+        result.headers?.get("content-type") ??
+        result.blob?.contentType ??
+        null,
+    };
+  } catch (err) {
+    const reason = err instanceof Error ? err.message : "blob_fetch_failed";
+    return { ok: false, reason: reason.slice(0, 64) };
+  }
+}
+
 type FetchResult =
   | { ok: true; bytes: Buffer; mimeType: string | null }
   | { ok: false; reason: string };
 
 async function safeFetchImage(url: string): Promise<FetchResult> {
+  // Proxy URLs from the new private-upload flow: the encrypted token
+  // decodes to a PATHNAME (not a URL). We fetch the bytes via the
+  // @vercel/blob SDK's `get()` which authenticates with the server-
+  // side BLOB_READ_WRITE_TOKEN. Plain `fetch()` won't work against a
+  // private blob store.
+  if (isProxyBlobUrl(url)) {
+    const pathname = resolveProxyBlobUrl(url);
+    if (!pathname) return { ok: false, reason: "invalid_proxy_token" };
+    return fetchPrivateBlob(pathname);
+  }
+
+  // Legacy / external URLs (pasted by user): fall through to plain fetch.
   // Lightweight URL validation. Rejecting non-http(s) early avoids the
   // node fetch surprise of throwing on data: / file: URIs.
   try {
@@ -274,11 +332,13 @@ async function safeFetchImage(url: string): Promise<FetchResult> {
   } catch {
     return { ok: false, reason: "invalid_url" };
   }
+  // Plain external fetch path uses `url` directly.
+  const fetchUrl = url;
 
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), FETCH_TIMEOUT_MS);
   try {
-    const res = await fetch(url, { signal: ctl.signal });
+    const res = await fetch(fetchUrl, { signal: ctl.signal });
     if (!res.ok) return { ok: false, reason: `fetch_status_${res.status}` };
     const cl = res.headers.get("content-length");
     if (cl && Number(cl) > MAX_FETCH_BYTES) {

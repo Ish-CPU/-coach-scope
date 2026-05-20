@@ -58,7 +58,7 @@ export async function POST(req: Request, props: { params: Promise<{ slug: string
   }
 
   // Permission check below is the real gate; this just slows runaway scripts.
-  const limited = rateLimit(req, "group:moderators:set", {
+  const limited = await rateLimit(req, "group:moderators:set", {
     max: 30,
     windowMs: 60_000,
     identifier: session.user.id,

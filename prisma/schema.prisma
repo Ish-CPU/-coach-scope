@@ -7,7 +7,15 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  // Runtime URL — pooled (pgbouncer). High concurrency, transaction-mode.
+  // Every page load and API request uses this. Set DATABASE_URL to the
+  // POOLED Neon URL (hostname contains `-pooler`) with `pgbouncer=true`.
+  url       = env("DATABASE_URL")
+  // Migration URL — direct, no pgbouncer. PgBouncer can't run DDL (CREATE
+  // TABLE, ALTER COLUMN, etc.) so `prisma db push`, `prisma migrate`, and
+  // any schema work goes through this URL instead. Set DIRECT_URL to the
+  // direct Neon URL (no `-pooler` in hostname).
+  directUrl = env("DIRECT_URL")
 }
 
 // ---------------------------------------------------------------------------

@@ -8,6 +8,7 @@ import {
   type UniversityOption,
 } from "@/components/shared/UniversityCombobox";
 import { ProgramCombobox } from "@/components/shared/ProgramCombobox";
+import { FileUploadField } from "@/components/shared/FileUploadField";
 
 type Method = "EDU_EMAIL" | "ROSTER_LINK" | "PROOF_UPLOAD";
 
@@ -203,24 +204,19 @@ export function AthleteVerificationForm({ disabled, alumni = false }: Props) {
             </div>
 
             {/* --- Student ID (required for current athletes; required-or-doc for alumni) --- */}
-            <div>
-              <label className="label">
-                {alumni ? "Student ID or alumni documentation URL" : "Student ID URL"}
-              </label>
-              <input
-                className="input"
-                type="url"
-                required={!alumni}
-                value={studentIdUrl}
-                onChange={(e) => setStudentIdUrl(e.target.value)}
-                placeholder="https://… (link to a hosted image of your ID)"
-              />
-              <p className="mt-1 text-xs text-slate-500">
-                {alumni
-                  ? "Link to a hosted image of your former student ID, alumni card, or other school-issued documentation. Image alone is supporting evidence — pair it with a roster URL when possible."
-                  : "Link to a hosted image of your current student ID. Image alone is supporting evidence — pair it with an official roster URL when possible."}
-              </p>
-            </div>
+            <FileUploadField
+              kind="verification"
+              label={alumni ? "Student ID or alumni documentation" : "Student ID"}
+              help={
+                alumni
+                  ? "Upload your former student ID, alumni card, or other school-issued doc. JPG / PNG / PDF, 5MB max."
+                  : "Upload a clear image of your current student ID. JPG / PNG / PDF, 5MB max."
+              }
+              value={studentIdUrl}
+              onChange={setStudentIdUrl}
+              required={!alumni}
+            />
+
 
             {tab === "ROSTER_LINK" && (
               <div>
@@ -241,38 +237,25 @@ export function AthleteVerificationForm({ disabled, alumni = false }: Props) {
             )}
 
             {tab === "PROOF_UPLOAD" && (
-              <div>
-                <label className="label">Supporting proof URL</label>
-                <input
-                  className="input"
-                  type="url"
-                  required
-                  value={proofUrl}
-                  onChange={(e) => setProofUrl(e.target.value)}
-                  placeholder="https://…"
-                />
-                <p className="mt-1 text-xs text-slate-500">
-                  File upload coming soon — for now paste a link to a public image. Manual
-                  uploads are <em>never</em> auto-approved.
-                </p>
-              </div>
+              <FileUploadField
+                kind="verification"
+                label="Supporting proof"
+                help="Upload any supporting image / document — team photo, recruiting letter, NIL contract, etc. Manual uploads are never auto-approved."
+                value={proofUrl}
+                onChange={setProofUrl}
+                required
+              />
             )}
 
             {/* --- Optional supporting screenshot --- */}
-            <div>
-              <label className="label">Roster screenshot URL <span className="text-slate-400">(optional)</span></label>
-              <input
-                className="input"
-                type="url"
-                value={rosterScreenshotUrl}
-                onChange={(e) => setRosterScreenshotUrl(e.target.value)}
-                placeholder="https://… (optional supporting image)"
-              />
-              <p className="mt-1 text-xs text-slate-500">
-                Helpful when a roster page exists but doesn't include your name (e.g. walk-ons).
-                Treated as supporting evidence only.
-              </p>
-            </div>
+            <FileUploadField
+              kind="verification"
+              label="Roster screenshot (optional)"
+              help="Helpful when a roster page exists but doesn't include your name (e.g. walk-ons). Supporting evidence only."
+              value={rosterScreenshotUrl}
+              onChange={setRosterScreenshotUrl}
+            />
+
 
             {/* --- Alumni-only history --- */}
             {alumni && (

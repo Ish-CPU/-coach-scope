@@ -1,4 +1,5 @@
-import { runSearch, type SearchKind } from "@/lib/search";
+import { type SearchKind } from "@/lib/search";
+import { getCachedSearchResults } from "@/lib/cache";
 import { SearchBar } from "@/components/SearchBar";
 import { ResultCard } from "@/components/ResultCard";
 import { LocationFilters } from "@/components/LocationFilters";
@@ -55,7 +56,9 @@ export default async function SearchPage(props: PageProps) {
     limit,
   };
 
-  const hits = await runSearch(filters);
+  // Cached at the lib level — see src/lib/cache.ts. 60s TTL so newly-added
+  // content surfaces quickly without hammering the DB on every keystroke.
+  const hits = await getCachedSearchResults(filters);
   // Heuristic: if we got back exactly `limit` rows, there's probably more
   // to fetch. If fewer, we've reached the end.
   const probablyMore = hits.length >= limit && limit < MAX_PAGE;

@@ -20,6 +20,19 @@ import {
 import { scoreVerification } from "@/lib/verification-confidence";
 import { rateLimit } from "@/lib/rate-limit";
 import { isSafeHttpUrl } from "@/lib/safe-url";
+import { isAcceptableUploadOrUrl } from "@/lib/blob-token";
+
+// Zod fragment for URL fields whose value is EITHER a /api/blob/<token>
+// proxy URL (new file-upload flow) OR an absolute http(s) URL (legacy
+// paste-a-URL flow). Reject anything else.
+const uploadUrlField = z
+  .string()
+  .optional()
+  .or(z.literal(""))
+  .refine(
+    (v) => !v || isAcceptableUploadOrUrl(v),
+    "Must be a hosted URL or an uploaded file."
+  );
 import { sendVerificationRequestEmail } from "@/lib/email/notifications";
 import {
   screenAllByUrl,
@@ -44,8 +57,12 @@ const schema = z.object({
     .enum([UserRole.VERIFIED_ATHLETE, UserRole.VERIFIED_ATHLETE_ALUMNI])
     .optional(),
   eduEmail: z.string().email().optional().or(z.literal("")),
+  // `rosterUrl` is an EXTERNAL athletics URL the user types — must be
+  // absolute. Stays as a strict URL.
   rosterUrl: z.string().url().optional().or(z.literal("")),
-  proofUrl: z.string().url().optional().or(z.literal("")),
+  // `proofUrl` is now the proxy URL from FileUploadField (or, for legacy
+  // pasted-URL submissions, an absolute URL). Accept either.
+  proofUrl: uploadUrlField,
   // Structured athlete / alumni proof fields. Validated per-role below.
   sport: z.string().trim().min(1).max(80).optional(),
   universityName: z.string().trim().min(1).max(140).optional(),
@@ -55,8 +72,11 @@ const schema = z.object({
   // them directly instead of fuzzy-matching universityName.
   universityId: z.string().cuid().optional().or(z.literal("")),
   schoolId: z.string().cuid().optional().or(z.literal("")),
-  studentIdUrl: z.string().url().optional().or(z.literal("")),
-  rosterScreenshotUrl: z.string().url().optional().or(z.literal("")),
+  // Upload fields — accept either an /api/blob/<token> proxy URL from
+  // the new FileUploadField, or a legacy absolute URL pasted in by a
+  // user during the older flow. See src/lib/blob-token.ts.
+  studentIdUrl: uploadUrlField,
+  rosterScreenshotUrl: uploadUrlField,
   gradYear: z.number().int().min(1950).max(2100).optional(),
   playingYears: z.string().trim().max(40).optional(),
   // External profile cross-checks. All optional. Surfaced verbatim on the
@@ -80,7 +100,7 @@ export async function POST(req: Request) {
   void isPaymentVerified;
 
   // Burst protection in addition to the 24h attempt cap below.
-  const limited = rateLimit(req, "verification:submit", {
+  const limited = await rateLimit(req, "verification:submit", {
     max: 10,
     windowMs: 10 * 60_000,
     identifier: session.user.id,

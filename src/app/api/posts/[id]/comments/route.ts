@@ -24,7 +24,7 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
     return NextResponse.json({ error: describeGate(gate) }, { status: 403 });
   }
 
-  const limited = rateLimit(req, "post:comment", {
+  const limited = await rateLimit(req, "post:comment", {
     max: 30,
     windowMs: 10 * 60_000,
     identifier: session!.user.id,

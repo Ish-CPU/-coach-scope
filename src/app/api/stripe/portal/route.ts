@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Sign in required" }, { status: 401 });
   }
 
-  const limited = rateLimit(req, "stripe:portal", {
+  const limited = await rateLimit(req, "stripe:portal", {
     max: 10,
     windowMs: 60 * 60_000,
     identifier: session.user.id,

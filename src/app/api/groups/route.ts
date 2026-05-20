@@ -99,7 +99,7 @@ export async function POST(req: Request) {
   }
 
   // Group creation is heavy + spammable — 5 / hour per user.
-  const limited = rateLimit(req, "group:create", {
+  const limited = await rateLimit(req, "group:create", {
     max: 5,
     windowMs: 60 * 60_000,
     identifier: session!.user.id,

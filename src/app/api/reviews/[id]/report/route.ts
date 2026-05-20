@@ -23,7 +23,7 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
   }
 
   // Reports can be brigaded — cap at 20 / 10min per reporter.
-  const limited = rateLimit(req, "review:report", {
+  const limited = await rateLimit(req, "review:report", {
     max: 20,
     windowMs: 10 * 60_000,
     identifier: session.user.id,

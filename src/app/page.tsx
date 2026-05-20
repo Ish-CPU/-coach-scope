@@ -2,16 +2,17 @@ import Link from "next/link";
 import { SearchBar } from "@/components/SearchBar";
 import { AdSlot } from "@/components/AdSlot";
 import { ResultCard } from "@/components/ResultCard";
-import { runSearch } from "@/lib/search";
+import { getCachedSearchResults } from "@/lib/cache";
 import { safe } from "@/lib/safe-query";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  // runSearch already returns [] on per-query failure, but wrap defensively
-  // so the homepage never bubbles a DB error to the global error boundary.
+  // Cached at the lib level — see src/lib/cache.ts. Trending hits are
+  // expensive (cross-table search) but rarely-changing, so the homepage
+  // benefits hugely from caching this on every visit.
   const trending = await safe(
-    () => runSearch({ kind: "all", limit: 6 }),
+    () => getCachedSearchResults({ kind: "all", limit: 6 }),
     [],
     "home:trending"
   );

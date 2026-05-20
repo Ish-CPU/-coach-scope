@@ -48,7 +48,7 @@ export async function POST(req: Request, props: { params: Promise<{ slug: string
 
   // Soft cap to slow runaway mod tools / scripted abuse. Real auth + permission
   // gate below is the actual security boundary.
-  const limited = rateLimit(req, "group:post:moderate", {
+  const limited = await rateLimit(req, "group:post:moderate", {
     max: 60,
     windowMs: 60_000,
     identifier: session.user.id,

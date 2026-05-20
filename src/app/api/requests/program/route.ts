@@ -58,7 +58,7 @@ export async function POST(req: Request) {
   // 5 submissions per IP per 10 minutes. Generous for a real human; punishing
   // for a script. Identifier is IP because submissions are anonymous.
   const ip = clientIpFrom(req);
-  const limited = rateLimit(req, "request:program", {
+  const limited = await rateLimit(req, "request:program", {
     max: 5,
     windowMs: 10 * 60_000,
     identifier: ip,

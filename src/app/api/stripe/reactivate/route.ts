@@ -23,7 +23,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Sign in required" }, { status: 401 });
   }
 
-  const limited = rateLimit(req, "stripe:reactivate", {
+  const limited = await rateLimit(req, "stripe:reactivate", {
     max: 10,
     windowMs: 60 * 60_000,
     identifier: session.user.id,

@@ -7,6 +7,7 @@ import {
   type UniversityOption,
 } from "@/components/shared/UniversityCombobox";
 import { ProgramCombobox } from "@/components/shared/ProgramCombobox";
+import { FileUploadField } from "@/components/shared/FileUploadField";
 
 interface Props {
   disabled: boolean;
@@ -167,22 +168,13 @@ export function RecruitVerificationForm({ disabled }: Props) {
         </div>
 
         <div>
-          <label className="label">
-            Recruiting proof URL{" "}
-            <span className="text-slate-400">
-              (visit confirmation / camp invite / DM screenshot / offer / questionnaire)
-            </span>
-          </label>
-          <input
-            className="input"
-            type="url"
+          <FileUploadField
+            kind="verification"
+            label="Recruiting proof"
+            help="Visit confirmation, camp invite, DM screenshot, offer letter, or questionnaire. JPG / PNG / PDF, 5MB max."
             value={proofUrl}
-            onChange={(e) => setProofUrl(e.target.value)}
-            placeholder="https://… link to a hosted image / document"
+            onChange={setProofUrl}
           />
-          <p className="mt-1 text-[11px] text-slate-500">
-            Use any public host — admins only need a link they can open.
-          </p>
         </div>
 
         <div>
@@ -199,19 +191,14 @@ export function RecruitVerificationForm({ disabled }: Props) {
           />
         </div>
 
-        <div>
-          <label className="label">
-            Additional proof URL{" "}
-            <span className="text-slate-400">(optional, second source)</span>
-          </label>
-          <input
-            className="input"
-            type="url"
-            value={secondaryProofUrl}
-            onChange={(e) => setSecondaryProofUrl(e.target.value)}
-            placeholder="https://… anything that helps the admin verify"
-          />
-        </div>
+        <FileUploadField
+          kind="verification"
+          label="Additional proof (optional)"
+          help="A second source if you have one — bumps your confidence score."
+          value={secondaryProofUrl}
+          onChange={setSecondaryProofUrl}
+        />
+
 
         <div className="grid gap-3 sm:grid-cols-2">
           <div>

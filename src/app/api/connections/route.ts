@@ -5,6 +5,18 @@ import { getSession } from "@/lib/permissions";
 import { isAthleteTrustedRole, isRecruitRole } from "@/lib/permissions";
 import { rateLimit } from "@/lib/rate-limit";
 import { isSafeHttpUrl } from "@/lib/safe-url";
+import { isAcceptableUploadOrUrl } from "@/lib/blob-token";
+
+// See src/app/api/verification/route.ts for the same helper's rationale —
+// accepts a /api/blob/<token> proxy URL or a legacy absolute URL.
+const uploadUrlField = z
+  .string()
+  .optional()
+  .or(z.literal(""))
+  .refine(
+    (v) => !v || isAcceptableUploadOrUrl(v),
+    "Must be a hosted URL or an uploaded file."
+  );
 import { sendConnectionRequestEmail } from "@/lib/email/notifications";
 import {
   screenMultiple,
@@ -34,8 +46,10 @@ const submissionSchema = z.object({
   schoolId: z.string().cuid().optional(),
   sport: z.string().trim().min(1).max(80),
   connectionType: z.nativeEnum(AthleteConnectionType),
+  // `rosterUrl` is an EXTERNAL athletics URL (typed by user) — strict.
   rosterUrl: z.string().url().optional().or(z.literal("")),
-  recruitingProofUrl: z.string().url().optional().or(z.literal("")),
+  // `recruitingProofUrl` comes from FileUploadField — proxy or absolute.
+  recruitingProofUrl: uploadUrlField,
   startYear: z
     .number()
     .int()
@@ -70,7 +84,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const limited = rateLimit(req, "connection:create", {
+  const limited = await rateLimit(req, "connection:create", {
     max: 20,
     windowMs: 10 * 60_000,
     identifier: session.user.id,

@@ -7,6 +7,7 @@ import {
   UniversityCombobox,
   type UniversityOption,
 } from "@/components/shared/UniversityCombobox";
+import { FileUploadField } from "@/components/shared/FileUploadField";
 
 const TYPE_LABELS: Record<StudentConnectionType, string> = {
   CURRENT_STUDENT: "Current student",
@@ -161,37 +162,32 @@ export function StudentConnectionForm() {
             placeholder="you@university.edu"
           />
         </div>
-        <div>
-          <label className="label">
-            Student ID URL <span className="text-slate-400">(optional)</span>
-          </label>
-          <input
-            className="input"
-            type="url"
-            value={studentIdUrl}
-            onChange={(e) => setStudentIdUrl(e.target.value)}
-            placeholder="https://… (link to a hosted image of your ID)"
-          />
-        </div>
+        <FileUploadField
+          kind="connection"
+          label="Student ID (optional)"
+          help="Upload a clear image. JPG / PNG / PDF, 5MB max."
+          value={studentIdUrl}
+          onChange={setStudentIdUrl}
+        />
+
       </div>
 
-      <div>
-        <label className="label">
-          {isAdmissionsContext ? "Admissions / visit proof URL" : "Other proof URL"}{" "}
-          <span className="text-slate-400">(optional)</span>
-        </label>
-        <input
-          className="input"
-          type="url"
-          value={proofUrl}
-          onChange={(e) => setProofUrl(e.target.value)}
-          placeholder={
-            isAdmissionsContext
-              ? "Acceptance letter, tour confirmation email, financial aid letter…"
-              : "https://… any supporting evidence (transcript, diploma, etc.)"
-          }
-        />
-      </div>
+      <FileUploadField
+        kind="connection"
+        label={
+          isAdmissionsContext
+            ? "Admissions / visit proof (optional)"
+            : "Other proof (optional)"
+        }
+        help={
+          isAdmissionsContext
+            ? "Acceptance letter, tour confirmation email, financial aid letter."
+            : "Any supporting evidence — transcript, diploma, etc."
+        }
+        value={proofUrl}
+        onChange={setProofUrl}
+      />
+
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div>

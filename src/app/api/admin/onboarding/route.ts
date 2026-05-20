@@ -32,7 +32,7 @@ const schema = z.object({
 
 export async function POST(req: Request) {
   // Loose burst protection — onboarding shouldn't be hammered.
-  const limited = rateLimit(req, "admin:onboarding", {
+  const limited = await rateLimit(req, "admin:onboarding", {
     max: 10,
     windowMs: 10 * 60_000,
   });

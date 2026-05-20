@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSession, isAdmin } from "@/lib/permissions";
@@ -129,6 +130,11 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
       authorId: review.authorId,
     },
   });
+
+  // Moderation can flip a review from PENDING_REVIEW → PUBLISHED (or
+  // REMOVED), changing what's visible on the related profile pages.
+  // Bust the cached aggregates so the change shows up immediately.
+  revalidateTag("reviews");
 
   return NextResponse.json({ ok: true, moderationStatus: nextModeration });
 }

@@ -30,13 +30,13 @@ export async function POST(req: Request) {
 
   // Limit code requests both per user (5/15min) and per IP (20/hr) to slow
   // any account-takeover style enumeration of email codes.
-  const userLimited = rateLimit(req, "verification:code:request:user", {
+  const userLimited = await rateLimit(req, "verification:code:request:user", {
     max: 5,
     windowMs: 15 * 60_000,
     identifier: session.user.id,
   });
   if (userLimited) return userLimited;
-  const ipLimited = rateLimit(req, "verification:code:request:ip", {
+  const ipLimited = await rateLimit(req, "verification:code:request:ip", {
     max: 20,
     windowMs: 60 * 60_000,
   });

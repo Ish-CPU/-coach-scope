@@ -30,7 +30,7 @@ export async function POST(req: Request) {
   }
 
   // Cap rapid-fire checkout attempts per user.
-  const limited = rateLimit(req, "stripe:checkout", {
+  const limited = await rateLimit(req, "stripe:checkout", {
     max: 10,
     windowMs: 60 * 60_000,
     identifier: session.user.id,

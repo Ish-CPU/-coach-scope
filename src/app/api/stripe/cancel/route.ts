@@ -32,7 +32,7 @@ export async function POST(req: Request) {
 
   // Tight per-user limit. Even a determined user shouldn't be calling
   // cancel/reactivate more than a handful of times an hour.
-  const limited = rateLimit(req, "stripe:cancel", {
+  const limited = await rateLimit(req, "stripe:cancel", {
     max: 10,
     windowMs: 60 * 60_000,
     identifier: session.user.id,

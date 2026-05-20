@@ -7,6 +7,7 @@ import {
   UniversityCombobox,
   type UniversityOption,
 } from "@/components/shared/UniversityCombobox";
+import { FileUploadField } from "@/components/shared/FileUploadField";
 
 const TYPE_LABELS: Record<AthleteConnectionType, string> = {
   CURRENT_ATHLETE: "Current athlete",
@@ -253,23 +254,18 @@ export function ConnectionForm({
             placeholder="https://athletics.school.edu/roster/your-name"
           />
         </div>
-        <div>
-          <label className="label">
-            {isRecruiting ? "Recruiting proof URL" : "Other proof URL"}{" "}
-            <span className="text-slate-400">(optional)</span>
-          </label>
-          <input
-            className="input"
-            type="url"
-            value={recruitingProofUrl}
-            onChange={(e) => setRecruitingProofUrl(e.target.value)}
-            placeholder={
-              isRecruiting
-                ? "Coach email screenshot, offer letter, NLI image…"
-                : "https://… any supporting evidence"
-            }
-          />
-        </div>
+        <FileUploadField
+          kind="connection"
+          label={isRecruiting ? "Recruiting proof (optional)" : "Other proof (optional)"}
+          help={
+            isRecruiting
+              ? "Coach email screenshot, offer letter, NLI image — anything that supports the recruiting story."
+              : "Any supporting evidence."
+          }
+          value={recruitingProofUrl}
+          onChange={setRecruitingProofUrl}
+        />
+
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">

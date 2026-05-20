@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
-import { safe } from "@/lib/safe-query";
+import { getCachedDormProfile } from "@/lib/cache";
 import { canParticipate, getSession } from "@/lib/permissions";
 import { defaultReviewSort, weightedCategoryAverage, weightedOverall } from "@/lib/review-weighting";
 import { RATING_FIELDS } from "@/lib/review-schemas";
@@ -28,21 +27,9 @@ interface PageProps {
 export default async function DormProfilePage(props: PageProps) {
   const searchParams = await props.searchParams;
   const params = await props.params;
-  const dorm = await safe(
-    () =>
-      prisma.dorm.findUnique({
-        where: { id: params.id },
-        include: {
-          university: true,
-          reviews: {
-            where: { status: "PUBLISHED", moderationStatus: "PUBLISHED" },
-            include: { author: { select: { id: true, name: true, role: true, verificationStatus: true } } },
-          },
-        },
-      }),
-    null,
-    "dorm:findUnique"
-  );
+  // Cached at the lib level — see src/lib/cache.ts. Busted on review
+  // mutations via revalidateTag("reviews").
+  const dorm = await getCachedDormProfile(params.id);
   if (!dorm) notFound();
 
   const session = await getSession();

@@ -33,7 +33,7 @@ export async function POST(req: Request) {
   }
 
   // 10 role-change attempts per 10 min per user — well above any honest pace.
-  const limited = rateLimit(req, "onboarding:role", {
+  const limited = await rateLimit(req, "onboarding:role", {
     max: 10,
     windowMs: 10 * 60_000,
     identifier: session.user.id,

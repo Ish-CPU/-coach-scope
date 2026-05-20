@@ -18,7 +18,7 @@ const schema = z.object({
  */
 export async function POST(req: Request) {
   // 5 sign-ups per 5 minutes per IP — slows enumeration + bot floods.
-  const limited = rateLimit(req, "auth:register", { max: 5, windowMs: 5 * 60_000 });
+  const limited = await rateLimit(req, "auth:register", { max: 5, windowMs: 5 * 60_000 });
   if (limited) return limited;
 
   let body: unknown;

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
-import { safe } from "@/lib/safe-query";
+import { getCachedSchoolProfile } from "@/lib/cache";
 import { canParticipate, getSession } from "@/lib/permissions";
 import {
   defaultReviewSort,
@@ -31,35 +30,9 @@ interface PageProps {
 export default async function SchoolProgramPage(props: PageProps) {
   const searchParams = await props.searchParams;
   const params = await props.params;
-  const school = await safe(
-    () =>
-      prisma.school.findUnique({
-        where: { id: params.id },
-        include: {
-          university: true,
-          coaches: {
-            orderBy: { name: "asc" },
-            include: {
-              // We only need the overall + weight for rollup math here —
-              // the JSON ratings blob isn't required for the per-coach badge.
-              reviews: {
-                where: { status: "PUBLISHED", moderationStatus: "PUBLISHED" },
-                select: { overall: true, weight: true },
-              },
-            },
-          },
-          // Reviews of the PROGRAM itself (not the individual coaches).
-          reviews: {
-            where: { status: "PUBLISHED", moderationStatus: "PUBLISHED" },
-            include: {
-              author: { select: { id: true, name: true, role: true, verificationStatus: true } },
-            },
-          },
-        },
-      }),
-    null,
-    "school:findUnique"
-  );
+  // Cached at the lib level — see src/lib/cache.ts. Busted on review
+  // mutations via revalidateTag("reviews").
+  const school = await getCachedSchoolProfile(params.id);
   if (!school) notFound();
 
   const session = await getSession();

@@ -7,6 +7,7 @@ import {
   type UniversityOption,
 } from "@/components/shared/UniversityCombobox";
 import { ProgramCombobox } from "@/components/shared/ProgramCombobox";
+import { FileUploadField } from "@/components/shared/FileUploadField";
 
 /**
  * Recruit → Athlete upgrade form.
@@ -196,34 +197,22 @@ export function RecruitUpgradeForm({ disabled }: Props) {
           />
         </div>
 
-        <div>
-          <label className="label">
-            Student ID URL{" "}
-            <span className="text-slate-400">
-              (hosted image — link only, do not upload here)
-            </span>
-          </label>
-          <input
-            className="input"
-            type="url"
-            value={studentIdUrl}
-            onChange={(e) => setStudentIdUrl(e.target.value)}
-            placeholder="https://… link to a hosted image"
-          />
-        </div>
+        <FileUploadField
+          kind="verification"
+          label="Student ID"
+          help="Upload your current student ID at the new school. JPG / PNG / PDF, 5MB max."
+          value={studentIdUrl}
+          onChange={setStudentIdUrl}
+        />
 
-        <div>
-          <label className="label">
-            Additional proof URL <span className="text-slate-400">(optional)</span>
-          </label>
-          <input
-            className="input"
-            type="url"
-            value={proofUrl}
-            onChange={(e) => setProofUrl(e.target.value)}
-            placeholder="https://… NLI image, athletic-aid letter, anything supporting"
-          />
-        </div>
+        <FileUploadField
+          kind="verification"
+          label="Additional proof (optional)"
+          help="NLI image, athletic-aid letter, or anything else supporting the upgrade."
+          value={proofUrl}
+          onChange={setProofUrl}
+        />
+
 
         <div className="grid gap-3 sm:grid-cols-2">
           <div>

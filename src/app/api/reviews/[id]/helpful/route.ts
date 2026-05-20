@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { canParticipate, describeGate, getSession, whyCannotParticipate } from "@/lib/permissions";
 import { rateLimit } from "@/lib/rate-limit";
@@ -11,7 +12,7 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
     return NextResponse.json({ error: describeGate(gate) }, { status: 403 });
   }
 
-  const limited = rateLimit(req, "review:helpful", {
+  const limited = await rateLimit(req, "review:helpful", {
     max: 60,
     windowMs: 60_000,
     identifier: session!.user.id,
@@ -37,8 +38,13 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
         data: { helpfulCount: { decrement: 1 } },
       }),
     ]);
+    // Vote toggled off — review's helpfulCount changed, profile cards
+    // showing this review want the fresh number. See src/lib/cache.ts.
+    revalidateTag("reviews");
     return NextResponse.json({ toggled: "off" });
   }
 
+  // Vote toggled on — same reason as above.
+  revalidateTag("reviews");
   return NextResponse.json({ toggled: "on" });
 }

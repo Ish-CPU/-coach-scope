@@ -28,7 +28,7 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
     return NextResponse.json({ error: "Sign in to report." }, { status: 401 });
   }
 
-  const limited = rateLimit(req, "group-comment:report", {
+  const limited = await rateLimit(req, "group-comment:report", {
     max: 20,
     windowMs: 10 * 60_000,
     identifier: session.user.id,
