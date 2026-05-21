@@ -203,9 +203,37 @@ export default function PricingPage() {
       <div className="mx-auto mt-10 max-w-5xl">
         {/* Step 1: choose a role */}
         <section className="card p-6">
-          <div className="flex items-baseline justify-between">
+          <div className="flex flex-wrap items-baseline justify-between gap-3">
             <h2 className="text-lg font-semibold">1. Choose your role</h2>
-            <span className="text-xs text-slate-500">Required before checkout</span>
+            {/* Inline interval toggle — moved up so the prices on each
+                role card below reflect whichever cadence the user has in
+                mind. The canonical control still lives below in Step 2;
+                this toggle and that one share the same React state. */}
+            <div className="flex items-center gap-2 text-xs">
+              <span className="text-slate-500">Show prices as:</span>
+              <div className="inline-flex rounded-full border border-slate-200 bg-slate-50 p-0.5">
+                {(["MONTHLY", "YEARLY"] as Interval[]).map((i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => setInterval(i)}
+                    className={cn(
+                      "rounded-full px-2.5 py-0.5 font-medium transition",
+                      interval === i
+                        ? "bg-white text-slate-900 shadow-sm"
+                        : "text-slate-600 hover:text-slate-900"
+                    )}
+                  >
+                    {PLANS[i].label}
+                    {i === "YEARLY" && (
+                      <span className="ml-1 rounded-full bg-emerald-100 px-1 py-0.5 text-[9px] font-semibold text-emerald-800">
+                        save ~22%
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             {ROLES.map((r) => (
@@ -237,6 +265,26 @@ export default function PricingPage() {
                       )}
                     </div>
                     <h3 className="mt-2 text-base font-semibold text-slate-900">{r.title}</h3>
+                    {/* Price line — visible up-front so users see what
+                        they're paying without scrolling. Updates with
+                        the inline interval toggle above. Free tier
+                        renders a distinct "Free forever" line so it
+                        still anchors the column visually. */}
+                    {r.isFree ? (
+                      <div className="mt-2 flex items-baseline gap-1">
+                        <span className="text-xl font-bold text-emerald-700">Free</span>
+                        <span className="text-xs text-emerald-700/80">forever</span>
+                      </div>
+                    ) : (
+                      <div className="mt-2 flex items-baseline gap-1">
+                        <span className="text-xl font-bold text-slate-900">
+                          {PLANS[interval].price}
+                        </span>
+                        <span className="text-xs text-slate-500">
+                          {PLANS[interval].cadence}
+                        </span>
+                      </div>
+                    )}
                     <p className="mt-1 text-xs text-slate-500">
                       {r.value === "OTHER"
                         ? "Read-only spectator. No subscription, no verification."
