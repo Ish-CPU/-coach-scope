@@ -52,7 +52,9 @@ function SignInInner() {
         </form>
         <div className="mt-4 text-sm text-slate-600">
           Don't have an account?{" "}
-          <Link href="/sign-up" className="text-brand-700 hover:underline">Sign up</Link>
+          {/* Routes to /pricing first — tier selection precedes account
+              creation. See src/app/pricing/page.tsx + src/app/sign-up/page.tsx. */}
+          <Link href="/pricing" className="text-brand-700 hover:underline">Sign up</Link>
         </div>
       </div>
     </div>

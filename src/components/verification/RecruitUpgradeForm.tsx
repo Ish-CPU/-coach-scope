@@ -8,6 +8,10 @@ import {
 } from "@/components/shared/UniversityCombobox";
 import { ProgramCombobox } from "@/components/shared/ProgramCombobox";
 import { FileUploadField } from "@/components/shared/FileUploadField";
+import {
+  getVerificationErrorMessage,
+  getNetworkErrorMessage,
+} from "@/lib/verification-errors";
 
 /**
  * Recruit → Athlete upgrade form.
@@ -74,27 +78,35 @@ export function RecruitUpgradeForm({ disabled }: Props) {
       sport,
       universityName,
     });
-    const res = await fetch("/api/verification", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        method: "PROOF_UPLOAD",
-        targetRole,
-        sport,
-        universityName,
-        universityId: universityId || undefined,
-        schoolId: schoolId || undefined,
-        rosterUrl: rosterUrl || undefined,
-        studentIdUrl: studentIdUrl || undefined,
-        proofUrl: proofUrl || undefined,
-        gradYear: gradYear ? Number(gradYear) : undefined,
-        notes: notes || undefined,
-      }),
-    });
+    let res: Response;
+    try {
+      res = await fetch("/api/verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          method: "PROOF_UPLOAD",
+          targetRole,
+          sport,
+          universityName,
+          universityId: universityId || undefined,
+          schoolId: schoolId || undefined,
+          rosterUrl: rosterUrl || undefined,
+          studentIdUrl: studentIdUrl || undefined,
+          proofUrl: proofUrl || undefined,
+          gradYear: gradYear ? Number(gradYear) : undefined,
+          notes: notes || undefined,
+        }),
+      });
+    } catch {
+      setBusy(false);
+      setError(getNetworkErrorMessage());
+      return;
+    }
     const j = await res.json().catch(() => ({}));
     setBusy(false);
     if (!res.ok) {
-      setError(typeof j.error === "string" ? j.error : "Could not submit.");
+      // Safe user-facing error via shared helper.
+      setError(getVerificationErrorMessage(j));
       return;
     }
     setDone(

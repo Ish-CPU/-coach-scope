@@ -9,6 +9,10 @@ import {
 } from "@/components/shared/UniversityCombobox";
 import { ProgramCombobox } from "@/components/shared/ProgramCombobox";
 import { FileUploadField } from "@/components/shared/FileUploadField";
+import {
+  getVerificationErrorMessage,
+  getNetworkErrorMessage,
+} from "@/lib/verification-errors";
 
 type Method = "EDU_EMAIL" | "ROSTER_LINK" | "PROOF_UPLOAD";
 
@@ -93,7 +97,9 @@ export function AthleteVerificationForm({ disabled, alumni = false }: Props) {
       sport,
       universityName,
     });
-    const res = await fetch("/api/verification", {
+    let res: Response;
+    try {
+      res = await fetch("/api/verification", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -114,11 +120,18 @@ export function AthleteVerificationForm({ disabled, alumni = false }: Props) {
         schoolDirectoryUrl: schoolDirectoryUrl || undefined,
         notes,
       }),
-    });
-    const j = await res.json();
+      });
+    } catch {
+      setBusy(false);
+      setError(getNetworkErrorMessage());
+      return;
+    }
+    const j = await res.json().catch(() => ({}));
     setBusy(false);
     if (!res.ok) {
-      setError(typeof j.error === "string" ? j.error : "Could not submit.");
+      // Safe user-facing message via shared helper — never echoes
+      // Zod field-paths or fraud-provider internals.
+      setError(getVerificationErrorMessage(j));
       return;
     }
     setDone(j.note ?? "Submitted for review.");

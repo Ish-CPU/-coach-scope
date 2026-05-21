@@ -55,7 +55,11 @@ export function SiteHeader() {
           ) : (
             <>
               <Link href="/sign-in" className="btn-ghost text-sm">Sign in</Link>
-              <Link href="/sign-up" className="btn-primary text-sm">Get started</Link>
+              {/* "Get started" routes to /pricing — the canonical entry
+                  point. Users pick a tier (paid or free Other) BEFORE
+                  creating an account, so the resulting sign-up knows
+                  which role to assign + whether to start Stripe checkout. */}
+              <Link href="/pricing" className="btn-primary text-sm">Get started</Link>
             </>
           )}
         </div>

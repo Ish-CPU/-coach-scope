@@ -66,14 +66,36 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Admin accounts can't change role here." }, { status: 403 });
   }
 
-  // Reset verification when switching to a new participation role so the
-  // user is routed to the correct proof flow. VIEWER doesn't need proof.
-  const verificationStatus =
-    role === UserRole.VIEWER ? VerificationStatus.NONE : VerificationStatus.NONE;
+  // Read the user's CURRENT role + verification status before deciding
+  // whether to reset. Bug previously here: this endpoint always reset
+  // `verificationStatus` to NONE, so a verified user who re-visited
+  // /onboarding (history, refresh, deep link) and re-picked the same
+  // role would silently lose their VERIFIED state and be sent back
+  // through proof submission.
+  const current = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { role: true, verificationStatus: true },
+  });
+  if (!current) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+
+  const isSameRole = current.role === role;
+
+  // Only reset verification if the role ACTUALLY changes. Same-role
+  // re-pick is a no-op for verification — VERIFIED stays VERIFIED.
+  // VIEWER additionally never has a verification flow so we set it to
+  // NONE regardless (it's the canonical "no proof needed" state).
+  const nextVerificationStatus =
+    role === UserRole.VIEWER
+      ? VerificationStatus.NONE
+      : isSameRole
+      ? current.verificationStatus
+      : VerificationStatus.NONE;
 
   await prisma.user.update({
     where: { id: session.user.id },
-    data: { role, verificationStatus },
+    data: { role, verificationStatus: nextVerificationStatus },
   });
 
   return NextResponse.json({ ok: true, role });

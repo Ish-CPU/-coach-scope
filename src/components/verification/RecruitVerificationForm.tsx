@@ -8,6 +8,10 @@ import {
 } from "@/components/shared/UniversityCombobox";
 import { ProgramCombobox } from "@/components/shared/ProgramCombobox";
 import { FileUploadField } from "@/components/shared/FileUploadField";
+import {
+  getVerificationErrorMessage,
+  getNetworkErrorMessage,
+} from "@/lib/verification-errors";
 
 interface Props {
   disabled: boolean;
@@ -86,15 +90,24 @@ export function RecruitVerificationForm({ disabled }: Props) {
     };
     // eslint-disable-next-line no-console
     console.debug("[RecruitVerificationForm] submitting", payload);
-    const res = await fetch("/api/verification", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    let res: Response;
+    try {
+      res = await fetch("/api/verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+    } catch {
+      setBusy(false);
+      setError(getNetworkErrorMessage());
+      return;
+    }
     const j = await res.json().catch(() => ({}));
     setBusy(false);
     if (!res.ok) {
-      setError(typeof j.error === "string" ? j.error : "Could not submit.");
+      // Safe user-facing error via shared helper. No Zod paths, no
+      // fraud-provider internals.
+      setError(getVerificationErrorMessage(j));
       return;
     }
     setDone(typeof j.note === "string" ? j.note : "Submitted for review.");

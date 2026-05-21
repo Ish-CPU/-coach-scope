@@ -7,6 +7,10 @@ import {
   type UniversityOption,
 } from "@/components/shared/UniversityCombobox";
 import { FileUploadField } from "@/components/shared/FileUploadField";
+import {
+  getVerificationErrorMessage,
+  getNetworkErrorMessage,
+} from "@/lib/verification-errors";
 
 const CURRENT_YEAR = new Date().getFullYear();
 
@@ -39,25 +43,35 @@ export function StudentIdUploadForm({ alumni = false }: { alumni?: boolean }) {
     e.preventDefault();
     setError(null);
     setBusy(true);
-    const res = await fetch("/api/verification", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        method: "PROOF_UPLOAD",
-        universityName,
-        universityId: universityId || undefined,
-        studentIdUrl,
-        // Re-use proofUrl as the canonical "image to review" pointer so the
-        // existing admin review UI keeps rendering it without changes.
-        proofUrl: studentIdUrl,
-        gradYear: alumni && gradYear ? Number(gradYear) : undefined,
-        notes,
-      }),
-    });
-    const j = await res.json();
+    let res: Response;
+    try {
+      res = await fetch("/api/verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          method: "PROOF_UPLOAD",
+          universityName,
+          universityId: universityId || undefined,
+          studentIdUrl,
+          // Re-use proofUrl as the canonical "image to review" pointer so the
+          // existing admin review UI keeps rendering it without changes.
+          proofUrl: studentIdUrl,
+          gradYear: alumni && gradYear ? Number(gradYear) : undefined,
+          notes,
+        }),
+      });
+    } catch {
+      setBusy(false);
+      setError(getNetworkErrorMessage());
+      return;
+    }
+    const j = await res.json().catch(() => ({}));
     setBusy(false);
     if (!res.ok) {
-      setError(typeof j.error === "string" ? j.error : "Could not submit.");
+      // Server errors are mapped to safe user-facing messages by the
+      // shared helper. Never echo Zod field-paths or raw provider data
+      // back to the user.
+      setError(getVerificationErrorMessage(j));
       return;
     }
     setDone(j.note ?? "Submitted for review.");

@@ -9,11 +9,16 @@ import { ROLE_DESCRIPTIONS } from "@/components/Badge";
 import { cn } from "@/lib/cn";
 
 type Interval = "MONTHLY" | "YEARLY";
-type SelectableRole =
+type PaidRole =
   | "VERIFIED_ATHLETE"
   | "VERIFIED_STUDENT"
   | "VERIFIED_PARENT"
   | "VERIFIED_RECRUIT";
+// "OTHER" maps to the VIEWER role in the DB — read-only spectator account
+// that bypasses Stripe entirely. Kept distinct from PaidRole at the type
+// level so the checkout / sign-up forwarding logic can't accidentally treat
+// it like a paid tier.
+type SelectableRole = PaidRole | "OTHER";
 
 const PLANS: Record<Interval, { label: string; price: string; cadence: string; note: string }> = {
   MONTHLY: {
@@ -31,7 +36,9 @@ const PLANS: Record<Interval, { label: string; price: string; cadence: string; n
   },
 };
 
-const ROLES: { value: SelectableRole; title: string; emoji: string; bullets: string[] }[] = [
+// Visual order — paid tiers first, then "Other" (free) at the end so it
+// reads as a fallback option, not the headline offer.
+const ROLES: { value: SelectableRole; title: string; emoji: string; bullets: string[]; isFree?: boolean }[] = [
   // Order matters — surfaced left-to-right as the visible role grid. Recruit
   // comes FIRST so a high-school user landing on /pricing sees themselves
   // before any role they don't yet qualify for.
@@ -76,6 +83,23 @@ const ROLES: { value: SelectableRole; title: string; emoji: string; bullets: str
       "Cannot submit numerical ratings",
     ],
   },
+  // Free spectator tier. Maps to UserRole.VIEWER in the DB. NO Stripe
+  // checkout — selecting this routes the user straight to sign-up (if not
+  // already signed in) or straight to /dashboard (if signed in).
+  // Permissions are restricted server-side by canParticipate(); a VIEWER
+  // can browse + search but cannot review, post, or verify.
+  {
+    value: "OTHER",
+    title: "Other (Free)",
+    emoji: "👀",
+    isFree: true,
+    bullets: [
+      "Browse and read reviews",
+      "No subscription required",
+      "Cannot post reviews, vote, or join Verified Groups",
+      "Upgrade to a verified role any time",
+    ],
+  },
 ];
 
 const INCLUDES = [
@@ -99,14 +123,45 @@ export default function PricingPage() {
   const [error, setError] = useState<string | null>(null);
 
   async function startCheckout() {
-    if (!session?.user) {
-      router.push(`/sign-in?callbackUrl=/pricing`);
-      return;
-    }
     if (!selectedRole) {
       setError("Choose a role to continue.");
       return;
     }
+
+    // --- NOT signed in yet → forward to sign-up with the chosen tier
+    //     baked into the URL. /sign-up reads ?plan + ?interval and
+    //     resumes the flow after account creation. This is the canonical
+    //     "tier first, account second" entry path.
+    if (!session?.user) {
+      const params = new URLSearchParams({ plan: selectedRole });
+      if (selectedRole !== "OTHER") params.set("interval", interval);
+      router.push(`/sign-up?${params.toString()}`);
+      return;
+    }
+
+    // --- Signed in, picked OTHER (free) → no Stripe. Just set role +
+    //     send them to the dashboard. Server-side /api/onboarding/role
+    //     enforces what's allowed.
+    if (selectedRole === "OTHER") {
+      setError(null);
+      setLoading(true);
+      const res = await fetch("/api/onboarding/role", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: "VIEWER" }),
+      });
+      setLoading(false);
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        setError(typeof j.error === "string" ? j.error : "Could not save role.");
+        return;
+      }
+      router.refresh();
+      router.push("/dashboard");
+      return;
+    }
+
+    // --- Signed in, picked a paid tier → start Stripe checkout.
     setError(null);
     setLoading(true);
     const res = await fetch("/api/stripe/checkout", {
@@ -152,7 +207,7 @@ export default function PricingPage() {
             <h2 className="text-lg font-semibold">1. Choose your role</h2>
             <span className="text-xs text-slate-500">Required before checkout</span>
           </div>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             {ROLES.map((r) => (
               <button
                 key={r.value}
@@ -165,16 +220,27 @@ export default function PricingPage() {
                   "rounded-2xl border p-4 text-left transition",
                   selectedRole === r.value
                     ? "border-brand-600 bg-brand-50 ring-2 ring-brand-200"
+                    : r.isFree
+                    ? "border-emerald-200 bg-emerald-50/40 hover:border-emerald-400"
                     : "border-slate-200 bg-white hover:border-brand-300"
                 )}
                 aria-pressed={selectedRole === r.value}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <div className="text-2xl leading-none">{r.emoji}</div>
+                    <div className="flex items-center gap-2">
+                      <div className="text-2xl leading-none">{r.emoji}</div>
+                      {r.isFree && (
+                        <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-800">
+                          Free
+                        </span>
+                      )}
+                    </div>
                     <h3 className="mt-2 text-base font-semibold text-slate-900">{r.title}</h3>
                     <p className="mt-1 text-xs text-slate-500">
-                      {ROLE_DESCRIPTIONS[r.value as UserRole]}
+                      {r.value === "OTHER"
+                        ? "Read-only spectator. No subscription, no verification."
+                        : ROLE_DESCRIPTIONS[r.value as UserRole]}
                     </p>
                   </div>
                   <span
@@ -190,7 +256,12 @@ export default function PricingPage() {
                 <ul className="mt-3 space-y-1 text-xs text-slate-700">
                   {r.bullets.map((b) => (
                     <li key={b} className="flex items-start gap-1.5">
-                      <span className="mt-1 h-1.5 w-1.5 flex-none rounded-full bg-brand-500" />
+                      <span
+                        className={cn(
+                          "mt-1 h-1.5 w-1.5 flex-none rounded-full",
+                          r.isFree ? "bg-emerald-500" : "bg-brand-500"
+                        )}
+                      />
                       <span>{b}</span>
                     </li>
                   ))}
@@ -495,17 +566,25 @@ export default function PricingPage() {
           </ul>
 
           <button
-            disabled={loading || status === "loading" || isActive || !selectedRole}
+            disabled={loading || status === "loading" || (isActive && selectedRole !== "OTHER") || !selectedRole}
             onClick={startCheckout}
             className="btn-primary mt-6 w-full disabled:opacity-50"
           >
-            {isActive
+            {isActive && selectedRole !== "OTHER"
               ? "You're subscribed"
               : loading
               ? "Redirecting…"
               : !selectedRole
               ? "Choose a role above to continue"
-              : `Subscribe — ${plan.price}${plan.cadence}`}
+              : selectedRole === "OTHER"
+              ? // Free path — no Stripe involved. Copy makes that explicit
+                // so users understand they won't see a payment form next.
+                session?.user
+                ? "Continue as Reader (Free) →"
+                : "Sign up as Reader (Free) →"
+              : session?.user
+              ? `Subscribe — ${plan.price}${plan.cadence}`
+              : `Sign up & subscribe — ${plan.price}${plan.cadence}`}
           </button>
 
           {error && (
