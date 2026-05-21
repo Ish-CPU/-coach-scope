@@ -21,7 +21,11 @@
  *     4. Deploy — every user is forced to re-accept on next sign-in
  */
 export const CURRENT_TERMS_VERSION = "2026-05-20";
-export const CURRENT_PRIVACY_VERSION = "2026-05-20";
+// Privacy bumped: added advertising disclosure (Google AdSense + DAA/NAI
+// opt-out links) and expanded Section 4 (Sharing) to mention ad
+// partners. Section numbers shifted from 6→7 onwards. Forces existing
+// users to re-accept on next sign-in via LegalReacceptanceGate.
+export const CURRENT_PRIVACY_VERSION = "2026-05-21";
 
 /**
  * True when a user with the given accepted-version is current. Used by

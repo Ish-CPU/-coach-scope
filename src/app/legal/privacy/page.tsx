@@ -57,19 +57,107 @@ export default function PrivacyPage() {
         <h2>4. Sharing of Information</h2>
         <p>
           We do not sell your personal information. We share information
-          only with service providers strictly necessary to operate the
-          Service (hosting, payments, email delivery, fraud screening),
-          all of whom are contractually bound to handle data on our behalf.
+          with:
         </p>
+        <ul>
+          <li>
+            <strong>Service providers</strong> strictly necessary to
+            operate the Service (hosting, payments, email delivery,
+            fraud screening, error tracking), all contractually bound to
+            handle data on our behalf.
+          </li>
+          <li>
+            <strong>Advertising partners</strong> (see Section 6) that
+            may receive non-identifying technical signals (IP address,
+            browser type, cookies) to serve and measure ads. These
+            partners do not receive your account credentials or
+            verification documents.
+          </li>
+          <li>
+            <strong>Law enforcement or regulators</strong> when required
+            by valid legal process, or to protect the rights, property,
+            or safety of users or the public.
+          </li>
+        </ul>
 
         <h2>5. Cookies &amp; Tracking</h2>
         <p>
           We use cookies for authentication, session management, and
-          security. We do not use cross-site tracking or behavioral
-          advertising cookies.
+          security. The Service may also use third-party cookies and
+          similar technologies (including web beacons and pixels)
+          provided by analytics, fraud-screening, and advertising
+          partners. See Section 6 below for details on advertising-
+          related cookies and how to opt out.
         </p>
 
-        <h2>6. Data Retention</h2>
+        <h2>6. Advertising</h2>
+        <p>
+          The Service may display advertisements provided by third-party
+          ad networks, including Google AdSense. These ad networks may
+          use cookies, web beacons, and similar technologies to:
+        </p>
+        <ul>
+          <li>Serve ads relevant to your interests based on prior visits to this site and other sites;</li>
+          <li>Measure ad performance and detect invalid traffic;</li>
+          <li>Provide reporting to advertisers about the ads they serve.</li>
+        </ul>
+        <p>
+          Google uses cookies (including the DoubleClick cookie) to serve
+          ads to you based on your visits to this Service and other sites
+          on the Internet. You can opt out of personalized advertising
+          by visiting Google&apos;s{" "}
+          <a
+            href="https://www.google.com/settings/ads"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Ads Settings
+          </a>
+          .
+        </p>
+        <p>
+          You can also opt out of third-party vendors&apos; use of cookies
+          for personalized advertising by visiting the{" "}
+          <a
+            href="https://www.aboutads.info/choices/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Digital Advertising Alliance opt-out page
+          </a>{" "}
+          or the{" "}
+          <a
+            href="https://www.networkadvertising.org/choices/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Network Advertising Initiative opt-out page
+          </a>
+          . European users can manage consent through the{" "}
+          <a
+            href="https://www.youronlinechoices.eu/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Your Online Choices
+          </a>{" "}
+          tool. Opting out does not mean you will stop seeing ads — it
+          means the ads you see may be less relevant to your interests.
+        </p>
+        <p>
+          For more information about how Google uses information from
+          sites or apps that use its services, see{" "}
+          <a
+            href="https://policies.google.com/technologies/partner-sites"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            How Google uses information from sites or apps that use our services
+          </a>
+          .
+        </p>
+
+        <h2>7. Data Retention</h2>
         <p>
           Account information is retained for as long as your account is
           active and for a reasonable period thereafter for audit, legal,
@@ -77,7 +165,7 @@ export default function PrivacyPage() {
           account deletion to preserve the integrity of the platform.
         </p>
 
-        <h2>7. Your Rights</h2>
+        <h2>8. Your Rights</h2>
         <p>
           Depending on your jurisdiction, you may have the right to access,
           correct, delete, or export your personal information. To exercise
@@ -85,7 +173,7 @@ export default function PrivacyPage() {
           <a href="mailto:customersupport@myuniversityverified.com">customersupport@myuniversityverified.com</a>.
         </p>
 
-        <h2>8. Security</h2>
+        <h2>9. Security</h2>
         <p>
           We use industry-standard technical and organizational measures
           to protect your information, including encrypted storage of
@@ -94,7 +182,7 @@ export default function PrivacyPage() {
           encourage you to use a unique, strong password.
         </p>
 
-        <h2>9. Children</h2>
+        <h2>10. Children</h2>
         <p>
           The Service is not directed to children under 13. We do not
           knowingly collect personal information from children under 13.
@@ -102,14 +190,14 @@ export default function PrivacyPage() {
           and we will delete it promptly.
         </p>
 
-        <h2>10. Changes to This Policy</h2>
+        <h2>11. Changes to This Policy</h2>
         <p>
           We may update this Privacy Policy. Material changes will require
           you to re-accept the updated policy before continuing to use
           the Service.
         </p>
 
-        <h2>11. Contact</h2>
+        <h2>12. Contact</h2>
         <p>
           Questions about privacy? Contact us at{" "}
           <a href="mailto:customersupport@myuniversityverified.com">customersupport@myuniversityverified.com</a>.
