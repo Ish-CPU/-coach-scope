@@ -276,14 +276,24 @@ export default function PricingPage() {
                         <span className="text-xs text-emerald-700/80">forever</span>
                       </div>
                     ) : (
-                      <div className="mt-2 flex items-baseline gap-1">
-                        <span className="text-xl font-bold text-slate-900">
-                          {PLANS[interval].price}
-                        </span>
-                        <span className="text-xs text-slate-500">
-                          {PLANS[interval].cadence}
-                        </span>
-                      </div>
+                      <>
+                        <div className="mt-2 flex items-baseline gap-1">
+                          <span className="text-xl font-bold text-slate-900">
+                            {PLANS[interval].price}
+                          </span>
+                          <span className="text-xs text-slate-500">
+                            {PLANS[interval].cadence}
+                          </span>
+                        </div>
+                        {/* Stripe Tax calculates the final amount at
+                            checkout based on the user's billing
+                            location. Surfaced on every paid card so
+                            no one is surprised when they see a tax
+                            line on the Stripe page. */}
+                        <p className="mt-0.5 text-[10px] text-slate-500">
+                          Taxes calculated at checkout
+                        </p>
+                      </>
                     )}
                     <p className="mt-1 text-xs text-slate-500">
                       {r.value === "OTHER"
@@ -597,6 +607,15 @@ export default function PricingPage() {
             <div className="text-base font-medium text-slate-500">{plan.cadence}</div>
           </div>
           <p className="text-xs text-slate-500">{plan.note}</p>
+          {/* Stripe Tax disclaimer — applies to paid tiers only. Free
+              "Other" tier never reaches Stripe so it's tax-free by
+              definition. Kept short + professional; the actual tax
+              amount is computed and shown on Stripe Checkout based on
+              the billing-address the user enters there. */}
+          <p className="mt-1 text-[11px] text-slate-500">
+            Prices shown do not include applicable taxes. Taxes are calculated
+            at checkout based on your billing location.
+          </p>
 
           <ul className="mt-4 grid gap-2 text-sm text-slate-700 sm:grid-cols-2">
             {INCLUDES.map((x) => (

@@ -96,6 +96,29 @@ export async function POST(req: Request) {
     success_url: `${base}/verification?checkout=success`,
     cancel_url: `${base}/pricing?checkout=canceled`,
     allow_promotion_codes: true,
+    // --- Stripe Tax -----------------------------------------------------
+    // Hand sales-tax / VAT / GST calculation entirely to Stripe Tax. The
+    // tax rate, jurisdiction routing, and invoice line items all come
+    // from Stripe — we never compute or store rates locally. Requires
+    // Stripe Tax to be ENABLED in the Stripe Dashboard (Settings → Tax).
+    automatic_tax: { enabled: true },
+    // Stripe Tax needs a customer billing location to pick a
+    // jurisdiction. "auto" makes Stripe collect it only when the
+    // jurisdiction actually requires it (skips the friction for users
+    // whose tax falls out as 0% anyway).
+    billing_address_collection: "auto",
+    // Required when an EXISTING customer is supplied alongside
+    // `automatic_tax`. Tells Stripe it's OK to persist the address /
+    // name entered at checkout back to the customer record, so a
+    // returning customer doesn't have to re-enter their address on
+    // every subscription change. Without this, Stripe rejects the
+    // session with "You may only specify one of these parameters:
+    // customer, customer_update.address".
+    customer_update: { address: "auto", name: "auto" },
+    // Optional but harmless: lets B2B customers enter a tax ID (VAT,
+    // GST, ABN, etc.) so reverse-charge / 0% calculations apply when
+    // appropriate. Individuals just leave it blank.
+    tax_id_collection: { enabled: true },
     subscription_data: {
       metadata: { userId: user.id, interval, selectedRole },
     },
