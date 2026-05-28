@@ -104,6 +104,13 @@ enum SubscriptionStatus {
   // No paid subscription on file. Default for fresh users and for accounts
   // that have never run checkout.
   FREE
+  // In the free trial window (4 days). Full participation access — the
+  // card is on file and the first charge fires when the trial ends.
+  // Mapped from Stripe status=trialing. If the user cancels during the
+  // trial they keep TRIALING access until the trial date passes, then
+  // Stripe transitions to canceled → EXPIRED (access revoked). Closes the
+  // "trial then cancel but keep participating" loophole.
+  TRIALING
   // Paid, current, and NOT scheduled to cancel — full premium access.
   ACTIVE
   // Paid, current, but user has scheduled cancellation. Access still granted

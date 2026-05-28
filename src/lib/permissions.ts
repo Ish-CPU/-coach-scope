@@ -31,6 +31,35 @@ export function isActive(session: Session | null): boolean {
 }
 
 /**
+ * Whether the user's subscription currently entitles them to PARTICIPATE
+ * (post reviews, vote, connect, join groups) — as opposed to merely view.
+ *
+ * Mirrors statusGrantsAccess() in src/lib/subscription.ts but reads from
+ * the session (no Prisma import) so it's safe in client + edge contexts.
+ * Kept in sync deliberately:
+ *   TRIALING  → yes (the 4-day trial is the full experience)
+ *   ACTIVE    → yes (paying)
+ *   CANCELED  → yes (paid/trialed for the period; honored until it ends)
+ *   EXPIRED   → NO  (trial ended OR cancelled period elapsed → view-only)
+ *   PAST_DUE  → NO  (payment failing → view-only until fixed)
+ *   FREE      → NO  (never subscribed → view-only)
+ *
+ * This is the gate that closes the "start trial, cancel, keep
+ * participating" loophole: once Stripe flips the sub to EXPIRED at trial
+ * end, the per-request session refetch (see src/lib/auth.ts jwt callback)
+ * picks up the new status on the user's very next request and blocks
+ * participation immediately.
+ */
+export function subscriptionAllowsParticipation(session: Session | null): boolean {
+  const s = session?.user?.subscriptionStatus;
+  return (
+    s === SubscriptionStatus.ACTIVE ||
+    s === SubscriptionStatus.TRIALING ||
+    s === SubscriptionStatus.CANCELED
+  );
+}
+
+/**
  * Either ADMIN or MASTER_ADMIN. The platform's existing per-page guards all
  * route through this so promoting a user to MASTER_ADMIN automatically
  * grants every place that previously gated on `isAdmin`. Granular admin
@@ -140,10 +169,18 @@ export type ParticipationGate =
 export function whyCannotParticipate(session: Session | null): ParticipationGate {
   if (!session?.user) return "not-signed-in";
   if (isAdmin(session)) return null;
-  // MVP: payment gating is disabled (Stripe not wired). Re-enable by
-  // restoring the `if (!isPaymentVerified(session)) return "no-subscription";`
-  // check above the role check once subscriptions ship.
-  void isPaymentVerified;
+  // Participation requires BOTH (a) a subscription that currently grants
+  // access — paying, trialing, or cancelled-but-still-in-period — AND
+  // (b) a verified role. Order matters for the UX message: we surface the
+  // subscription gate first so an expired-trial user is told to subscribe,
+  // not to "verify" something they can't act on without paying.
+  //
+  // This is the live gate (re-enabled now that Stripe + the 4-day trial
+  // are wired). It closes the loophole where a verified user whose trial
+  // ended could keep participating: the per-request session refetch
+  // (src/lib/auth.ts) keeps subscriptionStatus fresh, so EXPIRED blocks
+  // participation on the very next request.
+  if (!subscriptionAllowsParticipation(session)) return "no-subscription";
   if (!isRoleVerified(session)) return "role-not-verified";
   return null;
 }
@@ -437,7 +474,7 @@ export function canFullyAccessGroup(
 // ---------------------------------------------------------------------------
 
 export const PARTICIPATION_REQUIRED_MESSAGE =
-  "Participation requires a verified role so MyUniversityVerified stays honest and accountable.";
+  "Start your free trial or subscribe to post reviews, vote, and join Verified Groups. You can always browse for free.";
 
 export function describeGate(
   gate: ParticipationGate,

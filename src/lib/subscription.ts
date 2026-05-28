@@ -39,8 +39,12 @@ import { AUDIT_ACTIONS, type AuditAction } from "@/lib/audit-log";
 export function statusFromStripe(sub: Stripe.Subscription): SubscriptionStatus {
   const cancelScheduled = sub.cancel_at_period_end === true;
   switch (sub.status) {
-    case "active":
     case "trialing":
+      // In the trial. If they've scheduled a cancel, they still keep
+      // trial access until the trial date passes (CANCELED), then Stripe
+      // transitions to canceled → EXPIRED. Otherwise it's a live trial.
+      return cancelScheduled ? SubscriptionStatus.CANCELED : SubscriptionStatus.TRIALING;
+    case "active":
       return cancelScheduled ? SubscriptionStatus.CANCELED : SubscriptionStatus.ACTIVE;
     case "past_due":
     case "unpaid":
@@ -59,7 +63,14 @@ export function statusFromStripe(sub: Stripe.Subscription): SubscriptionStatus {
  * Wraps the truthiness check so every gate uses the same definition.
  */
 export function statusGrantsAccess(status: SubscriptionStatus): boolean {
-  return status === SubscriptionStatus.ACTIVE || status === SubscriptionStatus.CANCELED;
+  // TRIALING grants full access (the trial is meant to be the real
+  // experience). CANCELED still counts (they paid/trialed for the period
+  // and we honor it until it ends). EXPIRED / PAST_DUE / FREE do not.
+  return (
+    status === SubscriptionStatus.ACTIVE ||
+    status === SubscriptionStatus.TRIALING ||
+    status === SubscriptionStatus.CANCELED
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -100,6 +111,7 @@ export function viewFromSubscription(
 /** Human-readable label for a status — exposed for badges and emails. */
 export function statusLabel(status: SubscriptionStatus): string {
   switch (status) {
+    case SubscriptionStatus.TRIALING: return "Free trial";
     case SubscriptionStatus.ACTIVE:   return "Active";
     case SubscriptionStatus.CANCELED: return "Canceled";
     case SubscriptionStatus.EXPIRED:  return "Expired";
@@ -112,6 +124,8 @@ export function statusLabel(status: SubscriptionStatus): string {
 /** Tailwind classes for a status pill. */
 export function statusBadgeClasses(status: SubscriptionStatus): string {
   switch (status) {
+    case SubscriptionStatus.TRIALING:
+      return "bg-sky-100 text-sky-800 border-sky-200";
     case SubscriptionStatus.ACTIVE:
       return "bg-emerald-100 text-emerald-800 border-emerald-200";
     case SubscriptionStatus.CANCELED:
@@ -186,9 +200,12 @@ export function deriveEventType(
   if (next === SubscriptionStatus.PAST_DUE && previous !== SubscriptionStatus.PAST_DUE) {
     return AUDIT_ACTIONS.SUBSCRIPTION_PAST_DUE;
   }
-  // First time we see this subscription become accessible.
+  // First time we see this subscription become accessible — includes a
+  // trial start (FREE → TRIALING).
   if (
-    (next === SubscriptionStatus.ACTIVE || next === SubscriptionStatus.CANCELED) &&
+    (next === SubscriptionStatus.ACTIVE ||
+      next === SubscriptionStatus.TRIALING ||
+      next === SubscriptionStatus.CANCELED) &&
     (previous === SubscriptionStatus.FREE ||
       previous === SubscriptionStatus.EXPIRED ||
       previous == null)

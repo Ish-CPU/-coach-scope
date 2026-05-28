@@ -25,14 +25,14 @@ const PLANS: Record<Interval, { label: string; price: string; cadence: string; n
     label: "Monthly",
     price: "$5.99",
     cadence: "/month",
-    note: "Billed every 30 days starting from your signup date.",
+    note: "4-day free trial, then $5.99/month. Cancel anytime during the trial and you won't be charged.",
   },
   YEARLY: {
     label: "Yearly",
     price: "$55.99",
     cadence: "/year",
     // $5.99 × 12 = $71.88. $55.99 saves $15.89 (~22%) over paying monthly.
-    note: "Save ~22% vs paying monthly ($55.99 annually, billed once a year).",
+    note: "4-day free trial, then $55.99/year (~22% off monthly). Cancel during the trial and you won't be charged.",
   },
 };
 
@@ -650,8 +650,8 @@ export default function PricingPage() {
                 ? "Continue as Reader (Free) →"
                 : "Sign up as Reader (Free) →"
               : session?.user
-              ? `Subscribe — ${plan.price}${plan.cadence}`
-              : `Sign up & subscribe — ${plan.price}${plan.cadence}`}
+              ? `Start 4-day free trial — then ${plan.price}${plan.cadence}`
+              : `Sign up & start free trial — then ${plan.price}${plan.cadence}`}
           </button>
 
           {error && (

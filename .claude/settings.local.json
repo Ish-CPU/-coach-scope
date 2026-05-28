@@ -446,7 +446,10 @@
       "WebFetch(domain:www.roanoke.edu)",
       "WebFetch(domain:home.hamptonu.edu)",
       "WebFetch(domain:www.su.edu)",
-      "WebFetch(domain:www.wm.edu)"
+      "WebFetch(domain:www.wm.edu)",
+      "Bash(NODE_OPTIONS=--max-old-space-size=8192 npm run build)",
+      "Bash(echo \"EXIT=$?\")",
+      "Read(//tmp/**)"
     ]
   }
 }

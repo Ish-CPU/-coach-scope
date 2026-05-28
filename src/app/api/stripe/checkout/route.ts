@@ -120,6 +120,14 @@ export async function POST(req: Request) {
     // appropriate. Individuals just leave it blank.
     tax_id_collection: { enabled: true },
     subscription_data: {
+      // 4-day free trial. The card IS collected at checkout (Stripe
+      // Checkout requires a payment method when a trial is present in
+      // subscription mode), and the first $5.99 charge fires on day 4.
+      // During the trial the Stripe status is `trialing` → our TRIALING
+      // status → full participation access. If the user cancels during
+      // the trial they keep access until the trial date passes, then
+      // Stripe transitions to canceled → our EXPIRED → view-only.
+      trial_period_days: 4,
       metadata: { userId: user.id, interval, selectedRole },
     },
     metadata: { userId: user.id, interval, selectedRole },
