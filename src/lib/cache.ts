@@ -124,6 +124,34 @@ export const getCachedCoachProfile = unstable_cache(
   { revalidate: TTL_PROFILE, tags: ["reviews", "coaches"] }
 );
 
+/**
+ * Sibling coaches at the same program — used by /coach/[id] to render a
+ * "More coaches at this program" navigation strip. Cached on its own key
+ * so a single coach's review activity (which busts the "reviews" tag)
+ * doesn't force re-fetch for every sibling lookup. Re-busted when any
+ * coach row at any program changes (the "coaches" tag is shared with
+ * getCachedCoachProfile and getCachedSchoolProfile).
+ */
+export const getCachedSiblingCoaches = unstable_cache(
+  async (schoolId: string) =>
+    safe(
+      () =>
+        prisma.coach.findMany({
+          where: { schoolId },
+          orderBy: { name: "asc" },
+          select: {
+            id: true,
+            name: true,
+            title: true,
+          },
+        }),
+      [],
+      "cache:coach:siblings"
+    ),
+  ["coach-siblings"],
+  { revalidate: TTL_PROFILE, tags: ["coaches"] }
+);
+
 // ---------------------------------------------------------------------------
 // Dorm profile — /dorm/[id]
 // ---------------------------------------------------------------------------

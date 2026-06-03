@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getCachedCoachProfile } from "@/lib/cache";
+import { getCachedCoachProfile, getCachedSiblingCoaches } from "@/lib/cache";
 import { canParticipate, getSession } from "@/lib/permissions";
 import { defaultReviewSort, weightedCategoryAverage, weightedOverall } from "@/lib/review-weighting";
 import { RATING_FIELDS } from "@/lib/review-schemas";
@@ -32,6 +32,18 @@ export default async function CoachProfilePage(props: PageProps) {
   // mutations via revalidateTag("reviews").
   const coach = await getCachedCoachProfile(params.id);
   if (!coach) notFound();
+
+  // Sibling coaches at the same program — drives the "More coaches at
+  // this program" navigation strip below. Cached separately (see
+  // src/lib/cache.ts) so we don't bloat the main profile cache.
+  const siblings = (await getCachedSiblingCoaches(coach.school.id)) ?? [];
+  const otherSiblings = siblings.filter((s) => s.id !== coach.id);
+  const siblingHeadCoaches = otherSiblings.filter(
+    (s) => s.title === "Head Coach"
+  );
+  const siblingStaffCoaches = otherSiblings.filter(
+    (s) => s.title !== "Head Coach"
+  );
 
   const session = await getSession();
   const canInteract = canParticipate(session);
@@ -109,6 +121,76 @@ export default async function CoachProfilePage(props: PageProps) {
       <div className="mt-6">
         <RatingSummary overall={overall} reviewCount={coach.reviews.length} categories={categories} />
       </div>
+
+      {/* --- "More coaches at this program" navigation strip ---
+          Surfaces the head coach and the rest of the staff so an athlete
+          reading one coach's reviews can jump to a teammate, position
+          coach, or coordinator at the same program in a single click.
+          Hidden if there are no siblings (a program with one coach has
+          nowhere to navigate). */}
+      {otherSiblings.length > 0 && (
+        <section
+          aria-label="Other coaches at this program"
+          className="mt-6 rounded-2xl border border-slate-200 bg-slate-50/60 p-4"
+        >
+          <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-sm font-semibold text-slate-900">
+              More coaches at {coach.school.university.name}{" "}
+              <span className="text-slate-500 font-normal">
+                {coach.school.sport}
+              </span>
+            </h2>
+            <Link
+              href={`/school/${coach.school.id}`}
+              className="inline-flex items-center gap-1 text-xs font-medium text-brand-700 hover:text-brand-800 hover:underline"
+            >
+              See full staff
+              <span aria-hidden>→</span>
+            </Link>
+          </div>
+
+          {siblingHeadCoaches.length > 0 && (
+            <div className="mb-3">
+              <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                Head Coach
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {siblingHeadCoaches.map((s) => (
+                  <Link
+                    key={s.id}
+                    href={`/coach/${s.id}`}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:border-brand-400 hover:bg-brand-50 hover:text-brand-800"
+                  >
+                    {s.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {siblingStaffCoaches.length > 0 && (
+            <div>
+              <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                Coaching Staff
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {siblingStaffCoaches.map((s) => (
+                  <Link
+                    key={s.id}
+                    href={`/coach/${s.id}`}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:border-brand-400 hover:bg-brand-50 hover:text-brand-800"
+                    // The title (e.g. "Position Coach") shows on hover
+                    // for context without crowding the row visually.
+                    title={s.title ?? "Coach"}
+                  >
+                    {s.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
 
       <AdSlot variant="banner" className="mt-6" />
 
