@@ -67,45 +67,73 @@ function SignUpInner() {
     }
     setLoading(true);
 
-    // 1. Create the account.
-    const res = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name,
+    // ---- Branch on tier ------------------------------------------------
+    // PAID tiers go through the Account-on-Payment flow:
+    //   - NO User row is created here
+    //   - The server creates a PendingSignup + Stripe Checkout Session
+    //   - Stripe webhook creates the real User row on confirmation
+    //   - User lands on /welcome to sign in once Stripe succeeds
+    // FREE OTHER tier still creates immediately (no payment to wait for).
+
+    if (plan && VALID_PAID_PLANS.has(plan)) {
+      const res = await fetch("/api/auth/start-paid-signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          selectedRole: plan,
+          interval,
+          acceptedTermsVersion: CURRENT_TERMS_VERSION,
+          acceptedPrivacyVersion: CURRENT_PRIVACY_VERSION,
+        }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok || !j.url) {
+        setError(
+          j.error?.formErrors?.[0] ??
+            (typeof j.error === "string" ? j.error : "Could not start checkout.")
+        );
+        setLoading(false);
+        return;
+      }
+      // Off to Stripe — no account exists yet. If they abandon checkout,
+      // the PendingSignup expires after 24h with no User created.
+      window.location.href = j.url;
+      return;
+    }
+
+    // FREE Other path — create immediately, set VIEWER, no Stripe.
+    if (plan === "OTHER") {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          acceptedTermsVersion: CURRENT_TERMS_VERSION,
+          acceptedPrivacyVersion: CURRENT_PRIVACY_VERSION,
+        }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        setError(j.error?.formErrors?.[0] ?? j.error ?? "Could not create account.");
+        setLoading(false);
+        return;
+      }
+      const signInResult = await signIn("credentials", {
         email,
         password,
-        acceptedTermsVersion: CURRENT_TERMS_VERSION,
-        acceptedPrivacyVersion: CURRENT_PRIVACY_VERSION,
-      }),
-    });
-    if (!res.ok) {
-      const j = await res.json().catch(() => ({}));
-      setError(j.error?.formErrors?.[0] ?? j.error ?? "Could not create account.");
-      setLoading(false);
-      return;
-    }
-
-    // 2. Auto-sign in so subsequent /api/onboarding/role + /api/stripe/checkout
-    //    calls have a valid session cookie. Without this, both endpoints
-    //    would 401 immediately.
-    const signInResult = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
-    if (signInResult?.error) {
-      // Account was created but sign-in failed — surface a recoverable
-      // error pointing them at /sign-in rather than leaving them stuck.
-      setError("Account created. Please sign in to continue.");
-      setLoading(false);
-      router.push("/sign-in");
-      return;
-    }
-
-    // 3. Dispatch based on the tier they picked at /pricing.
-    if (plan === "OTHER") {
-      // Free spectator path — set VIEWER role, skip Stripe entirely.
+        redirect: false,
+      });
+      if (signInResult?.error) {
+        setError("Account created. Please sign in to continue.");
+        setLoading(false);
+        router.push("/sign-in");
+        return;
+      }
       await fetch("/api/onboarding/role", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -116,42 +144,13 @@ function SignUpInner() {
       return;
     }
 
-    if (plan && VALID_PAID_PLANS.has(plan)) {
-      // Paid path — stamp the chosen role on the user, then start Stripe
-      // checkout. The role-set is intentionally separate from Stripe so
-      // even if the user abandons checkout we already know what tier
-      // they wanted (useful for win-back emails later).
-      await fetch("/api/onboarding/role", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role: plan }),
-      });
-      const checkout = await fetch("/api/stripe/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ interval, selectedRole: plan }),
-      });
-      const j = await checkout.json().catch(() => ({}));
-      if (j.url) {
-        window.location.href = j.url;
-        return;
-      }
-      // Stripe failed — leave them on the verification page so they can
-      // re-try checkout from there OR continue with manual verification.
-      setError(
-        typeof j.error === "string"
-          ? j.error
-          : "Account created, but checkout failed. Open /pricing to retry."
-      );
-      setLoading(false);
-      router.push("/verification");
-      return;
-    }
-
     // 4. No plan param at all (someone landed on /sign-up directly).
-    //    Send them to /onboarding for the legacy role-picker flow.
-    router.refresh();
-    router.push("/onboarding");
+    //    Bounce to /pricing — the canonical entry point. Tier selection
+    //    has to precede signup; the new Account-on-Payment flow assumes
+    //    a `plan` is always set.
+    setError("Pick a plan to continue.");
+    setLoading(false);
+    router.push("/pricing");
   }
 
   const planLabel =

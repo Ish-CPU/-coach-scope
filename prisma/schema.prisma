@@ -716,6 +716,46 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+// Server-side hold during a paid signup, so NO User row exists until
+// Stripe confirms checkout. Closes the "create account, never pay,
+// keep going" loophole.
+//
+// Lifecycle:
+//   - Created by POST /api/auth/start-paid-signup (validates email +
+//     hashes password + creates a Stripe customer + opens a Checkout
+//     Session). The session metadata carries `pendingSignupId`.
+//   - Consumed by the Stripe webhook on `checkout.session.completed`,
+//     which materializes the real User row from these fields and
+//     deletes this row in the same transaction.
+//   - If the user abandons checkout, this row sits idle until
+//     `expiresAt` (24h) — a periodic cleanup or the next signup attempt
+//     by the same email deletes stale rows. No User is ever created.
+//
+// Security: passwordHash is bcrypt — same hashing as User.passwordHash,
+// so the rotation from PendingSignup → User is a direct copy. Plaintext
+// is never persisted or sent to Stripe.
+model PendingSignup {
+  id                     String          @id @default(cuid())
+  email                  String          @unique
+  name                   String
+  passwordHash           String
+  selectedRole           UserRole
+  interval               BillingInterval
+  // Stripe customer is created up-front (in start-paid-signup) so the
+  // Checkout Session can reference it. On webhook confirmation this
+  // customer ID is moved onto the new User row.
+  stripeCustomerId       String          @unique
+  stripeCheckoutSessionId String?        @unique
+  // Legal acceptance captured at form submit. Copied onto User on
+  // confirmation so the audit trail is unbroken.
+  acceptedTermsVersion   String
+  acceptedPrivacyVersion String
+  createdAt              DateTime        @default(now())
+  expiresAt              DateTime
+
+  @@index([expiresAt])
+}
+
 // ---------------------------------------------------------------------------
 // Stripe / billing
 // ---------------------------------------------------------------------------
