@@ -124,51 +124,122 @@ export default async function SchoolProgramPage(props: PageProps) {
 
       <AdSlot variant="banner" className="mt-6" />
 
-      {/* --- Coaches list --- */}
-      <section className="mt-8">
-        <div className="mb-3 flex items-end justify-between gap-2">
-          <h2 className="text-lg font-semibold">
-            Coaches ({school.coaches.length})
-          </h2>
-          {school.coaches.length > 0 && (
-            <span className="text-xs text-slate-500">
-              Tap a coach for full profile + reviews.
-            </span>
-          )}
-        </div>
+      {/* --- Coaches list ---
+          Split into two sections so the head coach stays the headline
+          act and position / staff coaches sit in their own row below.
+          A directional anchor link between the two section headers lets
+          users jump back and forth. For football programs this surfaces
+          the 8 position coaches (QB / RB / WR / TE / OL / DL / LB / CB)
+          seeded by scripts/seed-football-position-coaches.ts. For other
+          sports it surfaces assistants / coordinators / S&C — anyone
+          who isn't tagged "Head Coach". */}
+      {(() => {
+        // Classify by title — exact-match "Head Coach" goes top; every
+        // other title (Position Coach, Assistant Coach, Coordinator,
+        // etc.) lands in the staff section. Null titles → staff (safer
+        // default than promoting an unknown to Head).
+        const headCoaches = school.coaches.filter(
+          (c) => c.title === "Head Coach"
+        );
+        const staffCoaches = school.coaches.filter(
+          (c) => c.title !== "Head Coach"
+        );
 
-        {school.coaches.length === 0 ? (
-          <EmptyState
-            title="No coaches added yet"
-            body={`We haven't imported staff for the ${school.university.name} ${school.sport} program yet. If you have a verified roster link, request it and we'll add it.`}
-            ctaLabel="Request this program's coaches"
-            ctaHref={`/request-school?q=${encodeURIComponent(`${school.university.name} ${school.sport}`)}`}
-          />
-        ) : (
-          <ul className="grid gap-3 sm:grid-cols-2">
-            {school.coaches.map((c) => {
-              const total = c.reviews.length;
-              const sum = c.reviews.reduce(
-                (acc, r) => acc + r.overall * (r.weight || 1),
-                0
-              );
-              const wsum = c.reviews.reduce((acc, r) => acc + (r.weight || 1), 0);
-              const avg = wsum > 0 ? sum / wsum : 0;
-              return (
-                <li key={c.id}>
-                  <CoachListRow
-                    id={c.id}
-                    name={c.name}
-                    title={c.title ?? "Coach"}
-                    rating={avg}
-                    reviewCount={total}
-                  />
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
+        if (school.coaches.length === 0) {
+          return (
+            <section className="mt-8">
+              <h2 className="text-lg font-semibold mb-3">Coaches (0)</h2>
+              <EmptyState
+                title="No coaches added yet"
+                body={`We haven't imported staff for the ${school.university.name} ${school.sport} program yet. If you have a verified roster link, request it and we'll add it.`}
+                ctaLabel="Request this program's coaches"
+                ctaHref={`/request-school?q=${encodeURIComponent(`${school.university.name} ${school.sport}`)}`}
+              />
+            </section>
+          );
+        }
+
+        const renderCoachCard = (c: (typeof school.coaches)[number]) => {
+          const total = c.reviews.length;
+          const sum = c.reviews.reduce(
+            (acc, r) => acc + r.overall * (r.weight || 1),
+            0
+          );
+          const wsum = c.reviews.reduce(
+            (acc, r) => acc + (r.weight || 1),
+            0
+          );
+          const avg = wsum > 0 ? sum / wsum : 0;
+          return (
+            <li key={c.id}>
+              <CoachListRow
+                id={c.id}
+                name={c.name}
+                title={c.title ?? "Coach"}
+                rating={avg}
+                reviewCount={total}
+              />
+            </li>
+          );
+        };
+
+        return (
+          <>
+            {headCoaches.length > 0 && (
+              // `scroll-mt-20` so when the anchor link below jumps back
+              // here the heading isn't flush against the viewport top.
+              <section id="head-coaches" className="mt-8 scroll-mt-20">
+                <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
+                  <h2 className="text-lg font-semibold">
+                    Head Coach{headCoaches.length > 1 ? `es (${headCoaches.length})` : ""}
+                  </h2>
+                  {staffCoaches.length > 0 && (
+                    <a
+                      href="#coaching-staff"
+                      className="inline-flex items-center gap-1 text-sm font-medium text-brand-700 hover:text-brand-800 hover:underline"
+                    >
+                      See coaching staff
+                      <span aria-hidden>↓</span>
+                    </a>
+                  )}
+                </div>
+                <ul className="grid gap-3 sm:grid-cols-2">
+                  {headCoaches.map(renderCoachCard)}
+                </ul>
+              </section>
+            )}
+
+            {staffCoaches.length > 0 && (
+              <section id="coaching-staff" className="mt-8 scroll-mt-20">
+                <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
+                  <h2 className="text-lg font-semibold">
+                    Coaching Staff ({staffCoaches.length})
+                  </h2>
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                    <span>Tap a coach for full profile + reviews.</span>
+                    {headCoaches.length > 0 && (
+                      <a
+                        href="#head-coaches"
+                        className="inline-flex items-center gap-1 text-sm font-medium text-brand-700 hover:text-brand-800 hover:underline"
+                      >
+                        <span aria-hidden>↑</span>
+                        Back to head coach
+                      </a>
+                    )}
+                  </div>
+                </div>
+                <ul className="grid gap-3 sm:grid-cols-2">
+                  {staffCoaches.map(renderCoachCard)}
+                </ul>
+              </section>
+            )}
+
+            {/* Degenerate case: no head coach but some staff. The
+                staffCoaches section above already renders; nothing
+                extra to do here. */}
+          </>
+        );
+      })()}
 
       {/* --- Program reviews --- */}
       <section className="mt-10 space-y-4">
