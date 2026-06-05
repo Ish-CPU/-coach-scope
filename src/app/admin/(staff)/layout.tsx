@@ -98,6 +98,7 @@ export default async function AdminLayout({
     pendingProgramRequests,
     openReports,
     pendingReviewModeration,
+    pendingRoleChanges,
   ] = await Promise.all([
     // Every non-terminal verification status counts toward the queue badge.
     // Approved / rejected rows aren't actionable.
@@ -122,6 +123,8 @@ export default async function AdminLayout({
     prisma.review.count({
       where: { moderationStatus: { in: ["PENDING_REVIEW", "FLAGGED"] } },
     }),
+    // User-submitted role-switch requests waiting on a human decision.
+    prisma.roleChangeRequest.count({ where: { status: "PENDING" } }),
   ]);
 
   return (
@@ -135,6 +138,7 @@ export default async function AdminLayout({
           pendingProgramRequests,
           openReports,
           pendingReviewModeration,
+          pendingRoleChanges,
         }}
       />
       {/* If somehow an admin lands here with no permissions at all (edge

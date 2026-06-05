@@ -19,6 +19,7 @@ interface Props {
     pendingProgramRequests: number;
     openReports: number;
     pendingReviewModeration: number;
+    pendingRoleChanges: number;
   };
 }
 
@@ -39,6 +40,11 @@ const LINKS: NavLink[] = [
   // the gap case (paid but stuck).
   { href: "/admin/members", label: "Members" },
   { href: "/admin/verifications", label: "Verifications", pendingKey: "pendingVerifications" },
+  // User-initiated role-switch requests. Sits next to Verifications
+  // because the same admin skill (canApproveVerifications) gates both
+  // and the workload is similar — confirm identity under the new role
+  // before flipping it.
+  { href: "/admin/role-changes", label: "Role changes", pendingKey: "pendingRoleChanges" },
   { href: "/admin/connections", label: "Connections" },
   { href: "/admin/requests", label: "Program Requests", pendingKey: "pendingProgramRequests" },
   { href: "/admin/reports", label: "Reports", pendingKey: "openReports" },

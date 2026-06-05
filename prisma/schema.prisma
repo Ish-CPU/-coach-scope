@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
   // Runtime URL — pooled (pgbouncer). High concurrency, transaction-mode.
   // Every page load and API request uses this. Set DATABASE_URL to the
   // POOLED Neon URL (hostname contains `-pooler`) with `pgbouncer=true`.
@@ -168,17 +168,17 @@ enum FraudStatus {
 // derivation branch in src/lib/verification-proofs.ts) but every entry
 // must have a clear "what does PASSED mean for this proof" rule.
 enum ProofType {
-  SCHOOL_EMAIL          // .edu email, code-verified
-  STUDENT_ID            // student/alumni ID photo
-  ROSTER_PAGE           // roster URL or roster screenshot
-  ATHLETICS_PROFILE     // 247 / On3 / NCSA / MaxPreps / official athletics
-  ENROLLMENT_PORTAL     // school directory / catalog screenshot or link
-  PARENT_GUARDIAN_DOC   // proof linking the parent to a verified athlete/student
-  PAYMENT_VERIFICATION  // active paid subscription on the account
-  PRIOR_APPROVED_CONNECTION  // at least one APPROVED athlete/student connection
-  LINKEDIN              // public LinkedIn profile cross-check
-  HUDL                  // public Hudl profile cross-check
-  GENERAL_PROOF         // catch-all proofUrl (recruit visit, offer letter, etc.)
+  SCHOOL_EMAIL // .edu email, code-verified
+  STUDENT_ID // student/alumni ID photo
+  ROSTER_PAGE // roster URL or roster screenshot
+  ATHLETICS_PROFILE // 247 / On3 / NCSA / MaxPreps / official athletics
+  ENROLLMENT_PORTAL // school directory / catalog screenshot or link
+  PARENT_GUARDIAN_DOC // proof linking the parent to a verified athlete/student
+  PAYMENT_VERIFICATION // active paid subscription on the account
+  PRIOR_APPROVED_CONNECTION // at least one APPROVED athlete/student connection
+  LINKEDIN // public LinkedIn profile cross-check
+  HUDL // public Hudl profile cross-check
+  GENERAL_PROOF // catch-all proofUrl (recruit visit, offer letter, etc.)
 }
 
 // Per-proof lifecycle. Distinct from VerificationRequestStatus (which
@@ -392,10 +392,10 @@ enum LifecycleAudience {
 // `visibility` enum stays on the model for older rows; new code reads
 // `accessMode`.
 enum GroupAccessMode {
-  PUBLIC_VIEW_PUBLIC_POST    // anyone reads; anyone signed-in posts
-  PUBLIC_VIEW_VERIFIED_POST  // anyone reads; only verified accounts post
-  VERIFIED_ONLY              // verified accounts only — read AND post
-  PRIVATE                    // members-only — read AND post
+  PUBLIC_VIEW_PUBLIC_POST // anyone reads; anyone signed-in posts
+  PUBLIC_VIEW_VERIFIED_POST // anyone reads; only verified accounts post
+  VERIFIED_ONLY // verified accounts only — read AND post
+  PRIVATE // members-only — read AND post
 }
 
 // GroupMembership.role replaces the legacy `isAdmin` boolean. Three tiers:
@@ -489,12 +489,12 @@ model User {
   // graduationYear / lastRosterSeason carry the "when" — graduation year for
   // students, last competitive season for athletes. Both nullable; UI shows
   // whichever is set.
-  isAlumni             Boolean            @default(false)
-  alumniSince          DateTime?
-  formerUniversityId   String?
-  formerProgramId      String?
-  graduationYear       Int?
-  lastRosterSeason     Int?
+  isAlumni           Boolean   @default(false)
+  alumniSince        DateTime?
+  formerUniversityId String?
+  formerProgramId    String?
+  graduationYear     Int?
+  lastRosterSeason   Int?
 
   // --- Legal consent tracking (TOS + Privacy Policy acceptance) ---
   // Stored at sign-up and refreshed via the re-acceptance flow whenever
@@ -511,49 +511,49 @@ model User {
 
   // --- Admin / master-admin fields (null for normal users) ---
   // Lifecycle state. Set when the user is promoted/created as an admin.
-  adminStatus          AdminStatus?
+  adminStatus             AdminStatus?
   // JSON object of granular permission flags. See src/lib/admin-permissions.ts
   // for the canonical shape. Master admins ignore this — they're implicitly
   // all-true. Storing as Json keeps the schema flexible while we iterate.
-  adminPermissions     Json?
+  adminPermissions        Json?
   // Work email distinct from the primary login email (which is `email`).
   // Master admin captures this on the team form so personal/work addresses
   // can stay separate even when the login email is the work one.
-  workEmail            String?
+  workEmail               String?
   // Updated on every successful credentials sign-in. Surfaced on the team
   // list so master admin can see who's stale.
-  lastLoginAt          DateTime?
+  lastLoginAt             DateTime?
   // Set the first time an admin completes the onboarding flow
   // (/admin/onboarding) — accepting the admin rules. Until non-null we
   // route admins through onboarding on every admin page hit. Kept as the
   // canonical timestamp; `onboardingCompleted` mirrors it as a boolean
   // for cheaper checks on hot paths.
-  acceptedAdminRulesAt DateTime?
+  acceptedAdminRulesAt    DateTime?
   // Boolean mirror of `acceptedAdminRulesAt`. We persist both so the
   // staff layout can do a single boolean read on every request without
   // serializing a Date, and so existing master-admin rows (which may have
   // a non-null `acceptedAdminRulesAt` from older code) still satisfy the
   // gate. Set true on successful onboarding submit. The seed script
   // pre-flips this for master admins so they bypass onboarding entirely.
-  onboardingCompleted  Boolean            @default(false)
+  onboardingCompleted     Boolean             @default(false)
   // Invite flow. `inviteToken` is a single-use random token; the invitee
   // visits /admin/onboarding?token=… to complete signup before it expires.
-  inviteToken          String?            @unique
-  inviteExpiresAt      DateTime?
+  inviteToken             String?             @unique
+  inviteExpiresAt         DateTime?
   // Recovery email addresses for the master admin only. Used by the
   // password-reset flow as alternate destinations. Regular admins cannot
   // edit this list — enforced at the API layer.
-  recoveryEmails       String[]           @default([])
+  recoveryEmails          String[]            @default([])
   // Set when the master admin disables / suspends / removes this account.
   // Drives the team detail UI and is included in the audit log metadata.
-  removalReason        AdminRemovalReason?
-  removalNote          String?            @db.Text
+  removalReason           AdminRemovalReason?
+  removalNote             String?             @db.Text
   // Force-logout timestamp. The auth JWT callback compares this against
   // each token's `iat`; tokens issued before this timestamp are treated as
   // signed out on the next request. Bumped automatically when an admin
   // is disabled / suspended / removed and on demand via the master's
   // "Force logout" button.
-  sessionsRevokedAt    DateTime?
+  sessionsRevokedAt       DateTime?
   // Per-admin email notification preferences. Read by
   // src/lib/email/recipients.ts; structure is a JSON map of category →
   // boolean (e.g. `{ verifications: true, connections: false }`). When
@@ -569,9 +569,10 @@ model User {
   sessions             Session[]
   reviews              Review[]
   helpfulVotes         HelpfulVote[]
-  reports              Report[]           @relation("Reporter")
+  reports              Report[]                      @relation("Reporter")
   favorites            Favorite[]
   verificationRequests VerificationRequest[]
+  roleChangeRequests   RoleChangeRequest[]
   emailCodes           EmailVerificationCode[]
   imageFraudChecks     ImageFraudCheck[]
   subscription         Subscription?
@@ -580,26 +581,26 @@ model User {
   studentConnections   StudentUniversityConnection[]
 
   // Groups
-  groupMemberships     GroupMembership[]
-  groupsCreated        Group[]            @relation("GroupCreator")
-  groupPosts           GroupPost[]
-  groupComments        GroupComment[]
-  postVotes            GroupPostVote[]
-  commentVotes         GroupCommentVote[]
+  groupMemberships GroupMembership[]
+  groupsCreated    Group[]            @relation("GroupCreator")
+  groupPosts       GroupPost[]
+  groupComments    GroupComment[]
+  postVotes        GroupPostVote[]
+  commentVotes     GroupCommentVote[]
 
   // Audit log entries this user authored (admin actions).
-  adminActions         AdminActionLog[]
+  adminActions AdminActionLog[]
 
   // Cached community trust score — sum of received upvotes minus a
   // small report penalty, refreshed on vote / report events. We cache
   // because computing on demand would require summing every vote on
   // every page render.
-  trustScore           Int                @default(0)
+  trustScore Int @default(0)
 
   // In-app notifications targeted at this user (recipient).
-  notifications        Notification[]     @relation("NotificationRecipient")
+  notifications     Notification[] @relation("NotificationRecipient")
   // Notifications this user triggered (actor — they upvoted, replied, etc.).
-  notificationsSent    Notification[]     @relation("NotificationActor")
+  notificationsSent Notification[] @relation("NotificationActor")
 
   @@index([role])
   @@index([subscriptionStatus])
@@ -627,8 +628,8 @@ model User {
 // /notifications page list naturally.
 model Notification {
   id          String           @id @default(cuid())
-  userId      String           // recipient
-  actorId     String?          // who triggered the notification (nullable for system events)
+  userId      String // recipient
+  actorId     String? // who triggered the notification (nullable for system events)
   type        NotificationType
   // Polymorphic target — `subjectType` is the model name, `subjectId`
   // its primary key. Nullable so admin-action notifications without a
@@ -735,23 +736,23 @@ model VerificationToken {
 // so the rotation from PendingSignup → User is a direct copy. Plaintext
 // is never persisted or sent to Stripe.
 model PendingSignup {
-  id                     String          @id @default(cuid())
-  email                  String          @unique
-  name                   String
-  passwordHash           String
-  selectedRole           UserRole
-  interval               BillingInterval
+  id                      String          @id @default(cuid())
+  email                   String          @unique
+  name                    String
+  passwordHash            String
+  selectedRole            UserRole
+  interval                BillingInterval
   // Stripe customer is created up-front (in start-paid-signup) so the
   // Checkout Session can reference it. On webhook confirmation this
   // customer ID is moved onto the new User row.
-  stripeCustomerId       String          @unique
-  stripeCheckoutSessionId String?        @unique
+  stripeCustomerId        String          @unique
+  stripeCheckoutSessionId String?         @unique
   // Legal acceptance captured at form submit. Copied onto User on
   // confirmation so the audit trail is unbroken.
-  acceptedTermsVersion   String
-  acceptedPrivacyVersion String
-  createdAt              DateTime        @default(now())
-  expiresAt              DateTime
+  acceptedTermsVersion    String
+  acceptedPrivacyVersion  String
+  createdAt               DateTime        @default(now())
+  expiresAt               DateTime
 
   @@index([expiresAt])
 }
@@ -794,24 +795,24 @@ model Subscription {
 // One row per emitted event. Never updated — corrections go in as a new
 // row with metadata pointing at the prior one.
 model SubscriptionEvent {
-  id             String             @id @default(cuid())
-  userId         String
+  id                String             @id @default(cuid())
+  userId            String
   // Soft FK by id rather than required relation so we can keep history
   // even if the underlying Subscription row is later replaced (e.g. user
   // re-subscribes and the row gets a new stripeSubscriptionId).
-  subscriptionId String?
+  subscriptionId    String?
   // Free-form key so we can extend without a migration. Canonical values
   // live in src/lib/audit-log.ts under SUBSCRIPTION_*.
-  eventType      String
-  status         SubscriptionStatus
+  eventType         String
+  status            SubscriptionStatus
   cancelAtPeriodEnd Boolean?
-  periodEnd      DateTime?
+  periodEnd         DateTime?
   // Who/what triggered the row. "user" for explicit cancel/reactivate
   // clicks, "stripe_webhook" for Stripe-driven transitions, "admin" for
   // admin-portal overrides.
-  source         String
-  metadata       Json?
-  createdAt      DateTime           @default(now())
+  source            String
+  metadata          Json?
+  createdAt         DateTime           @default(now())
 
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   subscription Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
@@ -826,25 +827,25 @@ model SubscriptionEvent {
 // ---------------------------------------------------------------------------
 
 model School {
-  id              String    @id @default(cuid())
-  universityId    String
-  sport           String
-  division        Division  @default(D1)
-  conference      String?
-  description     String?
+  id           String   @id @default(cuid())
+  universityId String
+  sport        String
+  division     Division @default(D1)
+  conference   String?
+  description  String?
 
   // Public-data source tracking
-  athleticsUrl    String?
-  sourceUrl       String?
-  sourceName      String?
-  seasonYear      String?
-  lastVerifiedAt  DateTime?
+  athleticsUrl   String?
+  sourceUrl      String?
+  sourceName     String?
+  seasonYear     String?
+  lastVerifiedAt DateTime?
 
-  university University @relation(fields: [universityId], references: [id], onDelete: Cascade)
-  coaches    Coach[]
-  reviews    Review[]
-  favorites  Favorite[]
-  groups     Group[]
+  university         University                 @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  coaches            Coach[]
+  reviews            Review[]
+  favorites          Favorite[]
+  groups             Group[]
   athleteConnections AthleteProgramConnection[]
 
   createdAt DateTime @default(now())
@@ -856,23 +857,23 @@ model School {
 }
 
 model Coach {
-  id        String   @id @default(cuid())
-  name      String
+  id       String  @id @default(cuid())
+  name     String
   // URL-friendly identifier from the official roster (optional). Keep as a
   // free string today; future work may add `@@unique([schoolId, slug])` once
   // every record is back-filled.
-  slug      String?
+  slug     String?
   // The role/title of the coach — "Head Coach", "Offensive Coordinator",
   // "Quarterbacks Coach", etc. Stored as the existing `title` column for
   // backwards compatibility with all existing UI. CSV column header is `role`.
-  title     String?
+  title    String?
   // Optional gender hint for sports that have men's + women's teams.
   // Sport already encodes this in the canonical taxonomy (e.g. "Men's Soccer"),
   // but storing it explicitly makes filtering + display cleaner.
-  gender    String?
-  schoolId  String
-  bio       String?
-  imageUrl  String?
+  gender   String?
+  schoolId String
+  bio      String?
+  imageUrl String?
 
   // Public-data source tracking
   // - sourceUrl: official staff page URL (e.g. /sports/baseball/coaches)
@@ -883,7 +884,7 @@ model Coach {
   seasonYear         String?
   lastVerifiedAt     DateTime?
 
-  school    School    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school    School     @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   reviews   Review[]
   favorites Favorite[]
   // Back-relation for COACH-typed Group rows. SetNull on the Group side
@@ -953,13 +954,13 @@ model University {
   seasonYear     String?
   lastVerifiedAt DateTime?
 
-  schools     School[]
-  dorms       Dorm[]
-  diningHalls Dining[]
-  facilities  Facility[]
-  reviews     Review[]
-  favorites   Favorite[]
-  groups      Group[]
+  schools            School[]
+  dorms              Dorm[]
+  diningHalls        Dining[]
+  facilities         Facility[]
+  reviews            Review[]
+  favorites          Favorite[]
+  groups             Group[]
   athleteConnections AthleteProgramConnection[]
   studentConnections StudentUniversityConnection[]
 
@@ -971,17 +972,17 @@ model University {
 }
 
 model Dorm {
-  id           String   @id @default(cuid())
-  name         String
+  id              String  @id @default(cuid())
+  name            String
   // URL-friendly identifier within the university (lowercase, dash-separated).
-  slug         String?
-  universityId String
+  slug            String?
+  universityId    String
   // Cached city/state from the host university — keeps dorm lists usable
   // without an extra join in heavy list views.
-  city         String?
-  state        String?
-  description  String?
-  imageUrl     String?
+  city            String?
+  state           String?
+  description     String?
+  imageUrl        String?
   // Controlled vocabularies enforced by the importer:
   //   roomType     ∈ {Single, Double, Suite, Apartment}
   //   bathroomType ∈ {Private, Shared, Communal}
@@ -1011,7 +1012,7 @@ model Dorm {
 
 // Public dining locations on campus (factual directory data only).
 model Dining {
-  id           String   @id @default(cuid())
+  id           String  @id @default(cuid())
   name         String
   universityId String
   location     String?
@@ -1035,12 +1036,12 @@ model Dining {
 
 // Public athletic facilities (stadiums, weight rooms, training centers, etc.).
 model Facility {
-  id           String   @id @default(cuid())
+  id           String  @id @default(cuid())
   name         String
   universityId String
   // Optional sport tag — if set, must match an allowed Sport in src/lib/sports.ts.
   sport        String?
-  facilityType String?  // e.g. "Stadium", "Practice Facility", "Weight Room"
+  facilityType String? // e.g. "Stadium", "Practice Facility", "Weight Room"
   description  String?
   imageUrl     String?
 
@@ -1064,32 +1065,32 @@ model Facility {
 // ---------------------------------------------------------------------------
 
 model Review {
-  id           String       @id @default(cuid())
-  authorId     String
-  reviewType   ReviewType
-  status       ReviewStatus @default(PUBLISHED)
+  id         String       @id @default(cuid())
+  authorId   String
+  reviewType ReviewType
+  status     ReviewStatus @default(PUBLISHED)
 
   coachId      String?
   schoolId     String?
   universityId String?
   dormId       String?
 
-  title        String?
-  body         String       @db.Text
+  title String?
+  body  String  @db.Text
 
-  ratings      Json
-  overall      Float
+  ratings Json
+  overall Float
 
   // pre-computed weight at submission time
   // (Athlete=2.0, Parent=1.25, Student=1.25)
-  weight       Float        @default(1.0)
+  weight Float @default(1.0)
 
-  helpfulCount Int          @default(0)
-  reportCount  Int          @default(0)
+  helpfulCount Int @default(0)
+  reportCount  Int @default(0)
 
   // Per-review anonymity opt-in. Defaults to true so existing rows and
   // new submissions stay anonymous unless the author explicitly opts out.
-  isAnonymous  Boolean      @default(true)
+  isAnonymous Boolean @default(true)
 
   // ---------- Trust + risk scoring (set at submit time) ----------
   // Set by src/lib/review-risk.ts. Both 0..100. `trustScore` is the
@@ -1098,21 +1099,21 @@ model Review {
   // gates moderationStatus. `credibilityReason` stores the rule-by-rule
   // breakdown so admins can see exactly why a review was flagged
   // without re-running the scorer.
-  trustScore           Int                    @default(50)
-  riskScore            Int                    @default(0)
-  credibilityReason    Json?
+  trustScore        Int                    @default(50)
+  riskScore         Int                    @default(0)
+  credibilityReason Json?
   // Default PUBLISHED preserves the historical behavior for any code
   // path that creates a Review row outside the risk-scored API.
-  moderationStatus     ReviewModerationStatus @default(PUBLISHED)
+  moderationStatus  ReviewModerationStatus @default(PUBLISHED)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  author       User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  coach        Coach?       @relation(fields: [coachId], references: [id], onDelete: Cascade)
-  school       School?      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  university   University?  @relation(fields: [universityId], references: [id], onDelete: Cascade)
-  dorm         Dorm?        @relation(fields: [dormId], references: [id], onDelete: Cascade)
+  author     User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  coach      Coach?      @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  school     School?     @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  university University? @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  dorm       Dorm?       @relation(fields: [dormId], references: [id], onDelete: Cascade)
 
   helpfulVotes HelpfulVote[]
   reports      Report[]
@@ -1156,7 +1157,7 @@ model HelpfulVote {
 }
 
 model Favorite {
-  id           String      @id @default(cuid())
+  id           String  @id @default(cuid())
   userId       String
   coachId      String?
   schoolId     String?
@@ -1191,14 +1192,14 @@ model Report {
   details    String?      @db.Text
   status     ReportStatus @default(OPEN)
 
-  createdAt   DateTime  @default(now())
-  resolvedAt  DateTime?
-  resolvedBy  String?
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+  resolvedBy String?
 
-  reporter User           @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
-  review   Review?        @relation(fields: [reviewId], references: [id], onDelete: Cascade)
-  post     GroupPost?     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  comment  GroupComment?  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  reporter User          @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  review   Review?       @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  post     GroupPost?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comment  GroupComment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
 
   @@index([status, createdAt])
   @@index([reviewId])
@@ -1206,18 +1207,18 @@ model Report {
 }
 
 model VerificationRequest {
-  id              String              @id @default(cuid())
-  userId          String
+  id                   String                    @id @default(cuid())
+  userId               String
   // Which role this verification is targeting — copied off the user at submit
   // time so admins know what to validate against, even if the user's role is
   // somehow changed later.
-  targetRole      UserRole
-  method          VerificationMethod
+  targetRole           UserRole
+  method               VerificationMethod
   // For parent flows, this stays true; we keep it for analytics/back-compat.
-  isParentRequest Boolean             @default(false)
-  eduEmail        String?
-  rosterUrl       String?
-  proofUrl        String?
+  isParentRequest      Boolean                   @default(false)
+  eduEmail             String?
+  rosterUrl            String?
+  proofUrl             String?
   // Structured athlete/alumni proof fields. Optional at the schema layer so
   // older rows continue to load; the API enforces required combinations per
   // role at submit time.
@@ -1226,45 +1227,45 @@ model VerificationRequest {
   // - rosterScreenshotUrl: optional supporting screenshot — never sufficient
   //   on its own per the verification copy
   // - gradYear / playingYears: alumni-only context for admin review
-  sport           String?
-  universityName  String?
+  sport                String?
+  universityName       String?
   // Structured selector output. When the user picks a real University /
   // School row from the shared combobox these get populated so admin
   // tooling (and the recruit-→-athlete upgrade auto-create) can skip the
   // fragile name fuzzy-match step. `universityName` / `sport` stay as
   // the display strings + fallback for legacy rows and free-form entry.
-  universityId    String?
-  schoolId        String?
-  studentIdUrl    String?
-  rosterScreenshotUrl String?
-  gradYear        Int?
-  playingYears    String?
+  universityId         String?
+  schoolId             String?
+  studentIdUrl         String?
+  rosterScreenshotUrl  String?
+  gradYear             Int?
+  playingYears         String?
   // External profile cross-checks. None are required, all are surfaced in
   // the admin scorecard so a reviewer can spot-check identity across
   // independent sources without leaving the admin page.
-  linkedinUrl         String?
-  hudlUrl             String?
-  recruitingProfileUrl String?  // 247, On3, NCSA, MaxPreps — single canonical
-  schoolDirectoryUrl  String?
+  linkedinUrl          String?
+  hudlUrl              String?
+  recruitingProfileUrl String? // 247, On3, NCSA, MaxPreps — single canonical
+  schoolDirectoryUrl   String?
   // Auto-computed at submit time. Persisted so admins can re-sort the
   // queue without re-running the scorer. Drives the admin checklist UI
   // (src/components/admin/VerificationScorecard.tsx).
-  confidenceScore Int?
+  confidenceScore      Int?
   // True when a school-email code-verification round-trip completed for
   // this user/email combo before the request was submitted, or when the
   // request itself uses the EDU_EMAIL method and the code was confirmed.
-  schoolEmailVerified Boolean @default(false)
-  notes           String?             @db.Text
-  status          VerificationRequestStatus  @default(PENDING)
+  schoolEmailVerified  Boolean                   @default(false)
+  notes                String?                   @db.Text
+  status               VerificationRequestStatus @default(PENDING)
 
-  reviewedAt DateTime?
-  reviewedBy String?
+  reviewedAt      DateTime?
+  reviewedBy      String?
   // Optional admin-supplied reason shown back to the user on rejection.
   // Free-text, not user-edited.
-  rejectionReason String? @db.Text
+  rejectionReason String?   @db.Text
 
   // Anti-fake counter — bumped on each retry by this same user.
-  attemptNumber  Int @default(1)
+  attemptNumber Int @default(1)
 
   // AI/fraud screen result (denormalized for fast admin-queue filtering).
   // - fraudStatus / fraudScore: worst-case across this request's uploads;
@@ -1277,9 +1278,9 @@ model VerificationRequest {
   // before they enter the queue and (b) prioritize/highlight rows for
   // human review. Full provider details + reason strings stay on the
   // ImageFraudCheck rows (admins drill in from the queue).
-  fraudStatus      FraudStatus?
-  fraudScore       Int?
-  fraudCheckedAt   DateTime?
+  fraudStatus    FraudStatus?
+  fraudScore     Int?
+  fraudCheckedAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1352,28 +1353,28 @@ model VerificationProof {
 // are not stored — only the hash + the original upload URL the user
 // already provided. Keeps the schema privacy-conscious.
 model ImageFraudCheck {
-  id          String      @id @default(cuid())
-  userId      String
-  imageUrl    String
-  imageHash   String      @unique
+  id         String      @id @default(cuid())
+  userId     String
+  imageUrl   String
+  imageHash  String      @unique
   // String free-form so a future producer (e.g. group-post screening)
   // can add a new target type without a migration. Canonical values:
   //   "verification" | "athlete_connection" | "student_connection"
-  targetType  String
+  targetType String
   // Cuid pointing at the target row. Nullable because pre-creation
   // screening can run before the parent row exists (we backfill once
   // the parent is inserted, in the same transaction).
-  targetId    String?
-  status      FraudStatus
+  targetId   String?
+  status     FraudStatus
   // 0-100. Provider-normalized. Bucket boundaries in
   // src/lib/verification-fraud.ts.
-  score       Int
+  score      Int
   // Provider-emitted labels (e.g. "ai_generated", "blurry",
   // "manipulated_screenshot", "ocr_text_mismatch"). Kept as a string
   // array — no enum — so we never have to migrate to add a new label.
-  reasons     String[]
-  provider    String
-  createdAt   DateTime    @default(now())
+  reasons    String[]
+  provider   String
+  createdAt  DateTime    @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -1384,14 +1385,14 @@ model ImageFraudCheck {
 
 // One-time email codes used by the student/parent verification flows.
 model EmailVerificationCode {
-  id        String   @id @default(cuid())
-  userId    String
-  email     String
-  codeHash  String
-  purpose   String   // e.g. "STUDENT_EDU", "PARENT_EMAIL"
-  expiresAt DateTime
+  id         String    @id @default(cuid())
+  userId     String
+  email      String
+  codeHash   String
+  purpose    String // e.g. "STUDENT_EDU", "PARENT_EMAIL"
+  expiresAt  DateTime
   consumedAt DateTime?
-  createdAt DateTime @default(now())
+  createdAt  DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -1418,32 +1419,32 @@ model EmailVerificationCode {
 // rejected by admins until a real program is linked. Production code should
 // always supply both `universityId` AND `schoolId` together.
 model AthleteProgramConnection {
-  id              String                  @id @default(cuid())
-  userId          String
-  universityId    String
-  schoolId        String?
-  sport           String
-  connectionType  AthleteConnectionType
-  status          AthleteConnectionStatus @default(PENDING)
+  id             String                  @id @default(cuid())
+  userId         String
+  universityId   String
+  schoolId       String?
+  sport          String
+  connectionType AthleteConnectionType
+  status         AthleteConnectionStatus @default(PENDING)
 
   // Optional supporting evidence — admin reviews these manually.
-  rosterUrl           String?
-  recruitingProofUrl  String?
-  notes               String? @db.Text
+  rosterUrl          String?
+  recruitingProofUrl String?
+  notes              String? @db.Text
 
-  startYear       Int?
-  endYear         Int?
+  startYear Int?
+  endYear   Int?
 
   reviewedAt      DateTime?
   reviewedBy      String?
-  rejectionReason String? @db.Text
+  rejectionReason String?   @db.Text
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  university  University  @relation(fields: [universityId], references: [id], onDelete: Cascade)
-  school      School?     @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  university University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  school     School?    @relation(fields: [schoolId], references: [id], onDelete: SetNull)
 
   // We only allow one connection of a given type per (user, university, sport)
   // — re-submitting a duplicate is a "patch the existing row" workflow, not
@@ -1463,30 +1464,30 @@ model AthleteProgramConnection {
 // Default status is PENDING — admin approval is required before any review
 // permission unlocks.
 model StudentUniversityConnection {
-  id              String                  @id @default(cuid())
-  userId          String
-  universityId    String
-  connectionType  StudentConnectionType
-  status          StudentConnectionStatus @default(PENDING)
+  id             String                  @id @default(cuid())
+  userId         String
+  universityId   String
+  connectionType StudentConnectionType
+  status         StudentConnectionStatus @default(PENDING)
 
   // Optional supporting evidence — admins review manually.
-  schoolEmail     String?
-  studentIdUrl    String?
-  proofUrl        String?
-  notes           String? @db.Text
+  schoolEmail  String?
+  studentIdUrl String?
+  proofUrl     String?
+  notes        String? @db.Text
 
-  startYear       Int?
-  endYear         Int?
+  startYear Int?
+  endYear   Int?
 
   reviewedAt      DateTime?
   reviewedBy      String?
-  rejectionReason String? @db.Text
+  rejectionReason String?   @db.Text
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  university  University  @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  university University @relation(fields: [universityId], references: [id], onDelete: Cascade)
 
   // One row per (user, university, connectionType) — re-submitting an
   // existing combo patches it instead of creating a duplicate.
@@ -1501,29 +1502,29 @@ model StudentUniversityConnection {
 // ---------------------------------------------------------------------------
 
 model Group {
-  id           String     @id @default(cuid())
-  slug         String     @unique
-  name         String
-  description  String?    @db.Text
+  id                String            @id @default(cuid())
+  slug              String            @unique
+  name              String
+  description       String?           @db.Text
   // Either an audience type (legacy) or an entity type (UNIVERSITY /
   // PROGRAM / COACH / PARENT / RECRUITING). See GroupType for the split.
-  groupType    GroupType
+  groupType         GroupType
   // Optional ties to a university / sport / school / coach. Entity-typed
   // groups should always populate the matching FK so the landing page
   // can group + link them. Legacy audience-typed rows may have all null.
-  universityId String?
-  schoolId     String?
-  coachId      String?
-  sport        String?
+  universityId      String?
+  schoolId          String?
+  coachId           String?
+  sport             String?
   // Legacy boolean; new code reads `visibility` instead. Kept so older
   // rows that set isPrivate=true still surface as PRIVATE-equivalent on
   // permission checks.
-  isPrivate    Boolean    @default(false)
-  visibility   GroupVisibility @default(PUBLIC)
+  isPrivate         Boolean           @default(false)
+  visibility        GroupVisibility   @default(PUBLIC)
   // Splits "who can view" from "who can post" — see GroupAccessMode.
   // New rows should set this; legacy rows fall back to a derived value
   // computed from `visibility` in src/lib/groups-permissions.ts.
-  accessMode   GroupAccessMode @default(PUBLIC_VIEW_PUBLIC_POST)
+  accessMode        GroupAccessMode   @default(PUBLIC_VIEW_PUBLIC_POST)
   // Lifecycle gate, orthogonal to accessMode. See LifecycleAudience enum.
   // Default keeps every legacy group inclusive (current + alumni). Owners
   // opt into CURRENT_ONLY (active-roster rooms) or ALUMNI_ONLY (mentorship,
@@ -1531,24 +1532,24 @@ model Group {
   lifecycleAudience LifecycleAudience @default(CURRENT_AND_ALUMNI)
   // Free-form group rules surfaced in the sidebar. Markdown-ish text;
   // we render it as plain text plus newlines for safety.
-  rules        String?    @db.Text
+  rules             String?           @db.Text
   // Cached counters refreshed on membership / post create-delete (and
   // by the seed script on initial backfill). Counts are also recomputable
   // from `_count` if these ever drift; UI should prefer cached values
   // for landing-page lists, `_count` for the detail page.
-  memberCount  Int        @default(0)
-  postCount    Int        @default(0)
+  memberCount       Int               @default(0)
+  postCount         Int               @default(0)
 
-  createdById  String
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  creator      User             @relation("GroupCreator", fields: [createdById], references: [id], onDelete: Cascade)
-  university   University?      @relation(fields: [universityId], references: [id], onDelete: SetNull)
-  school       School?          @relation(fields: [schoolId], references: [id], onDelete: SetNull)
-  coach        Coach?           @relation(fields: [coachId], references: [id], onDelete: SetNull)
-  members      GroupMembership[]
-  posts        GroupPost[]
+  creator    User              @relation("GroupCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  university University?       @relation(fields: [universityId], references: [id], onDelete: SetNull)
+  school     School?           @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  coach      Coach?            @relation(fields: [coachId], references: [id], onDelete: SetNull)
+  members    GroupMembership[]
+  posts      GroupPost[]
 
   @@index([groupType])
   @@index([universityId])
@@ -1560,13 +1561,13 @@ model Group {
 }
 
 model GroupMembership {
-  id       String              @id @default(cuid())
-  userId   String
-  groupId  String
+  id      String              @id @default(cuid())
+  userId  String
+  groupId String
   // Legacy boolean — true = group creator. Keep for back-compat reads;
   // new code should branch on `role`.
-  isAdmin  Boolean             @default(false)
-  role     GroupMembershipRole @default(MEMBER)
+  isAdmin Boolean             @default(false)
+  role    GroupMembershipRole @default(MEMBER)
 
   joinedAt DateTime @default(now())
 
@@ -1579,12 +1580,12 @@ model GroupMembership {
 }
 
 model GroupPost {
-  id            String     @id @default(cuid())
-  groupId       String
-  authorId      String
-  title         String
-  body          String     @db.Text
-  status        PostStatus @default(PUBLISHED)
+  id        String         @id @default(cuid())
+  groupId   String
+  authorId  String
+  title     String
+  body      String         @db.Text
+  status    PostStatus     @default(PUBLISHED)
   // Moderator-set flags:
   //   isPinned/pinnedAt — surface above the regular feed; broken out as
   //                       both a flag and a timestamp so tied pins sort
@@ -1592,26 +1593,26 @@ model GroupPost {
   //   lockedAt          — when set, new comments are rejected at the
   //                       comment-create endpoint; existing comments
   //                       stay readable.
-  isPinned      Boolean    @default(false)
-  pinnedAt      DateTime?
-  lockedAt      DateTime?
+  isPinned  Boolean        @default(false)
+  pinnedAt  DateTime?
+  lockedAt  DateTime?
   // Stored as a Postgres enum array — a single post may carry several
   // tags (recruiting + transfer-portal). Empty array = untagged.
-  tags          GroupPostTag[] @default([])
+  tags      GroupPostTag[] @default([])
   // External media URLs (images / video links). MVP avoids first-party
   // hosting — users paste a public URL the post detail page renders.
-  mediaUrls     String[]   @default([])
+  mediaUrls String[]       @default([])
 
-  upvoteCount   Int        @default(0)
-  downvoteCount Int        @default(0)
-  totalScore    Int        @default(0)
-  commentCount  Int        @default(0)
+  upvoteCount   Int @default(0)
+  downvoteCount Int @default(0)
+  totalScore    Int @default(0)
+  commentCount  Int @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  group    Group              @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  author   User               @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  group    Group           @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  author   User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
   votes    GroupPostVote[]
   comments GroupComment[]
   reports  Report[]
@@ -1652,7 +1653,7 @@ model GroupPostVote {
   id        String   @id @default(cuid())
   postId    String
   userId    String
-  value     Int      // +1 or -1
+  value     Int // +1 or -1
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -1689,13 +1690,13 @@ model GroupCommentVote {
 // ---------------------------------------------------------------------------
 
 model ProgramRequest {
-  id            String        @id @default(cuid())
-  schoolName    String
-  sport         String
-  division      String?
-  conference    String?
-  state         String?
-  level         String?
+  id         String  @id @default(cuid())
+  schoolName String
+  sport      String
+  division   String?
+  conference String?
+  state      String?
+  level      String?
 
   // Free-text role tag from the requester (e.g. "Athlete", "Parent",
   // "HS Coach"). Not joined to UserRole — anonymous submissions are allowed.
@@ -1703,9 +1704,9 @@ model ProgramRequest {
   requesterEmail String?
 
   // Helpful pointers for the admin doing the import:
-  rosterUrl     String?
-  athleticsUrl  String?
-  notes         String?       @db.Text
+  rosterUrl    String?
+  athleticsUrl String?
+  notes        String? @db.Text
 
   status        RequestStatus @default(PENDING)
   // Manual ranking knob admins can use to surface high-signal requests.
@@ -1717,4 +1718,68 @@ model ProgramRequest {
   @@index([status, createdAt])
   @@index([schoolName])
   @@index([sport])
+}
+
+// ---------------------------------------------------------------------------
+// RoleChangeRequest
+// ---------------------------------------------------------------------------
+//
+// A user with an active subscription can request to switch role (e.g.
+// VERIFIED_ATHLETE → VERIFIED_ATHLETE_ALUMNI on graduation, VERIFIED_RECRUIT
+// → VERIFIED_ATHLETE on enrollment). The /api/onboarding/role endpoint is
+// the original picker but is now paywalled and intended as a first-time
+// pick — once an account exists with an active sub, this queue is the
+// legitimate path to a role change so admins can re-verify identity.
+//
+// Why a queue + not auto-apply: role changes affect what proof a user
+// must provide and which reviews their participation grade counts on.
+// An athlete becoming an alumni keeps their voice but flips the
+// CURRENT_ONLY group gates. We want a human eye on every transition.
+//
+// On approve: User.role flips to requestedRole, User.verificationStatus
+// resets to NONE (next verification request will be checked against the
+// new role). On reject: nothing changes — adminNote surfaces the reason.
+//
+// VIEWER (free) and admin roles (ADMIN, MASTER_ADMIN) are never valid
+// targets — both are enforced at the API layer:
+//   - Switching TO VIEWER is a downgrade that belongs in the cancel-sub
+//     flow, not here.
+//   - ADMIN / MASTER_ADMIN promotion happens via /admin/team, not here.
+model RoleChangeRequest {
+  id     String @id @default(cuid())
+  userId String
+
+  // Snapshot of the user's role AT SUBMIT TIME. Stored separately from
+  // user.role so the admin always sees the diff the user actually
+  // requested, even if the role drifts (e.g. an admin manually fixes
+  // something between submit and review).
+  currentRole   UserRole
+  requestedRole UserRole
+
+  // User-supplied context. Required at submit time so every request has
+  // a paper trail explaining "why." Free text capped at 2,000 chars at
+  // the API layer.
+  reason String @db.Text
+
+  status RequestStatus @default(PENDING)
+
+  // Resolution metadata. Populated when an admin approves or rejects.
+  // adminNote is optional — short message the user sees on their request
+  // history. Useful for "verified your screenshot, approved" or
+  // "screenshot didn't show graduation year — please resubmit."
+  resolvedAt   DateTime?
+  resolvedById String?
+  adminNote    String?   @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Queue page filter is "status = PENDING ordered by createdAt asc" — a
+  // composite index lets that scan stay cheap as the table grows.
+  @@index([status, createdAt])
+  // User-side history page reads "all my requests, newest first" — also
+  // used to enforce the "no double-pending" rule.
+  @@index([userId, status])
 }

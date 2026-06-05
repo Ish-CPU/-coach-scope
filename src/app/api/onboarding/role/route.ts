@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/permissions";
 import { rateLimit } from "@/lib/rate-limit";
+import { statusGrantsAccess } from "@/lib/subscription";
 import { UserRole, VerificationStatus } from "@prisma/client";
 
 /**
@@ -66,21 +67,52 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Admin accounts can't change role here." }, { status: 403 });
   }
 
-  // Read the user's CURRENT role + verification status before deciding
-  // whether to reset. Bug previously here: this endpoint always reset
-  // `verificationStatus` to NONE, so a verified user who re-visited
-  // /onboarding (history, refresh, deep link) and re-picked the same
-  // role would silently lose their VERIFIED state and be sent back
-  // through proof submission.
+  // Read the user's CURRENT role + verification status + subscription
+  // BEFORE deciding what to do. We need subscriptionStatus for the
+  // paywall check below — never trust the session's copy (a user could
+  // hold a stale JWT after cancellation).
+  //
+  // Previous bug here: this endpoint always reset `verificationStatus`
+  // to NONE, so a verified user who re-visited /onboarding (history,
+  // refresh, deep link) and re-picked the same role would silently
+  // lose their VERIFIED state and be sent back through proof
+  // submission. We now only reset on actual role change.
   const current = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { role: true, verificationStatus: true },
+    select: { role: true, verificationStatus: true, subscriptionStatus: true },
   });
   if (!current) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
+  // PAYWALL — close the "free signup → upgrade to ATHLETE" loophole.
+  //
+  // Until now this endpoint accepted any role in ALLOWED with no payment
+  // check, so a user could:
+  //   1. Pick "Other (free)" at /pricing → register as VIEWER
+  //   2. Visit /onboarding and click "Athlete"
+  //   3. Become VERIFIED_ATHLETE in the DB with $0 paid
+  //
+  // VIEWER is the free tier and stays unconditionally allowed. Any other
+  // role requires a subscription that grants access — ACTIVE, TRIALING,
+  // or CANCELED (cancelled-but-period-not-yet-elapsed). FREE, EXPIRED,
+  // and PAST_DUE are rejected. We always allow re-picking the same role
+  // (idempotent no-op) since that's just a UI refresh, not an upgrade.
   const isSameRole = current.role === role;
+  if (
+    role !== UserRole.VIEWER &&
+    !isSameRole &&
+    !statusGrantsAccess(current.subscriptionStatus)
+  ) {
+    return NextResponse.json(
+      {
+        error:
+          "Pick a subscription before claiming a verified role. Visit /pricing to start your free trial.",
+        code: "subscription_required",
+      },
+      { status: 402 }
+    );
+  }
 
   // Only reset verification if the role ACTUALLY changes. Same-role
   // re-pick is a no-op for verification — VERIFIED stays VERIFIED.

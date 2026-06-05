@@ -37,6 +37,14 @@ export const AUDIT_ACTIONS = {
   USER_MARKED_ALUMNI: "user.marked_alumni",
   USER_RESTORED_CURRENT: "user.restored_current",
   USER_LIFECYCLE_EDITED: "user.lifecycle_edited",
+  // User-initiated role-change requests. SUBMITTED is the user creating
+  // the row; APPROVED / REJECTED are admin queue actions. Kept distinct
+  // from VERIFICATION_APPROVED because the approve path flips
+  // User.role + resets verificationStatus — a different change surface
+  // even though the same `canApproveVerifications` permission gates it.
+  ROLE_CHANGE_REQUESTED: "role_change.requested",
+  ROLE_CHANGE_APPROVED:  "role_change.approved",
+  ROLE_CHANGE_REJECTED:  "role_change.rejected",
   IMPORT_RUN: "import.run",
   // Email pipeline — every send writes one of these so we can audit
   // notification volume and chase silent failures.

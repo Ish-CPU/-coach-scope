@@ -4,6 +4,7 @@ import { getSession } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { ManageSubscription } from "@/components/account/ManageSubscription";
 import { MyConnectionsCard } from "@/components/dashboard/MyConnectionsCard";
+import { RoleChangeCard } from "@/components/account/RoleChangeCard";
 import { viewFromSubscription } from "@/lib/subscription";
 
 export const dynamic = "force-dynamic";
@@ -57,6 +58,20 @@ export default async function AccountSettingsPage() {
           createdAtIso: h.createdAt.toISOString(),
         }))}
       />
+
+      {/* Role-change request flow. Sits above the connections card
+          because changing role can invalidate existing connections
+          (e.g. an alumni shouldn't have an active CURRENT_ATHLETE
+          connection on a roster). Card hides itself for admin accounts;
+          locks the form when the user has no active sub or already has
+          a pending request. */}
+      <div className="mt-8">
+        <RoleChangeCard
+          userId={user.id}
+          currentRole={user.role}
+          subscriptionStatus={user.subscriptionStatus}
+        />
+      </div>
 
       {/* Compact read-only connections summary. Same component as the
           dashboard card, with `compact` + a smaller cap so it acts as a
