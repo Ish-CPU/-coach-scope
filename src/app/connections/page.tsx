@@ -9,6 +9,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import { ConnectionForm } from "@/components/connections/ConnectionForm";
 import { StudentConnectionForm } from "@/components/connections/StudentConnectionForm";
+import { GetStartedStepper } from "@/components/onboarding/GetStartedStepper";
 import {
   AthleteConnectionStatus,
   AthleteConnectionType,
@@ -108,6 +109,10 @@ export default async function ConnectionsPage() {
   return (
     <div className="container-page py-10">
       <div className="mx-auto max-w-3xl">
+        {/* Stepper auto-hides for admin/viewer/parent/recruit or when every
+            step is done. For athletes/students it shows the 3-step bar
+            with "connect" as the current step. */}
+        <GetStartedStepper userId={session.user.id} currentStepKey="connect" />
         <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">My connections</h1>
         <p className="mt-2 text-sm text-slate-600">
           Connections are how MyUniversityVerified enforces "you can only

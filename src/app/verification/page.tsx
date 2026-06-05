@@ -9,6 +9,7 @@ import { EmailCodeVerificationForm } from "@/components/verification/EmailCodeVe
 import { StudentIdUploadForm } from "@/components/verification/StudentIdUploadForm";
 import { RecruitVerificationForm } from "@/components/verification/RecruitVerificationForm";
 import { RecruitUpgradeForm } from "@/components/verification/RecruitUpgradeForm";
+import { GetStartedStepper } from "@/components/onboarding/GetStartedStepper";
 import { UserRole } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -45,6 +46,8 @@ export default async function VerificationPage() {
   return (
     <div className="container-page py-10">
       <div className="mx-auto max-w-2xl">
+        {/* Stepper auto-hides for admin/viewer or when every step is done. */}
+        <GetStartedStepper userId={user.id} currentStepKey="verify" />
         <h1 className="text-2xl font-bold">Verify your role</h1>
         <p className="mt-1 text-sm text-slate-600">
           What we ask for depends on your role. Verification keeps reviews honest by ensuring

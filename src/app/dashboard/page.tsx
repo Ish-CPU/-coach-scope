@@ -11,6 +11,7 @@ import { Badge, ROLE_DESCRIPTIONS } from "@/components/Badge";
 import { UpgradePrompt } from "@/components/UpgradePrompt";
 import { ManageBillingButton } from "@/components/ManageBillingButton";
 import { MyConnectionsCard } from "@/components/dashboard/MyConnectionsCard";
+import { ResumeSetupCard } from "@/components/dashboard/ResumeSetupCard";
 import { GROUP_TYPE_LABELS } from "@/lib/groups";
 import { UserRole, VerificationStatus } from "@prisma/client";
 import { isUserAlumni, lifecycleLabel } from "@/lib/lifecycle";
@@ -93,6 +94,12 @@ export default async function DashboardPage() {
 
   return (
     <div className="container-page py-10">
+      {/* Self-hiding "finish setting up" CTA. Renders the next undone
+          step (verify → connect → first review) for paying users still
+          in their first session, returns null once they've completed
+          every step (or for admins/viewers). Placed above the welcome
+          header so it's the first thing they see on landing. */}
+      <ResumeSetupCard userId={user.id} />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">Welcome back, {user.name?.split(" ")[0] ?? "friend"}.</h1>
