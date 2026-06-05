@@ -171,6 +171,11 @@ export const INSPIRED_COLORS: Record<string, InspiredPalette> = {
   "mayville state university":        { primary: "#CC0000", secondary: "#FFFFFF", accent: "#F4D4D4" }, // MSU Comets — Red + White
   "university of jamestown":          { primary: "#F76900", secondary: "#000000", accent: "#FBD6C4" }, // Jamestown Jimmies — Orange + Black
 
+  // FCS additions — added with University rows by
+  // scripts/add-uri-st-thomas-football.ts.
+  "university of rhode island":       { primary: "#002B7F", secondary: "#75D2F0", accent: "#C4E4F2" }, // URI Rams — Keaney Navy + Powder Blue
+  "university of st. thomas":         { primary: "#5D2D7C", secondary: "#FFFFFF", accent: "#E0D2EE" }, // St. Thomas Tommies (MN) — Purple + White
+
   // Other commonly searched
   "georgetown university":            { primary: "#041E42", secondary: "#8A8D8F", accent: "#C4D2EE" }, // Hoya Blue + Gray
   "villanova university":             { primary: "#00205C", secondary: "#13B5EA", accent: "#C4D2EE" }, // Villanova Blue
