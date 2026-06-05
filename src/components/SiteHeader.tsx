@@ -41,6 +41,22 @@ export function SiteHeader() {
         <div className="flex items-center gap-2">
           {status === "loading" ? null : session?.user ? (
             <>
+              {/* Admin shortcut — only visible to staff/master admins.
+                  The /admin route group has its own layout + AdminNav,
+                  but without this link admins had to know to type
+                  /admin manually (the SiteHeader otherwise has no path
+                  into the admin area). Server-side guards still enforce
+                  permissions on every /admin/* page; this is purely a
+                  discoverability nicety. */}
+              {(role === "ADMIN" || role === "MASTER_ADMIN") && (
+                <Link
+                  href="/admin"
+                  className="rounded-md bg-slate-900 px-2.5 py-1 text-xs font-semibold text-white hover:bg-slate-800"
+                  title="Open admin dashboard"
+                >
+                  Admin
+                </Link>
+              )}
               <Link href="/dashboard" className="hidden sm:flex items-center gap-2 text-sm text-slate-700 hover:text-slate-900">
                 <span>{session.user.name ?? session.user.email}</span>
                 {role && <Badge role={role} compact />}
