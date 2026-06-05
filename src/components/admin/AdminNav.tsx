@@ -31,6 +31,13 @@ interface NavLink {
 
 const LINKS: NavLink[] = [
   { href: "/admin", label: "Dashboard" },
+  // The "who are my users" page — see /admin/(staff)/members/page.tsx.
+  // Sits next to Verifications because the two complement each other:
+  // Members shows every user (including paying customers who never
+  // submitted a verification request); Verifications acts on submitted
+  // requests only. The Members page has a "Mark verified" action for
+  // the gap case (paid but stuck).
+  { href: "/admin/members", label: "Members" },
   { href: "/admin/verifications", label: "Verifications", pendingKey: "pendingVerifications" },
   { href: "/admin/connections", label: "Connections" },
   { href: "/admin/requests", label: "Program Requests", pendingKey: "pendingProgramRequests" },
