@@ -334,6 +334,36 @@ enum RequestStatus {
   NEEDS_REVIEW
 }
 
+// DMCA notice intake — two distinct flows that share an admin queue
+// and an audit trail:
+//   - TAKEDOWN       — a rightsholder reports infringing content
+//   - COUNTER_NOTICE — a user whose content was removed disputes the takedown
+// Stored together because admins triage them as one queue and the
+// counter-notice always references an existing takedown via parentNoticeId.
+enum DmcaNoticeKind {
+  TAKEDOWN
+  COUNTER_NOTICE
+}
+
+// Lifecycle states for a DmcaNotice. The state machine is intentionally
+// linear-ish: PENDING → (CONTENT_REMOVED | REJECTED) for takedowns;
+// CONTENT_REMOVED → (COUNTER_RECEIVED → CONTENT_RESTORED) when a user
+// successfully counter-notices.
+//
+// The 10-14-day waiting period between COUNTER_RECEIVED and
+// CONTENT_RESTORED is required by 17 U.S.C. § 512(g): we must give the
+// original rightsholder time to file a lawsuit before we put content
+// back. The admin queue surfaces the eligible-to-restore date; admins
+// manually flip the state once the window closes (we don't auto-restore
+// because some restorations require human judgment).
+enum DmcaNoticeStatus {
+  PENDING // Just submitted, awaiting admin review
+  CONTENT_REMOVED // Takedown valid → we removed the content
+  COUNTER_RECEIVED // User counter-noticed; original sender has ~10-14 days to sue
+  CONTENT_RESTORED // Counter-notice period elapsed without legal action; content restored
+  REJECTED // Notice invalid / not actionable
+}
+
 // Audience-based group segmentation per spec.
 // Two generations of group taxonomy live side by side, intentionally:
 //   - Audience types (ATHLETE_GROUP / STUDENT_GROUP / PARENT_GROUP) — the
@@ -1818,4 +1848,106 @@ model RoleChangeRequest {
   // User-side history page reads "all my requests, newest first" — also
   // used to enforce the "no double-pending" rule.
   @@index([userId, status])
+}
+
+// ---------------------------------------------------------------------------
+// DmcaNotice — takedown + counter-notice intake (public, no signin required)
+// ---------------------------------------------------------------------------
+//
+// Schema mirrors 17 U.S.C. § 512(c)(3) for takedowns and § 512(g) for
+// counter-notices. Every field that's statutorily required has a
+// non-nullable column OR a boolean-attestation column, and the API
+// validates that all required fields are present per kind before
+// accepting the submission. An incomplete notice is legally invalid
+// and we refuse to log it as a real notice — keeps the queue clean +
+// our compliance honest.
+//
+// The form lives at /dmca (public). Submissions land here, fire an
+// email to admin recipients (reports category), and surface in
+// /admin/dmca for triage. Admin actions update `status` + write to
+// `adminNote` and `actionTaken`; both fields are intentionally free
+// text because the right disposition varies wildly per notice
+// (removed a single review, removed an image upload, rejected because
+// the URL wasn't on our site, etc.).
+//
+// PII handling: this table holds full names + addresses + phone
+// numbers. Visible only to admins. Never exposed in public APIs.
+model DmcaNotice {
+  id   String         @id @default(cuid())
+  kind DmcaNoticeKind
+
+  // Reporter / counter-noticer identity. Required regardless of kind —
+  // anonymous DMCA notices are not valid under federal law.
+  fullName String
+  email    String
+  phone    String?
+  address  String  @db.Text
+
+  // Typed signature (full legal name) — satisfies § 512(c)(3)(A)(i)
+  // "physical or electronic signature." The system records IP +
+  // user-agent on the row metadata so we have a paper trail of where
+  // it came from.
+  signature          String
+  submitterIp        String?
+  submitterUserAgent String?
+
+  // ----- TAKEDOWN fields (kind = TAKEDOWN) -----
+  // Description of the copyrighted work claimed to be infringed.
+  // § 512(c)(3)(A)(ii). Free text — could be "professional photo of
+  // Coach X taken 2023", a registered work title, etc.
+  copyrightedWork String? @db.Text
+  // URL on our site where the infringing material appears.
+  // § 512(c)(3)(A)(iii). Free text; admins use it to find the row.
+  infringingUrl   String?
+
+  // ----- COUNTER-NOTICE fields (kind = COUNTER_NOTICE) -----
+  // What was removed and where. § 512(g)(3)(B).
+  removedContentDescription String? @db.Text
+  // FK back to the takedown this counter-notices. Optional because
+  // sometimes the user files a counter-notice without knowing the
+  // original notice ID — admin matches them up by content URL.
+  parentNoticeId            String?
+
+  // ----- Sworn statements (all booleans must be `true` to submit) -----
+  // For TAKEDOWN:
+  //   goodFaithStatement  — "I have a good-faith belief that use is not
+  //                          authorized." § 512(c)(3)(A)(v)
+  //   perjuryStatement    — "Under penalty of perjury, the info is accurate
+  //                          and I am authorized to act for the owner."
+  //                          § 512(c)(3)(A)(vi)
+  // For COUNTER_NOTICE:
+  //   perjuryStatement    — "Under penalty of perjury, I have a good-faith
+  //                          belief that the material was removed by mistake
+  //                          or misidentification." § 512(g)(3)(C)
+  //   consentToJurisdiction — Federal district court of submitter's
+  //                          address. § 512(g)(3)(D)
+  //   acceptServiceOfProcess — From the original complainant.
+  //                          § 512(g)(3)(D)
+  goodFaithStatement     Boolean @default(false)
+  perjuryStatement       Boolean @default(false)
+  consentToJurisdiction  Boolean @default(false)
+  acceptServiceOfProcess Boolean @default(false)
+
+  // ----- Admin disposition -----
+  status                     DmcaNoticeStatus @default(PENDING)
+  // Human-readable note from the reviewing admin. Surfaced to the
+  // submitter in the decision email when it goes out.
+  adminNote                  String?          @db.Text
+  // Internal note: what specifically was done about the content
+  // ("removed review abc123", "deleted image upload xyz"). Not emailed.
+  actionTaken                String?          @db.Text
+  resolvedAt                 DateTime?
+  resolvedById               String?
+  // For COUNTER_RECEIVED → CONTENT_RESTORED window. § 512(g)(2)(C)
+  // requires at minimum 10 business days, max 14, before we can put
+  // content back. We default to 14 calendar days for simplicity —
+  // admins see this on the queue and only restore once it passes.
+  counterEligibleToRestoreAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, createdAt])
+  @@index([kind, status])
+  @@index([parentNoticeId])
 }

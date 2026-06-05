@@ -99,6 +99,7 @@ export default async function AdminLayout({
     openReports,
     pendingReviewModeration,
     pendingRoleChanges,
+    pendingDmcaNotices,
   ] = await Promise.all([
     // Every non-terminal verification status counts toward the queue badge.
     // Approved / rejected rows aren't actionable.
@@ -125,6 +126,12 @@ export default async function AdminLayout({
     }),
     // User-submitted role-switch requests waiting on a human decision.
     prisma.roleChangeRequest.count({ where: { status: "PENDING" } }),
+    // DMCA notices needing action — counts PENDING takedowns AND
+    // COUNTER_RECEIVED notices (the admin needs to track restoration
+    // eligibility on those too).
+    prisma.dmcaNotice.count({
+      where: { status: { in: ["PENDING", "COUNTER_RECEIVED"] } },
+    }),
   ]);
 
   return (
@@ -139,6 +146,7 @@ export default async function AdminLayout({
           openReports,
           pendingReviewModeration,
           pendingRoleChanges,
+          pendingDmcaNotices,
         }}
       />
       {/* If somehow an admin lands here with no permissions at all (edge

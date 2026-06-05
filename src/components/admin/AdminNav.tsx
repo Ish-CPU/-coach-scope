@@ -20,6 +20,7 @@ interface Props {
     openReports: number;
     pendingReviewModeration: number;
     pendingRoleChanges: number;
+    pendingDmcaNotices: number;
   };
 }
 
@@ -51,6 +52,10 @@ const LINKS: NavLink[] = [
   { href: "/admin/reviews", label: "Reviews", pendingKey: "pendingReviewModeration" },
   { href: "/admin/groups", label: "Groups" },
   { href: "/admin/imports", label: "CSV Imports" },
+  // Master-only — DMCA disposition has personal-liability implications,
+  // so we don't surface this to staff admins by default. The action
+  // endpoint independently enforces master-only.
+  { href: "/admin/dmca", label: "DMCA", pendingKey: "pendingDmcaNotices", masterOnly: true },
   // Master-only — admin team & owner settings (recovery emails, etc.)
   { href: "/admin/team", label: "Team", masterOnly: true },
   { href: "/admin/settings", label: "Settings", masterOnly: true },

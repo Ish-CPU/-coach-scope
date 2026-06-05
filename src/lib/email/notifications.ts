@@ -396,6 +396,58 @@ export function sendProgramRequestDecisionEmail(
 }
 
 // ---------------------------------------------------------------------------
+// DMCA notice received (sent TO admins)
+// ---------------------------------------------------------------------------
+
+export interface DmcaNoticeReceivedInput {
+  noticeId: string;
+  kind: "TAKEDOWN" | "COUNTER_NOTICE";
+  submitterName: string;
+  submitterEmail: string;
+  /** Truncated to a short preview — full text lives in the admin queue. */
+  summary: string;
+}
+
+/**
+ * Sent to admin reviewers when a new DMCA notice (takedown or
+ * counter-notice) lands. DMCA has a tight statutory response window
+ * — the admin needs to know fast. Master admin always receives this
+ * because DMCA failures are a personal-liability event for them
+ * specifically.
+ */
+export function sendDmcaNoticeEmail(
+  input: DmcaNoticeReceivedInput
+): Promise<void> {
+  const base = publicBaseUrl();
+  const kindLabel =
+    input.kind === "TAKEDOWN" ? "DMCA Takedown Notice" : "DMCA Counter-Notice";
+  return send({
+    category: "reports",
+    subject: `${kindLabel} received from ${input.submitterName}`,
+    targetType: "DmcaNotice",
+    targetId: input.noticeId,
+    layout: {
+      title: `New ${kindLabel}`,
+      preheader: `Submitter: ${input.submitterName} · ${input.submitterEmail}`,
+      intro:
+        input.kind === "TAKEDOWN"
+          ? "A rightsholder has filed a DMCA takedown notice. Federal safe harbor depends on you acting promptly (typically 24-48 hours). Open the queue and review the notice."
+          : "A user is disputing a takedown. The statutory waiting period before content can be restored is 10-14 days, during which the original rightsholder may file a lawsuit. Open the queue to review.",
+      meta: [
+        { label: "Notice ID", value: input.noticeId },
+        { label: "Type", value: kindLabel },
+        { label: "Submitter", value: input.submitterName },
+        { label: "Email", value: input.submitterEmail },
+        { label: "Preview", value: input.summary },
+      ],
+      actions: [
+        { label: "Open DMCA Queue", href: `${base}/admin/dmca`, variant: "primary" },
+      ],
+    },
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Account deletion confirmation (sent TO the user)
 // ---------------------------------------------------------------------------
 

@@ -42,6 +42,10 @@ export function SiteFooter() {
             <li><Link href="/guidelines">Community guidelines</Link></li>
             <li><Link href="/legal/terms">Terms of Service</Link></li>
             <li><Link href="/legal/privacy">Privacy Policy</Link></li>
+            {/* DMCA — required link for safe-harbor compliance. Rightsholders
+                use this page to file takedowns; users whose content was
+                removed use it to file counter-notices. */}
+            <li><Link href="/dmca">DMCA Notices</Link></li>
           </ul>
         </div>
       </div>

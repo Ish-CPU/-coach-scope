@@ -55,6 +55,14 @@ export const AUDIT_ACTIONS = {
   // decided + the note they wrote (which is also emailed to the requester).
   PROGRAM_REQUEST_APPROVED: "program_request.approved",
   PROGRAM_REQUEST_REJECTED: "program_request.rejected",
+  // DMCA notice lifecycle. Submission is public so SUBMITTED has no
+  // actor; admin actions (REMOVED, RESTORED, REJECTED) carry the
+  // admin's id. Metadata always carries the notice id + kind so the
+  // audit trail can reconstruct the full takedown timeline.
+  DMCA_NOTICE_SUBMITTED: "dmca.submitted",
+  DMCA_CONTENT_REMOVED:  "dmca.content_removed",
+  DMCA_CONTENT_RESTORED: "dmca.content_restored",
+  DMCA_NOTICE_REJECTED:  "dmca.rejected",
   IMPORT_RUN: "import.run",
   // Email pipeline — every send writes one of these so we can audit
   // notification volume and chase silent failures.
