@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { ManageSubscription } from "@/components/account/ManageSubscription";
 import { MyConnectionsCard } from "@/components/dashboard/MyConnectionsCard";
 import { RoleChangeCard } from "@/components/account/RoleChangeCard";
+import { DeleteAccountSection } from "@/components/account/DeleteAccountSection";
 import { viewFromSubscription } from "@/lib/subscription";
 
 export const dynamic = "force-dynamic";
@@ -87,6 +88,16 @@ export default async function AccountSettingsPage() {
           limit={3}
         />
       </div>
+
+      {/* Destructive zone. Self-hides for admin / master-admin roles —
+          they go through /admin/team for lifecycle changes. The API
+          enforces the same gate so this is purely UX. Past-due users
+          see a warning + disabled button until they settle; the API
+          re-checks live Stripe state as the source of truth. */}
+      <DeleteAccountSection
+        userRole={user.role}
+        subscriptionStatus={user.subscriptionStatus}
+      />
 
       <nav className="mt-10 text-xs text-slate-500">
         <Link href="/dashboard" className="hover:underline">

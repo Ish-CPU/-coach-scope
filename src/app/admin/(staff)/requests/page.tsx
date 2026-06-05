@@ -159,7 +159,16 @@ export default async function AdminRequestsPage(props: PageProps) {
                     {r.createdAt.toISOString().slice(0, 10)}
                   </td>
                   <td className="py-3 text-right">
-                    <RequestActionButtons id={r.id} status={r.status} />
+                    <RequestActionButtons
+                      id={r.id}
+                      status={r.status}
+                      hasRequesterEmail={!!r.requesterEmail}
+                    />
+                    {r.adminNote && (r.status === "APPROVED" || r.status === "REJECTED") && (
+                      <p className="mt-2 max-w-xs rounded-md bg-slate-50 px-2 py-1 text-left text-[11px] text-slate-600">
+                        <span className="font-semibold">Note sent:</span> {r.adminNote}
+                      </p>
+                    )}
                   </td>
                 </tr>
               ))}

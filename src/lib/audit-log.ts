@@ -45,6 +45,16 @@ export const AUDIT_ACTIONS = {
   ROLE_CHANGE_REQUESTED: "role_change.requested",
   ROLE_CHANGE_APPROVED:  "role_change.approved",
   ROLE_CHANGE_REJECTED:  "role_change.rejected",
+  // User self-serve account deletion. Actor is the user themselves;
+  // metadata carries `stripeCanceled`, `subscriptionStatus`,
+  // `prevEmailHash` (sha256 of original email for fraud cross-ref
+  // without storing plaintext), and `reason` (if user provided one).
+  ACCOUNT_SELF_DELETED: "account.self_deleted",
+  // Program request lifecycle. Submission is anonymous-allowed so
+  // SUBMITTED has no actor; APPROVED / REJECTED carry the admin who
+  // decided + the note they wrote (which is also emailed to the requester).
+  PROGRAM_REQUEST_APPROVED: "program_request.approved",
+  PROGRAM_REQUEST_REJECTED: "program_request.rejected",
   IMPORT_RUN: "import.run",
   // Email pipeline — every send writes one of these so we can audit
   // notification volume and chase silent failures.

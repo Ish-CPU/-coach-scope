@@ -90,6 +90,17 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
+        // Block sign-in for self-deleted accounts. The /api/account/delete
+        // endpoint rotates the email to `deleted-<id>@removed.local` and
+        // bumps sessionsRevokedAt, so this branch normally never matches
+        // (no one can submit the rotated address with a guessable
+        // password). It's kept as a defense-in-depth check so a stolen
+        // pre-deletion credential replayed within the same JWT TTL is
+        // also rejected.
+        if (user.deletedAt) {
+          return null;
+        }
+
         // Block any non-ACTIVE/INVITED admin status at sign-in. Soft-archived
         // accounts (DISABLED / SUSPENDED / REMOVED) preserve history but
         // cannot enter the portal. INVITED is allowed through so the

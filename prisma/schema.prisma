@@ -602,6 +602,30 @@ model User {
   // Notifications this user triggered (actor — they upvoted, replied, etc.).
   notificationsSent Notification[] @relation("NotificationActor")
 
+  // --- Account deletion (self-serve) ---
+  // Set when a user deletes their own account via /api/account/delete.
+  // The row is preserved (not hard-deleted) so reviews / comments / votes
+  // they authored keep their FK targets and the display layer can render
+  // them as "Former member" instead of orphaning the content.
+  //
+  // The delete endpoint atomically:
+  //   - cancels Stripe subscription immediately (no grace, no further billing)
+  //   - rotates `email` to `deleted-<id>@removed.local` so the original
+  //     address is free for a fresh signup
+  //   - scrubs PII (name, image, bio, passwordHash, workEmail, recoveryEmails, etc.)
+  //   - bumps `sessionsRevokedAt` so any in-flight JWT dies on the next request
+  //   - sets `deletedAt = now()` here, which `auth.ts` reads to block
+  //     subsequent sign-ins even if a stolen credential is replayed
+  //   - deletes connections, favorites, notifications, group memberships
+  //   - KEEPS reviews, comments, helpful votes, subscription events,
+  //     verification requests, audit log entries — needed for content
+  //     integrity, financial records, and fraud history
+  //
+  // `deletionReason` is the optional free-text input from the
+  // confirmation modal — internal product signal, never shown publicly.
+  deletedAt      DateTime?
+  deletionReason String?   @db.Text
+
   @@index([role])
   @@index([subscriptionStatus])
   @@index([verificationStatus])
@@ -1711,6 +1735,18 @@ model ProgramRequest {
   status        RequestStatus @default(PENDING)
   // Manual ranking knob admins can use to surface high-signal requests.
   priorityScore Int           @default(0)
+
+  // Admin decision metadata. Populated when an admin moves the request
+  // to APPROVED or REJECTED via /admin/requests. `adminNote` is the
+  // free-text reason the admin types — surfaced to the requester via
+  // the decision email (sendProgramRequestDecisionEmail in
+  // src/lib/email/notifications.ts) so they know WHY a request was
+  // accepted ("added — coach roster live") or denied ("school
+  // out-of-scope; we only cover NCAA/NAIA"). `decidedAt` + `decidedById`
+  // record when and who, for the audit trail.
+  adminNote   String?   @db.Text
+  decidedAt   DateTime?
+  decidedById String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

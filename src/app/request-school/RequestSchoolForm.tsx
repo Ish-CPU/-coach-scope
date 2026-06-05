@@ -182,24 +182,30 @@ export function RequestSchoolForm({ sports, divisions, initialSchoolName }: Prop
             ))}
           </select>
         </Field>
-        <Field label="Your email (optional)">
+        <Field label="Your email (recommended)">
           <input
             name="requesterEmail"
             type="email"
             maxLength={200}
             className="input"
-            placeholder="So we can let you know it's live"
+            placeholder="you@example.com"
           />
+          <p className="mt-1 text-[11px] text-slate-500">
+            We&rsquo;ll email you when an admin reviews this request —
+            whether it&rsquo;s approved (you&rsquo;ll know when to start
+            posting) or denied (you&rsquo;ll know why so you can submit
+            a stronger one).
+          </p>
         </Field>
       </div>
 
-      <Field label="Notes">
+      <Field label="Notes / proof links">
         <textarea
           name="notes"
           rows={4}
           maxLength={2000}
           className="input"
-          placeholder="Anything that helps us add this faster — head coach name, a roster page link, etc."
+          placeholder="Paste real links that help admins verify and add this faster — official athletics page, roster URL, head coach name, conference page, etc. The more verifiable evidence you include, the faster we can approve."
         />
       </Field>
 

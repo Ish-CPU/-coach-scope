@@ -321,6 +321,148 @@ export function sendProgramRequestEmail(
 }
 
 // ---------------------------------------------------------------------------
+// Program request DECISION (sent TO the requester, not admins)
+// ---------------------------------------------------------------------------
+
+export interface ProgramRequestDecisionInput {
+  requestId: string;
+  toEmail: string;
+  schoolName: string;
+  sport: string;
+  decision: "APPROVED" | "REJECTED";
+  /** Optional free-text note the admin wrote on the decision. Surfaced
+   *  verbatim — admins should phrase it like they're writing to the user. */
+  adminNote?: string | null;
+}
+
+/**
+ * Sent to a requester after an admin approves or rejects their
+ * /request-school submission. Bypasses the admin-recipients list — `to`
+ * is the requester's own email. Returns silently if the request was
+ * filed anonymously (no `toEmail`); the admin's decision still
+ * persists, the user just doesn't hear back. The submit form copy
+ * tells requesters this up front.
+ */
+export function sendProgramRequestDecisionEmail(
+  input: ProgramRequestDecisionInput
+): Promise<void> {
+  // Skip anonymous-submission case rather than throwing — the admin
+  // action endpoint always calls this; we just no-op when there's
+  // nobody to email.
+  if (!input.toEmail) {
+    return Promise.resolve();
+  }
+  const base = publicBaseUrl();
+  const approved = input.decision === "APPROVED";
+  const subject = approved
+    ? `Approved: we've added ${input.schoolName} (${input.sport})`
+    : `Update on your request: ${input.schoolName} (${input.sport})`;
+  const intro = approved
+    ? `Thanks for the heads-up — we've reviewed your request and added it to MyUniversityVerified. You can now find ${input.schoolName} (${input.sport}) on the site and start posting reviews.`
+    : `Thanks for submitting a request. After reviewing, we weren't able to add this one. Details below.`;
+
+  const meta = [
+    { label: "School", value: input.schoolName },
+    { label: "Sport", value: input.sport },
+    { label: "Decision", value: approved ? "Approved & added" : "Not added" },
+  ];
+  if (input.adminNote) {
+    meta.push({ label: "Admin note", value: input.adminNote });
+  }
+
+  return send({
+    category: "program_requests",
+    to: [input.toEmail],
+    subject,
+    targetType: "ProgramRequest",
+    targetId: input.requestId,
+    layout: {
+      title: approved
+        ? `Your school request is live`
+        : `Your school request couldn't be added`,
+      preheader: `${input.schoolName} · ${input.sport}`,
+      intro,
+      meta,
+      actions: approved
+        ? [
+            { label: "Search the site", href: `${base}/search`, variant: "primary" },
+            { label: "Request another school", href: `${base}/request-school` },
+          ]
+        : [
+            { label: "Submit another request", href: `${base}/request-school`, variant: "primary" },
+          ],
+    },
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Account deletion confirmation (sent TO the user)
+// ---------------------------------------------------------------------------
+
+export interface AccountDeletedInput {
+  toEmail: string;
+  userName: string | null;
+  stripeCanceled: boolean;
+}
+
+/**
+ * Sent to a user immediately after they delete their account via
+ * /api/account/delete. Confirms the actions taken so they have a
+ * paper trail in their inbox. `toEmail` MUST be the user's ORIGINAL
+ * email, captured before the deletion endpoint rotates it to
+ * `deleted-<id>@removed.local` (the post-rotation address goes
+ * nowhere).
+ */
+export function sendAccountDeletedEmail(
+  input: AccountDeletedInput
+): Promise<void> {
+  if (!input.toEmail) return Promise.resolve();
+  const base = publicBaseUrl();
+  const hello = input.userName ? `${input.userName},` : "Hi,";
+  return send({
+    category: "security",
+    to: [input.toEmail],
+    subject: `Your MyUniversityVerified account has been deleted`,
+    targetType: "User",
+    layout: {
+      title: `Account deleted`,
+      preheader: `Confirmation that your account was removed`,
+      intro: `${hello} this confirms that your MyUniversityVerified account was deleted at your request. Below is what happened.`,
+      meta: [
+        {
+          label: "Subscription",
+          value: input.stripeCanceled
+            ? "Cancelled immediately — no further charges"
+            : "No active subscription to cancel",
+        },
+        {
+          label: "Your content",
+          value:
+            "Reviews, comments, and votes you posted remain on the site but are now shown as 'Former member' instead of your name.",
+        },
+        {
+          label: "Personal data",
+          value:
+            "Name, email, password, profile image, bio, and connections have been removed from our database.",
+        },
+        {
+          label: "Records we keep",
+          value:
+            "We retain subscription payment history and verification submissions for legal, financial, and fraud-prevention purposes.",
+        },
+      ],
+      actions: [
+        {
+          label: "Sign up again",
+          href: `${base}/pricing`,
+          variant: "primary",
+        },
+      ],
+    },
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Admin lifecycle (security category — master always gets these)
 // ---------------------------------------------------------------------------
 

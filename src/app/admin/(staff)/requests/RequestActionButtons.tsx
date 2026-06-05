@@ -9,19 +9,38 @@ type Action = "APPROVED" | "REJECTED" | "NEEDS_REVIEW" | "PENDING";
 interface Props {
   id: string;
   status: RequestStatus;
+  /** If true, this request has an email on file and the requester will
+   *  receive a notification on approve/reject. Drives the prompt copy. */
+  hasRequesterEmail: boolean;
 }
 
-export function RequestActionButtons({ id, status }: Props) {
+export function RequestActionButtons({ id, status, hasRequesterEmail }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
   async function setStatus(next: Action) {
     setError(null);
+    // For terminal decisions (approve/reject) prompt for an admin note.
+    // The server emails it to the requester verbatim, so the prompt
+    // surfaces that fact when there's an email on file. Cancelling the
+    // prompt cancels the action; an empty string sends with no note.
+    let adminNote: string | undefined;
+    if (next === "APPROVED" || next === "REJECTED") {
+      const verb = next === "APPROVED" ? "approve" : "reject";
+      const audience = hasRequesterEmail
+        ? "The requester will get an email with this note included."
+        : "No email on file — note is for internal record only.";
+      const raw = prompt(
+        `Add an optional note about why you ${verb} this request.\n\n${audience}\n\n(Leave blank to skip, click Cancel to abort.)`
+      );
+      if (raw === null) return; // admin cancelled — abort the whole thing
+      adminNote = raw.trim() || undefined;
+    }
     const res = await fetch(`/api/admin/requests/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: next }),
+      body: JSON.stringify({ status: next, adminNote }),
     });
     if (!res.ok) {
       const j = await res.json().catch(() => ({}));

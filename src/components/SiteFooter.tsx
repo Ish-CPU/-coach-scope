@@ -27,6 +27,10 @@ export function SiteFooter() {
             <li><Link href="/search?kind=university">Universities</Link></li>
             <li><Link href="/search?kind=dorm">Dorms</Link></li>
             <li><Link href="/groups">Verified Groups</Link></li>
+            {/* "Request a school" — anyone can submit, with or without an
+                account. Admins review in /admin/requests and an email goes
+                back to the requester on approve/reject if they left one. */}
+            <li><Link href="/request-school">Request a school</Link></li>
           </ul>
         </div>
         <div>
