@@ -152,16 +152,21 @@ function TakedownForm({
     setForm((f) => ({ ...f, [k]: v }));
   }
 
-  const canSubmit =
-    form.fullName.trim().length >= 2 &&
-    form.email.trim().length > 0 &&
-    form.address.trim().length >= 10 &&
-    form.copyrightedWork.trim().length >= 10 &&
-    form.infringingUrl.trim().length > 0 &&
-    form.signature.trim().length >= 2 &&
-    form.goodFaithStatement &&
-    form.perjuryStatement &&
-    !busy;
+  // Per-field validation messages. Computed every render so the
+  // submit-block hint always reflects current input. Previously the
+  // submit button just stayed disabled with no explanation — users
+  // had no way to tell which field was failing.
+  const missing: string[] = [];
+  if (form.fullName.trim().length < 2) missing.push("Full legal name");
+  if (form.email.trim().length === 0) missing.push("Email");
+  if (form.address.trim().length < 10) missing.push("Mailing address (10+ chars)");
+  if (form.copyrightedWork.trim().length < 10) missing.push("Copyrighted work (10+ chars)");
+  if (form.infringingUrl.trim().length === 0) missing.push("Infringing URL");
+  if (form.signature.trim().length < 2) missing.push("Signature");
+  if (!form.goodFaithStatement) missing.push("Good-faith statement checkbox");
+  if (!form.perjuryStatement) missing.push("Penalty-of-perjury checkbox");
+
+  const canSubmit = missing.length === 0 && !busy;
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -235,7 +240,12 @@ function TakedownForm({
         />
       </Section>
 
-      <SubmitRow disabled={!canSubmit} busy={busy} label="Submit Takedown Notice" />
+      <SubmitRow
+        disabled={!canSubmit}
+        busy={busy}
+        label="Submit Takedown Notice"
+        missing={missing}
+      />
     </form>
   );
 }
@@ -266,16 +276,18 @@ function CounterForm({
     setForm((f) => ({ ...f, [k]: v }));
   }
 
-  const canSubmit =
-    form.fullName.trim().length >= 2 &&
-    form.email.trim().length > 0 &&
-    form.address.trim().length >= 10 &&
-    form.removedContentDescription.trim().length >= 10 &&
-    form.signature.trim().length >= 2 &&
-    form.perjuryStatement &&
-    form.consentToJurisdiction &&
-    form.acceptServiceOfProcess &&
-    !busy;
+  const missing: string[] = [];
+  if (form.fullName.trim().length < 2) missing.push("Full legal name");
+  if (form.email.trim().length === 0) missing.push("Email");
+  if (form.address.trim().length < 10) missing.push("Mailing address (10+ chars)");
+  if (form.removedContentDescription.trim().length < 10)
+    missing.push("Removed content description (10+ chars)");
+  if (form.signature.trim().length < 2) missing.push("Signature");
+  if (!form.perjuryStatement) missing.push("Penalty-of-perjury checkbox");
+  if (!form.consentToJurisdiction) missing.push("Consent to jurisdiction checkbox");
+  if (!form.acceptServiceOfProcess) missing.push("Accept service of process checkbox");
+
+  const canSubmit = missing.length === 0 && !busy;
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -354,7 +366,12 @@ function CounterForm({
         />
       </Section>
 
-      <SubmitRow disabled={!canSubmit} busy={busy} label="Submit Counter-Notice" />
+      <SubmitRow
+        disabled={!canSubmit}
+        busy={busy}
+        label="Submit Counter-Notice"
+        missing={missing}
+      />
     </form>
   );
 }
@@ -465,13 +482,32 @@ function SubmitRow({
   disabled,
   busy,
   label,
+  missing,
 }: {
   disabled: boolean;
   busy: boolean;
   label: string;
+  /** List of human-readable field names that are still failing
+   *  validation. Surfaced above the button so users see exactly what's
+   *  blocking submit instead of staring at a dead button. */
+  missing: string[];
 }) {
+  // Only show the hint when the button is actually disabled due to
+  // missing fields — not while we're in flight (busy). Avoids a flash
+  // of "missing X" copy right when the request is mid-submit.
+  const showHint = disabled && !busy && missing.length > 0;
   return (
-    <div className="flex justify-end">
+    <div className="flex flex-col items-end gap-2">
+      {showHint && (
+        <div className="w-full rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+          <p className="font-semibold">Fill in or check the following to submit:</p>
+          <ul className="mt-1 list-disc pl-5">
+            {missing.map((m) => (
+              <li key={m}>{m}</li>
+            ))}
+          </ul>
+        </div>
+      )}
       <button
         type="submit"
         disabled={disabled}
