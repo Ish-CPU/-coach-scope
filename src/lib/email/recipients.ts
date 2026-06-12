@@ -56,20 +56,38 @@ export async function getAdminNotificationRecipients(
     },
     select: {
       email: true,
+      // workEmail is a separate notification destination — see the
+      // resolveRecipientEmail comment below. Used to route admin alerts
+      // to a business address (e.g. customersupport@yourdomain.com)
+      // while keeping the personal address as the sign-in credential.
+      workEmail: true,
       role: true,
       notificationPreferences: true,
     },
   });
 
+  // For each admin, prefer workEmail when set; otherwise fall back to
+  // their primary login email. Lets a master admin keep ibjratemyu@gmail.com
+  // as their sign-in but route every admin alert to a separate inbox
+  // like customersupport@myuniversityverified.com — without losing
+  // the ability to sign in with the personal address.
+  function resolveRecipientEmail(a: { email: string; workEmail: string | null }): string | null {
+    const trimmedWork = a.workEmail?.trim();
+    if (trimmedWork) return trimmedWork.toLowerCase();
+    if (a.email) return a.email.toLowerCase();
+    return null;
+  }
+
   const out = new Set<string>();
   for (const a of admins) {
-    if (!a.email) continue;
+    const target = resolveRecipientEmail(a);
+    if (!target) continue;
     if (a.role === UserRole.MASTER_ADMIN) {
-      out.add(a.email.toLowerCase());
+      out.add(target);
       continue;
     }
     if (isOptedIn(a.notificationPreferences, category)) {
-      out.add(a.email.toLowerCase());
+      out.add(target);
     }
   }
 
